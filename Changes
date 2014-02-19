@@ -1,0 +1,850 @@
+LIST OF CHANGES
+
+release 48.17
+  - new version of bam_aligner_irods script which uses standard bam alignment script
+    and biobambam commands to collate/sort bam files and remove alignment info
+
+release 48.16
+  - BAM_MarkDuplicates test modifications to use TOOL_INSTALLED flag and extended mock environment
+  - sequence_BAM_Alignment, irods_run_Bam, irods_BamDeletion, extractor_fastq, bam_align and ref_maker test modifications to use TOOL_INSTALLED flag
+  - extractor_fastq sleeps to avoid pipe issues
+
+release 48.15
+  - restrict BAM and CRAM file access to study based group on iRODS
+    upload
+  - PacBio iRODS archival to include bax files
+  - simplified npg_common::roles::run::status by removing dependency
+    on npg_common::roles::test_type_of_value
+  - t/40-roles-log.t test chenged to use standard Perl modules for
+    reading a file
+  - removed unused modules: npg_common::extractor::fastq_old2new,
+    npg_common::roles::read_small_file, npg_common::VersionComparison,
+    npg_common::pod_usage, npg_common::roles::test_type_of_value
+  - removed redundant functionality - generation of fastqcheck files -
+    from the split_reads function of the npg_common::extractor::fastq
+    module 
+
+release 48.14
+  - fixed RefMaker tests RT 344747
+  - base skip on correct dev url
+  - fixed BAMMarkDuplicates tests RT 355745
+
+release 48.13
+  - fixed tests that were failing and commented out in the previous release
+  - irod-related suite of tests extended
+  - all irods-related tests can be run as non-privileged user
+  - check for yhuman files if appropriate when deciding whether the runfolder
+      is deletable
+  - check that two replication numbers are returned: new release of irods offers [1, 2] or [0, 2]
+
+release 48.12
+ - fixed bam file name used for meta data lookup
+ - fix code which decides whether to check if a bai file was loaded into iRods;
+   tests failing as the result of this fix commented out
+
+release 48.11
+ - extention to bam alignment and archival to irods to deal with data
+   where ychromosome should be split out
+ - cram generation module and tests removed since the module is not used any more
+ - irods read permissions for public retained for all stats files
+
+release 48.10
+ - set contains_human and contains_xahuman using lims object to be consistent
+    with BAM_Alignment.pm
+
+release 48.9
+ - fix to irods loader to load tag0 human split file when any (including control) plex
+   has nonconsented flag set on a study 
+
+release 48.8
+ - set irods metadata target=0 for non BAM files
+
+release 48.7
+ - fix merge error that happened in release 48.6
+
+release 48.6
+ - add cram, bamcheck, flagstat, quality and purity files to irods archiving
+
+release 48.5
+ - add RADseq adapters in data file
+ - test created for RefMaker
+ - removed the use of npg_api_run attrubute of the at::api::lims object
+
+release 48.4
+ - RefMaker creates a softlink from bowtie2 directory to the reference
+   file in the fasta directory so that the tophat does not recreate the
+   reference
+ - attributes added to npg_common::sequence::BAM_Alignment
+     1) java_xmx_flag - for specifying max memory for java, e.g. -Xmx3000m (used by all invocations of java
+          from this module)
+     2) bamcheck_flags - arbitrary flag string passed through to bamcheck invocation in npg_common::sequence::BAM_MarkDuplicate
+ - attribute added to npg_common::sequence::BAM_MarkDuplicate
+        bamcheck_flags - arbitrary flag string passed through to bamcheck invocation (allows use of, for example, "--GC-depth 5e3,4.2e9"
+          for references with an unusually high number of contigs)
+
+release 48.3
+ - reate different output files with _mk name and mass rename at end
+ - Pass different references (or no reference for phix) to bam_markduplicates
+ - Reduce bwa sam threads by 1/3 instead of 1/2 for non_consent_split
+ - Added bamcheck and scramble to the BAM_MarkDuplicates command pipe
+ - Add 'calibrate_pu' to the BamMarkDuplicate pipe
+
+release 48.0
+ - tests fixed following changes to markduplicates module
+ - some npg_common::bam_align tests run live - they did not work when mocked
+
+release 47.8
+ - amended picard version check to use the -Xmx64m flag and removed the retry loop
+ - gcn_maker.d source code moved from scripts to src
+
+release 47.7
+ - need to track failures to get picard version in the pulldown metrics autoqc check,
+     will print the raw output to the error stream
+
+release 47.6
+ - RefMaker: building bowtie2 index added
+             building eland, maq and stampy indices removed
+             /sofware dependency removed
+
+release 47.5
+ - bugfix - go back to creating .bai instead of .bam.bai
+
+release 47.4
+ - threading in sam{se,pe} stage
+ - try 3 times to get picard jar version since this occasionally fails
+
+release 47.3
+ - software location role:
+     remove redundant illumina2bam_jar_location accessor
+ - perlcritic-compliant scripts
+
+release 47.2
+ - package builds and installs with Build.PL file that is also capable
+   of installing CPAN dependencies
+ - a list of dependencies updated
+ - tests refactored to dynamically detect where individual test steps should be skipped
+   due to absence of bioinformatics tools; TOOLS_INSTALLED gloval variable overwrites this
+ - tests refactored to ensure they run on Ubuntu precise host where no bioinformatics
+   tools are available
+ - bug fix in irods bam realign script so that the user does not have to create qc
+   directory, whose presence was implicitly assumed
+ - new README file which includes installation instructions and lists dependencies
+
+release 47.1
+ - software_location role:
+     current_version method returns undef if failed to get version
+     code in resolved_paths simplified
+     repetetive code for build methods removed
+ - npg_common::bam_align caches the version of alignes used instead of evaluating it multiple times
+   if no version retrieved, 'not known' is used
+ - npg_common::sequence::BAM_MarkDuplicate - bug fix in getting samtools version
+
+release 47.00
+ - java command is resolved to an absolute path
+
+release 46.22
+ - location of scripts that are called from modules is given relative to the bin
+ - illumina2bam role removed, illumina2bam_jar_location accessor kept to maintain
+   compatibility with the pipeline
+ - removed solexa_bin attribute in all modules and tests
+ - accessors for jars built via coersion using CLASSPATH
+ - aligners role removed, its current_version method moved to the software_location role
+   in simplified form
+ - version of picard captured as reported by jars instead of relying on the version
+   number being a part of the directory name
+
+release 46.21
+ - irods metadata updater: added a warning when failed to infer id_run from filename;
+   this file is not processed
+
+release 46.20
+ - bug fix - method that was removed from npg_common::irods::Loader was still used in npg_common::irods::BamMetaUpdater
+
+release 46.19
+ - bowtie_cmd, samtools_cmd and samtools_irods_cmd attributes from the software location role
+   use NpgCommonResolvedPathExecutable type constraint
+ - resolved paths propagated through the chain of calls
+ - npg_common::bam_align refactored to take advantage of common attributes from the software location role;
+   bowtie alignment option removed from this module
+ - npg_common::Alignment refactored to take advantage of the software location role;
+   unused methods removed
+ - unused scripts removed
+ - all scripts from the scripts directory are installed to $PREFIX/bin
+ - /software/solexa dependency removed from the shebang line and from use lib qw() statements
+ - irods commands are to be found on the path
+
+release 46.18
+ - some npg_common modules moved to npg_tracking: code refactored,
+   moved modules and their tests removed
+ - allow to pass an abs path to a tool when inferring the tools's version
+ - generic NpgCommonResolvedPathExecutable type constraint introduced
+     it tries to infer a path to executable and validates it
+ - ensure an object consuming teh software location role can be instanciated
+   even if not all paths to tools can be resolved
+ - bwa_cmd attribute of the the software_location role relies on the newly
+   defined NpgCommonResolvedPathExecutable type constraint
+ - npg_common::types module removed, its functionality integrated into the
+   software_location role, types in some modules relaxed back to what they were
+   
+release 46.17
+ - remove db_connect role and its tests
+ - remove npg_common::roles::run, npg_common::roles::run::lane,
+   npg_common::roles::run::lane::tag modules
+ - gc fraction counter script is very slow; refactored to remove binning RT#306994
+   removed explicit setting of PERL5LIB
+ - all useful modules tests run on precise-dev64 RT#306998;
+   the code refactored to remove dependency on /software in tests where possible
+   test skips added where the dependency on tools in /software was difficuilt to avoid
+ - removed dependency of npg_common::bam_align on /lustre/scratch103
+ - real cramtools jar removed from test data, test is running againsts deployed jar if
+   it's available
+
+release 46.16
+ - don't strip BAM tags br and qr (produced from 3' pulldown RNAseq pipeline)
+
+release 46.15
+ - reflect the fact that npg_common::roles::run, npg_common::roles::run::lane,
+   npg_common::roles::run::lane::tag moved to tracking 
+
+release 46.14
+ - revert reference repository to scratch109
+
+release 46.13
+ - bam file checks for run is deletable script fixed for the case of human split
+
+release 46.12
+ - more accurate resons for skipping tests for irod-related modules
+ - eliminated the double slash from a runfolder path that is derived from db stored
+   globs and runfolder name 
+   RT#301391: archive webcache link not created when NPG_WEBSERVICE_CACHE_DIR is specified
+
+release 46.11
+ - removed redundant modules and scripts dealing with fastq and srf files.
+ - extended makefile to include most of the dependencies
+ - some changes to comply with perl 8.14.2 on precise
+ - fix for RT#302819: irods_bam_loader.pl wraning message
+
+release 46.10
+ - npg_testing modules removed - they moved to npg-tracking package
+ - RT#299041: irods metadata update - do not hardcode spiked phix index
+
+release 46.9
+ - bam_align_irods - cope with new npg_qc when deleting old results
+
+release 46.8
+ - bam realignment should allow lower case custom BAM tags (optional fields)
+
+release 46.7
+ - fix bam realign script to but QC json in qc directory
+
+release 46.6
+ - amended generate_cached_fastq to base moving of fastqcheck and fastq subset files
+    on location and naming convention used by placeholder fastqcheck files created by
+    the create_empty_fastq_files step. This should now correctly name files from runs
+    with a single read and no index cycles
+
+release 46.5
+ - rt attribute for iRODS bam deletion script renamed to rt_ticket
+   to be consistent with args in npg_common::bam_align_irods
+
+release 46.4
+ - rt attribute for iRODS bam deletion script
+ - bug fix in iRODS deletion module - should put header files where bam files came from
+ - iRODS-dependent tests do not fail without access to iRODS (skips added)
+
+release 46.3
+ - emailer for cron jobs output - does not send empty e-mails
+ - sample consent withdrawn rt ticket creation - drop FROM field
+   to pick up the username automatically
+
+release 46.2
+ - RT#270112:
+     irods metadata updater: set sample_consent_withdrawn flag where necessary
+     code for cron to find new files with consent withdrawn, report them and
+     restrict permissions to them 
+
+release 46.1
+ - RT#290729: irods metadata update to skip files that are not known in lims
+   no_lims_data flag is irods should be set manually for such files
+   example: MySeq run 8541 lanes 2&3
+
+release 46.0
+ - version compatible with data-handling release 33.0 - a switch to warehouse3
+
+release 45.2
+ - npg_common::sequence::BAM_Alignment passes file names to SplitBamByChromosomes rather than an output prefix
+
+release 45.1
+ - npg_common::sequence::BAM_Alignment - when the input contains nonconcented X and autosomal human
+   add an extra step after the alignment filter to separate the target into consented (a new target)
+   and non-consented (xahuman) parts
+ - npg_common::irods::run::Bam - allow for xahuman files when archiving to irods and checking for
+   a complete set of bam files before deleting a runfolder
+
+release 45.0
+ - BAM stripper - keep tr and tq tags we generate for TraDIS transposon read data, and a3 and ah for adapter suffix info
+
+release 44.10
+ - added --preserve-read-names option for cram creation in Cram_Generation.pm
+ - removed resource specification '-R seq_green' from npg_common/irods/Loader.pm
+
+release 44.9
+ - patch to allow larger lane numbers
+
+release 44.8
+ - Allow config to propagate attr hash to DBI connection
+ - fastqcheck file interface - allow for setting file content by the caller
+
+release 44.7
+ - convert and save alignment filter stats in bam_align_irods
+ - added lookup of default human reference for human splits in Cram_Generation.pm
+
+release 44.6
+ - previous bug fix did not work correctly; this one does RT#274245.
+
+release 44.5
+ - bug fix for "bait path extraction is wrong for the current ref repository location"; using more robust approach now RT#274245
+
+release 44.4
+ - add Cram_Generation module to convert bam files to cram files
+
+release 44.3
+ - avoid multiple history record for irods meta data when some strange characters in meta values
+
+release 44.2
+ - irods bam list deletion
+
+release 44.1
+ - Changed path to reference repository to /lustre/scratch109/srpipe/..
+ - Use the REP_ROOT from the list role instead of hardcoded path to repository.
+ - new script for bam deletion irods_bam_deletion.pl
+
+release 44.0
+ - irods ebi submission meta data
+ - bug fix in markduplicates - generate bam flagstats when nothing to do
+ - make sure irods meta data updater not die when one file checking dies
+ - use sample_publishable_name in bam_align_irods for new bam header
+
+release 43.10
+ - generate alignment_filter_metrics autoqc result within a flow for bam alignment
+
+release 43.9
+ - remove any obsolete files after irods loading
+
+release 43.8
+ - add illumina2bam_location role for BAM_Alignment and BAM_MarkDuplicate to allow illumina2bam_jar_location to be passed in
+
+release 43.7
+ - modules to resolve bait location (an object and a role)
+ - st_api_util accessor removed from npg_common::sequence::reference module
+
+release 43.6
+ - add no_estimate_library_complexity for bam markduplicates and bam alignment scripts
+
+release 43.5
+ - do not die in npg_common::irods::run::Interop if files are missing
+
+release 43.4
+ - using output directory for Picard EstimateLibraryComplexity temp 
+
+release 43.3
+ - ensure spiked phix reference not returned for tag 0 plex
+ - run Picard EstimateLibraryComplexity for unaligned bam file in markduplicates wrapper script and store the results in bam_flag_stats
+
+release 43.2
+ - removed modules that moved to other svn projects
+
+release 43.0
+ - cope better with 4 read sequencing runs: improve long_info's processing of RunInfo.xml files.
+ - drop assumption that last base of indexing read is not used for index in use_bases string (long_info again)
+ - drop Catalyst::Authentication::Credential::SangerSSO as replaced by Catalyst::Authentication::Credential::SangerSSOnpg in npg-catalyst-qc
+ - added Interop module for archiving to iRODs
+
+release 42.10
+ - update irods meta data per file to avoid imeta command being stuck when too many changes
+
+release 42.9
+ - only set irods reference meta data when bam aligned with SQ tag, set alignment meta data to 0 when total_reads is 0
+
+release 42.8
+ - make BAM_alignment LSF aware by setting default bwa aln threads based on LSB_MCPU_HOSTS environment variable
+
+release 42.7
+ - add strip_bam_tag step by default in markduplicates wrapper script and add not_strip_bam_tag in markduplicates and bam_alignment script
+
+release 42.6
+ - add index_of_look meta data for pacbio bas file
+
+release 42.5
+ - check sample common name with any white space or new line
+ - check irods bam files against lims first then staging when deleting runfolder. The runfolder in staging area may
+ change after archival
+ - update is_paired_read irods meta data
+
+release 42.4
+ - add sample_id, sample_common_name, study_id and is_paired_read irods meta data when loading bam files
+ - update sample_id, sample_common_name, study_id in irods meta data if missing and set irods manual_qc meta data
+
+release 42.3
+ - check bam md5 values on irods with staging when deleting runfolder
+
+release 42.2
+ - pacbio data irods loader only checks new runs within two weeks time by default
+
+release 42.1
+ - remove any white space in the begining or end of irods meta data value
+
+release 42.0
+ - use library_id as library irods meta data value when no name available
+ - alignment irods meta data based on SQ tag from bam header
+ - cope with new lims and new bam file names in BamMetaUpdater
+ - cope with MiSeq runfolders
+ - add check bam and check md5 option for BamMetaUpdater
+
+release 41.9
+ - fix missing reference and wrong alignment irods meta data for aligned bam files generated by bam-based pipeline
+ 
+release 41.8
+ - irods resource string is now different from irods zone - reflected this in the code RT#245581
+
+release 41.7
+ - better error reporting for listing entries in the reference repository
+
+release 41.6
+ - BAM_Alignment: clean up temp directory before doing markduplicates
+
+release 41.5
+ - do not check human part bam file for spiked phix plex for archiving
+
+release 41.4
+ - add non_consented_split, change_bam_header function for bam files in irods
+ - cope with new bam file format for irods archiving
+
+release 41.3
+ - always do alignments for lane spiked phix file in fastq2bam
+
+release 41.2
+ - 10000 chache generation amended to deal with bam files
+ - a script to generate this cache added
+ - tests that didi not pass on lenny (no access to live ref repository) fixed RT #239028
+ - changes to the adapter data file
+
+release 41.1
+ - add bam_basecall_path and dif_files_path to path_info
+
+release 41.0
+ - removed redundant code for _s_ files from npg_common::roles::run::lane::file_names, created an easy to use function for putting together a filename, propagated this change to npg_common::run::file_finder
+ - further changes to bam alignment script
+ - test data for modules in npg_common::sequence namespace updated from live and relevant tests updated accordingly
+ - set user agent string in teh Catalysi ajax proxy so that the sequencescape request are directed to teh instances for interactive requests
+
+release 40.2
+ - ignore bai file loading when bam no alignment included
+ - bam alignmnet script optionally take id_run, position and tag_index from command line to use st api lims
+
+release 40.1
+ - new bam alignment and filtering script
+ - add sorting input bam option and checking input bam aligned or not, stop setting temp_dir for markduplicates, and change output bam header with more PGs in markduplicates script
+
+release 40.0
+ - staging area glob in path_info role is helped by stored in the npg tracking db glob expressions
+
+release 39.3
+ - split out runfolder locating functionality from path_info to runfolder_location role
+ - include human and nonhuman parts of bam file for plex 168 in irods loading based on lane level nonconsented information
+ - add fixmate, new bam flagstats generation and qc database bam flagstats updating in bam realignment scripts
+
+release 39.2
+ - add samtools fixmate step and generate bam flagstats when doing bam realignments
+ - bug fix: repeated bwa PG in bam header
+
+release 39.1
+ - roles_run_status test was changing production. Fixed to only use development server and skip if not available
+
+release 39.0
+ - remove modules, tests and test-related files that are not in use any more
+ - all tests that need npg or st xml read it from the web cache, all test useragents removed
+ - fix for RT #230291: clear warning in npg_common/diagram/visio_histo_google.pm
+ 
+release 38.3
+ - exclude spiked phix meta data in irods for lane phix and tag 0 bam file
+
+release 38.2
+ - include spiked phix in irods bam loading
+ 
+release 38.1
+ - use the list of lane numbers from the batch to check bam fully archived
+
+release 38.0
+ - reference finder refactored to removed any traces of fuzzy matching and to back-up the module with the new lims single point access interface
+ - neither of the tests look for live ref repository
+ - irods loading, sam header and bam generation modules refactored to use teh lims single point access module st::api::lims
+ - script to realign bam file in irods and rearchive them
+
+release 37.1
+ - reduce threads used for spliting fastq by alignment from 6 to 4
+
+release 37.0
+ - reference finder refactored to create a function for getting the common prefix of references
+ - a new module to generate reference indices for all repository for a particular aligner 
+ - google chart uri now will optionally encode data to reduce the uri length
+ - can now generate google chart uri with a legend (or just the legend if required)
+ - irods meta-data update based on warehouse
+
+release 36.3
+ - get study from lane entity directly for irods meta data and bam header to save some extra calls to sequencescape
+
+release 36.2
+ - get study from st request instead of sample for irods meta data and bam header
+
+release 36.1
+ - if array sets are empty when set_data is called in visio_histo_google, then set the set string to 0, so that something will show in url
+ - triple the number of threads for bwa alignments in fastq splitting by alignment
+ - extra irods meta data for bam file: study title, study and sample accession number
+ - use study publishable_name (accession_number or title or name) for bam header 
+
+release 36.0
+ - replace library name with library id for bam LB, and sample name with sample publishable name for SM in fastq2bam
+ - add extra bam irods meta data, library_id and sample_public_name
+ - generate fastqcheck and md5 file when splitting fastq by tag
+ - cope with new version of samtools to get total reads number for bam irods loading
+
+release 35.2
+ - changes to obtain correct google url for histograms with n_count bars
+
+release 35.1
+ - pipe all imeta sub commands to one imeta command to save irods connections
+ - use cached npg api run object to speed up irods bam loading
+
+release 35.0
+ - removed npg_common::qXvalues and npg_common::run::finder modules
+ - npg_common::run::file_finder simplified; for fastqcheck files will look in the npg qc database; mpsa support discontinued
+ - npg_common::fastqcheck to read from either a file or npg qc database
+ - npg_testing::db will create a test database without fixtures if they are not supplied
+
+release 34.2
+ - new location of the reference repository
+release 34.1
+ - add target irods meta data for bam file default 1, set it as 0 for phix, human and tag_index 0
+
+release 34.0
+ - npg_common::roles::run::lane::map2lims role refactored to take advantage of the latest changes to st::api::lane, backward compatibility maintained
+ - reference finder to return reference for the right study
+ - reference finder to return the abs path to a reference
+ - to make sure study information for bam header and irods meta data correct because of changes in st api
+
+release 33.3
+ - a fix for RefMaker to cope with failing aligners (shoudl recover correctly)
+ - add total_reads in bam irods meta data and ignore bam index file when no reads in bam
+
+release 33.2
+ - bug fix about read numbers for qseq files for original quality in bam
+ - cope with new reference repository location to find reference from bam header
+ - bam generation: do not align empty fastq files or files with short reads
+ - first_read_length method added to npg_common::extractor::fastq
+
+release 33.1
+ - add fixmate into fastq2bam pipeline
+ - samtools sorting take input from a pipe and stop generating any temp bam file in fastq2bam pipeline
+ - turn off bam compression within fastq2bam pipeline
+ - add CREATE_INDEX flag for Picard MarkDuplicates
+
+release 33.0
+ - new location of the reference repository
+ - an accessor method for the adapter repository
+
+release 32.2
+ - re-align bam files script refinments
+ - fasq to fasta converter added
+ - add md5 value into irods meta data
+ - rename human_split irods meta data to alignment_filter
+ - check some irods meta data uniqueness
+
+release 32.1
+ - reference finder to be able to return a reference to a spike
+
+release 32.0
+ - add a script to re-align bam files
+ - add DS tag for PG in bam header if available
+ - bug fix to get correct basecalling software version from config xml file
+ - use duplicates-marked bam output directory for picard TMP_DIR, instead of
+ default /tmp
+ - file name generator to be sequence_type attr aware
+ - depricated methods removed from npg_common::extractor::fastq
+ - when extracting reads from a fastq file, check that this file is as long as expected (fastqcheck reports)
+ - check md5 again after irods file loading
+ - include spiked phix bam file into irods loading
+ - croak when input bam file not exist for markduplicates
+ - Pacbio data irods loader
+
+release 31.1
+ - generate fastqcheck and md5 file when splitting spiked phix or nonconsented fastq
+ - add spiked phix bam file into irods archiving list
+ - npg_common::roles::run::status set up, with method to update a run status (so can be used instead of srpipe::util)
+ - cope with HiSeq HCS 1.10 RunInfo.xml v2 format
+
+release 31.0
+ - Added script Loop_Ref_Maker to update the aliger index files for every full reference in the repository.
+ - caching 10_000 reads should be given an array of file names to be worked on
+ - add demutiplex and three PB_cal programs into bam PG list
+ - bug fix in sam fastq check for single end run
+ - get reference used for bwa alignment in bam header, add alignment and reference meta for bam files in irods, and module to add these meta for files already in irods
+ - add original quality score to bam file as OQ tag if the original qseq files given
+ - In sam header creation, don't die if no intersity_path and bustard_path found
+ - using samtools mpileup in fastq splitting to get alignment coverage and depth, pileup command in samtools obsolete
+ - add no-pileup option for fastq splitting script for phix splitting
+ - based on splitting type, human or phix, add different sequence dictionary to bam header
+ - add split spiked phix and split nonconsented program to bam header from schema information
+ - irods adding meta data command should be passed to the system command as an array
+ - role::run::long_info now has methods to return the Data/Intensities/config.xml file as an XML::LibXML::Document object, and returning a hashref of {lanes}->{tiles} = clustercount_values (although clustercount_values aren't built in at the moment)
+
+release 30.0
+ - Add FastaFormat script to remove whitespace from sequences, make uniform
+   line lengths and check for illegal characters.
+ - split_fastq_by_tag.pl accepts a 'limit' option to limit the number of sequence entries written to file.
+ - npg_common::role::log appends to the log file rather than overwrites
+ - config file loader role now utilises Config::Any in the first place to attempt to locate the config
+   It does this so if the data structure is greater than 1 level, it is fine
+   Note: because of this, it does the default Config::Any feature of looking at the name ext (ini/yml/cnf)
+   and only trying it against the type that this extension suggests. This is faster, but less flexible.
+   However, your filename should reflect the data type, so this makes sense (config.ini should not be JSON)
+ - remove Maybe from the data type of reference of BAM_Generation
+ - script to check bases and qualities in SAM file with the one in the original fastq files, add this step in fastq2bam
+ - change the picard command option name for maximum number of open files because picard updated to 1.34
+ - convert dot . in second base call to N to be consistent with first base call in bam file
+ - path info role bug fix: now, hopefully, a correct glob for a runfolder name
+ - default option build for no alignment in bam generation
+ - reference finder and list generator: added 'Not suitable for alignment' option
+ - add extra infomation in PG list in BAM header
+ - convert bwa, samtools and picard command path to absolute path
+
+release 29.0
+ - archive_path can be given for fastq2bam script and it will be used to get insert_size for bam header
+ - archive_path can be used for irods_bam_loader
+ - carp when no plex infomation available for bam irods loading
+ - script to build bam index file using Picard
+ - load bam index files into irods and check completeness
+ - add second base call script and gerald program are optional in sam header
+ - generate md5 file when doing bam markduplicates, and use this file for checking when archiving bam file to irods
+ - use runfolder for temp undorted bam file in fastq2bam script because not enough /tmp space
+ - reference finder - default search type switched to a new search type that does fuzzy search only for phix libs and samples
+ - removed extractor::reference module
+ - added a method for splitting reads to the extractor::fastq module and optionally producing fastqcheck files for the output fastq files
+ - a new module for splitting old-style fastq files in two and producing fastqcheck files while at it
+ - npg cache for 10000 (or X) reads
+ - add hiseq 32 tiles for npg_qc heatmap
+ - reference finder: a method to return reference info, including the aligner options
+ - use aligner_options from reference repository in BAM generation if there is one available
+
+release 28.0
+ - reference finder: if the reference_genome field is set and there are any problems with finding a file for a perticular strain and/or aligner, croak
+ - reference finder: search type for reference_genome + taxon_id fields
+ - instrument_string: name of the instrument worked out in short_info
+ - check multiplex on lane level not run for bam loading, in case any lane bam file missing
+ - do not load original plex bam file with unconsented data
+ - check bam files fully archived to irods
+ - hide human bam files in irods
+ - give fastq2bam and sam_header script no_alignment option
+ - Catalyst ajax proxy controller: handle post requests correctly (pass headers and content)
+ - cope with slot and flowcell id in run folder name
+ - find long info from RunInfo.xml in preference to recipe files
+ - don't try to find tile info unless really asked for it (add predicates)
+
+release 27.0
+ - look for a fastqcheck file in the npg-qc database
+ - if a lane archive does not exist, file finder to return a path how it would have been if lane archives existed in fuse
+ - remove second base call quality score U2 string from bam file
+ - short_info and path_info roles can deal with runs from both IL and HS instruments
+ - add reference used for bwa alignement into bam file in PG CL tag
+ - replace bam @SQ header generated by bwa with the reference dictionary file in repository
+ - change RG PU tag Illumina to uppercase in bam header
+ - add RG PI value from autoqc insert_size checking in bam header
+ - add RG DS tag using study name and description in bam header
+ - check any tab or newline character in bam header tag value
+ - more meta data for bam file in irods
+ - don't load phix control and multiplex lane bam file
+ - checking md5 and meta data before loading bam file
+ - fastq file extractor not to croak if the file is shorter than requested
+ - a separate role npg_common::roles::run::lane::file_names for file name generation
+ - in this role, a new method for generating file names for humn/nonhuman split
+ - path_info carps stopped
+ - sf18 partition added to a glob in path_info role
+ - deprication warning for npg_common::extractor::reference
+ - pull read config and domain into hashref into a role, for better reuse with no need to pull in db cred stuff from npg_common:config
+ - reference finder strict and fuzy search modes
+ - reference finder preset referebce attributes
+ - Ajax proxy module tests skipped if Catalyst libs not available
+ - do not croak if the reference repository contains an organism with the same species part
+
+release 26.0
+ - add index tag sequence to bam file if multiplex run
+
+release 25.2
+ - human fastq splitting: don't store temporary sam file in /tmp directory and use pipe when possible, store temporary bam file in the output directoy to avoid running out disk space in /tmp, and add option -t 2 for bwa alignment
+ - do not croak if tag not availabe in Sequencescape when trying to add library and sample name into plex bam header
+ - only carp when more than one reference returned for a lane or plex, and generate bam file without alignment
+
+release 25.1
+ - don't mark first or second read flag and unmapped_mate flag for a single read sam file
+ - using picard to convert sam to bam instead of samtools
+ - generate empty bam file only with header when given fastq file size zero
+ - pb_cal_path in roles::run::path_info
+
+release 25.0
+ - In bam RG header, using library name for sample name when a lane is a pool
+ - methods in path_info role to return existing lane archive and qc directories
+ - create LSF job arrays from position and tag index
+ - POST requests cannot use cache, an error is raised
+ - finding ss objects for a reference: croak changed to carp when the caller expects a pool when there is no pool in ss
+
+release 24.0
+ - a role for retrieving db cridentials can work with Catalyst, no db configuration in Catalyst
+ - npg_common::roles::UrlToFilePath removed, its functionality merged into npg_common::request so that the implementation details of the cache repository are not exposed
+ - change default bwa option from -q 25 to -q 15 for bam generation
+ - add one more default bwa option -t 2 for threading alignment in bam generation
+ - add_bam_header script directly take input from the bwa sam output stream, not from a bam file in tmp directory. This will avoid running out tmp disk space
+ - more program names in bam header PG list
+ - add RG tag in bam file
+ - reduce MAX_SEQUENCES_FOR_DISK_READ_ENDS_MAP value to 900 in Picard Markduplicates to avoid opening too many temp files
+ - add two fields in BAM_Generation human_split type and tag_index
+ - pass tag_index to reference finder to get the reference for each plex
+ - a method in npg_common::roles::run::lane::map2lims to fetch asset srelevant to retrieving expected insert size
+
+release 23.0
+ - additions to reference finder in order to cope with newly introduced reference_genome fields in a sample and a study
+ - single_ref_found method restored in teh reference finder
+ - a module in npg_testing to test whether intweb is accessible
+ - a header with a username is added to http requests (see npg_common::request)
+ - npg_common::request: a post request goes ahead even if teh module should save to cache
+ - script and module to run Picard MarkDuplicates to a bam and save the output metrics and bam flagsts into a json file
+ - added a role for retrieving db cridentials from a configuration file
+
+release 22.0
+ - reference finder enhancements: (1) can handle taxon id links pointing directly to strains, (2) when matching, gives preference to species name; (3) a check for species name uniqueness in the repository; (3) recognises different paths to the a species directory as the same; (4) switched the order in which the fields of an asset are examined from organism, comman_name to common_name, organism.
+ - a fix for npg_common::roles::run::short_info to cope with Illumina run ids that have leading zero
+ - npg_common::request - a gateway for accessing web services with an ability to get the data from a cache and to create this cache
+ - bug fix to swap E2 and U2 string for the second base call of bam file, and reverse complemented bases if necessary
+
+release 21.0
+ - add run_folder validation role and module
+ - Catalyst::controller::AjaxProxy module added
+ - call study on sample instead of project for reference finding
+
+release 20.0
+  - functions in npg_common::roles::run::path_info to locate lane archive and qc directories
+  - fastqcheck module - more sanity checks
+  - add a list of programs to bam header section
+  - google diagram interface extended to allow for setting bar width and distance between bars
+  - roles for a run, lane and tag whose only function is to define attributes
+  - a module, npg_common::run::file_finder, to locate file for a run, per lane and tag_index
+  - a module, Catalyst::Authentication::Credential::SangerSSO, to use Sanger web single sign on for any Catalyst app's authentication
+
+release 19.0
+  - modules to add second base call to bam file
+  - covert fastq to sam and generate bam when no alignement
+  - bug fix to split multiplexed unconsented human fastq file
+  - split multiplexed fastq file by tag
+  - a simpler way to match sample/asset fields to known organisms, will work when the field does not have any plausible delimiters; we are not splitting the field names any more, should be safe since we do not try to match too small bits of reference names
+  - new tag_index attribute in the reference finder object
+  - add run lane tag_info role
+  - check fastq size before bam generation and allow # in their name
+
+release 18.0
+  - backport from trunk: reference finder can find genome reference with .fna extension
+  - interface to fuse moved from npg-catalyst-qc to npg_common::run, renamed to finder.pm and changed to locate an archive folder for a run either in the long or short term storage area
+  - new namespace, npg_testing, for common testing code
+  - generic testing code from Qsea moved to npg_testing name space
+
+release 17.0
+  - methods to call bwa to do pairwise alignment and output bam file
+  - BAM Generation module and script
+  - a module to perform a per-base count of the reference sequence
+  - checks for empty and invalid fastqcheck file copied from the qXvalues module to fastqcheck module. Methods added to fastqcheck module to do everything that qXvalues module does.
+  - npg_common::extractor::fastq refactored to make it rely on npg_common::fastqcheck if the count of sequences for fastq is taken fron a relevant fastqcheck file
+
+release 16.0
+  - add attribute bwa_options for Alignment
+  - store name and version number of Fastq_split module and bwa software into split_stats result as info
+  - stop calling keys for large tied hashes to reduce memory requirement
+  - bug fix to ignore header section of SAM file when getting aligned reads
+  - lib for getting a reference for a lane moved from npg_qc tp npg_common
+
+release 15.0
+  - add single fastq file extraction
+
+release 14.0
+  - remaned path-related attributes (apart from the subpath attribute) in the path_info roles from XXX_subpath to XXX_path; reason - easier to understand when use as a script option when the consuming class also consumes MooseX::Getopt
+  - roles to provide
+    - generic logging capability
+    - reading a small file into memory
+    - providing fs_resource for a runfolder
+  - fastq split script takes option stats_only
+
+
+release 13.0
+  - added an object wrapper around a fastqcheck file
+  - finished path_info and check_info roles
+
+release 12.0
+  - option to fork out two bwa alignments when doing fastq splitting, and tie hashes into files to reduce memory usage
+  - option to split tag fastq as well
+  - using autoqc result class to save splitting statistics into xml and json files
+  - add total alignment coverage and depth across all chromosomes for splitting statistics
+  - to allow id_run and position to be passed into the fastq splitting scripts and store them
+  - roles:
+    - roles for a run, short_info, which provides attributes for id_run, name and run_folder, along with a short_reference providing one of these in the order run_folder, id_run, name. requires that a _build_run_folder method is provided, or else you may get a run_time error if it needs to try to work this out
+    - roles for a run, path_info, which provides attributes giving information about paths to directories for a run_folder whilst in the staging area. requires that the method short_reference is available, or you may get a run_time error whilst searching for a path
+  - in fastq extractor a read count is taken from a fastqcheck file if it's locally available
+
+release 11.0
+ - Fastq and srf splitting now generates some statistical output in XML format and google chart
+and the reference location and name can be passed in as an option.
+ - the width of lines in a graph set to 2 to improve readability
+ - the width of a bar for a Google histogram is reduced to allow for a larger number of bins displayed
+ - the qX check can now cope correctly with a fastqcheck file for an empty sequence
+
+release 10.0
+ - further image creation to create vertical gantt style charts, with option of adding point charts on top
+
+release 9.0
+ - modules to use stomp for ActiveMQ queues and durable topics
+ - Extension to Net::Stomp::Receipt, in order to do a check just before message sending to check connection is still live
+ - Fastq and SRF splits done as separate scripts
+ - Script to Convert FASTA format into ref formats for MAQ, BWA, Bowtie and SAMtools
+
+release 8.0
+ - add modules to split fastq or srf files based on the alignment of fastq files to a reference using program bwa
+ - handling 110 tiles per lane heatmaps
+ - added modules for creating and plotting histograms
+
+release 7.0
+ - module npg_common::qXvalues for calculating Q values from *.fastqcheck files is added
+
+release 6.0
+ - handling 120 tiles per lane heatmaps
+
+release 5.0
+ - heatmaps now scaled upto 10+ max for pf_perc_error_rate
+ - merge for all error thumbnails
+ - merge two graphs of same size together
+
+release 4.0
+ -add modules to merge images
+
+release 3.0
+ - use light grey for the graph fore ground colour
+ - additional information for heatmaps, for intensity scaling
+
+release 2.0
+ - tests for graph
+ - heatmap map making module
+ - additional methods for making heatmaps for move_z statistics
+ - >90% test coverage
+
+release 1.0
+ - set up
+ - move graph wrapper into this namespace
+ - created heatmap module for illumina chips
+ - created scale module for producing scale image with limits on it
+ - tests for heatmap and scale
+

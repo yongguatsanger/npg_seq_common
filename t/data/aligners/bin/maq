@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+cat <<End-of-version-string
+
+Program: maq (Mapping and Assembly with Qualities)
+Version: 0.7.1
+Contact: Heng Li <lh3@sanger.ac.uk>
+
+Usage:   maq <command> [options]
+
+Key commands:
+         fasta2bfa   convert FASTA to BFA format
+         fastq2bfq   convert FASTQ to BFQ format
+         map         map reads to the reference
+         mapmerge    merge several alignments
+         rmdup       remove pairs with identical outer coordinates (PE)
+         indelpe     indel calling (PAIRED READS ONLY)
+         indelsoa    state-of-art homozygous indel detection
+         assemble    call the consensus
+         glfgen      generate .glz consensus
+
+Format converting:
+         sol2sanger  convert Solexa FASTQ to standard/Sanger FASTQ
+         mapass2maq  convert mapass2's map format to maq's map format
+         bfq2fastq   convert BFQ to FASTQ format
+
+Information extracting:
+         mapview     view the mapping alignment
+         mapstat     statistics about a .map file
+         mapcheck    a QC command
+         pileup      view the alignment in a 'pileup' like format
+         cns2fq      extract the consensus sequences from a CNS file
+         cns2snp     extract details from a CNS file at the SNP sites
+         snpreg      calculate the length of regions where SNPs can be called
+         cns2view    extract details from a CNS file at all sites
+         cns2ref     extract the reference sequences from a CNS file
+         cns2win     extract details in a window
+
+SOLiD related commands:
+         fasta2csfa  convert FASTA to colour-space FASTA
+         csmap2nt    convert colour-space .map to nucleotide .map
+
+Simulation related commands:
+         fakemut     simulate references: randomly generate mutations
+         simutrain   train parameters for simulation
+         simulate    simulate reads: randomly generate sequencing errors
+         simucns     evaluate consensus based on simulation
+         simustat    evaluate alignment based on simulation
+
+Miscellaneous/advanced utilities:
+         submap      extract a region from a map file
+         mapvalidate validate a .map file
+         subpos      extract a subset of positions
+         eland2maq   convert eland alignment to maq
+         export2maq  convert Solexa's export alignment to maq
+         novo2maq    convert novoalign/novopaired alignment to maq
+
+End-of-version-string
+

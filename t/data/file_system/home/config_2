@@ -1,0 +1,13 @@
+#!/usr/bin/env perl
+
+my $VAR1 = {
+            'warehouse3_ro' => {
+                                'dbattr' => {
+                                             'mysql_enable_utf8' => 1
+                                            },
+                                'dbuser' => 'warehouse_ro',
+                                'dsn' => 'dbi:mysql:host=mcs12;database=sequencescape_warehouse;port=3379'
+                               },
+          };
+
+

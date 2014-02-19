@@ -1,0 +1,116 @@
+#!/usr/bin/env perl
+#########
+# Author:        gq1
+# Maintainer:    $Author: gq1 $
+# Created:       2010-06-21
+# Last Modified: $Date: 2010-06-25 09:52:45 +0100 (Fri, 25 Jun 2010) $
+# Id:            $Id: bam_mark_duplicate.pl 9783 2010-06-25 08:52:45Z gq1 $
+# $HeadURL: svn+ssh://svn.internal.sanger.ac.uk/repos/svn/new-pipeline-dev/useful_modules/branches/prerelease-23.0/scripts/bam_mark_duplicate.pl $
+#
+
+#########################
+# This script can mark duplicates of a bam file using Picard tools if bam having alignment
+# sorting the input bam if requied,
+# and generate bam flagstats json file
+##########################
+
+use strict;
+use warnings;
+use FindBin qw($Bin);
+use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
+
+use npg_common::sequence::BAM_MarkDuplicate;
+
+use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision: 9783 $ =~ /(\d+)/smx; $r; };
+
+npg_common::sequence::BAM_MarkDuplicate->new_with_options()->process();
+
+exit 0;
+
+__END__
+
+=head1 NAME
+
+bam_mark_duplicate.pl
+
+=head1 VERSION
+
+$LastChangedRevision: 9783 $
+
+=head1 USAGE
+
+scripts/bam_mark_duplicate.pl --input_bam 4783_5.bam --output_bam 4783_6_mk.bam --metrics_json 4783_6_bam_flagstats.json
+
+ --id_run 4783 --position 5 [ --tag_index 2 --human_split human]
+ 
+ --sort_input
+ 
+ --change_bam_header
+ 
+ --replace_file 
+ 
+ --not_strip_bam_tag
+
+ --bamcheck_flags
+
+=head1 CONFIGURATION
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 SUBROUTINES/METHODS
+
+=head1 REQUIRED ARGUMENTS
+
+=head1 OPTIONS
+
+=head1 EXIT STATUS
+
+=head1 DIAGNOSTICS
+
+=head1 CONFIGURATION AND ENVIRONMENT
+
+=head1 DEPENDENCIES
+
+=over
+
+=item strict
+
+=item warnings
+
+=item FindBin
+
+=item npg_common::sequence::BAM::MarkDuplicate
+
+=back
+
+=head1 INCOMPATIBILITIES
+
+=head1 BUGS AND LIMITATIONS
+
+=head1 AUTHOR
+
+Guoying Qi E<lt>gq1@sanger.ac.ukE<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (C) 2011 GRL, by Guoying Qi
+
+This file is part of NPG.
+
+NPG is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+=cut
+

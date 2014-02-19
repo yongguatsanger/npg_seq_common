@@ -1,0 +1,11 @@
+#!/usr/bin/env perl
+
+# a perl snippet posturing as java for the purpose of
+# mimicking the return of a version number from a mock jar file 
+
+if ($ARGV[1] eq '-jar' && $ARGV[3] eq '--version') {
+    my $scan = "cat $ARGV[2] | grep -i version";
+    my $version = `$scan`; chomp $version;
+    $version =~ s/^[^\d\.]*([\d\.]+)/$1/;
+    print STDOUT $version;
+}

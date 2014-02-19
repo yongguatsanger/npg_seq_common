@@ -1,0 +1,147 @@
+#!/usr/bin/env perl
+#########
+# Author:        Marina Gourtovaia
+# Maintainer:    $Author$
+# Last Modified: $Date$
+# Id:            $Id$
+# $HeadURL$
+#
+
+use strict;
+use warnings;
+use English qw(-no_match_vars);
+use MIME::Lite;
+use Getopt::Long;
+use Carp;
+
+use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/smx; $r; };
+
+my $subject = q[];
+my $to = [];
+my $help;
+my $domain = qw[@sanger.ac.uk];
+
+GetOptions (
+            'help'      => \$help,
+            'subject=s' => \$subject,
+            'to=s@'     => \$to,
+            );
+
+## no critic (RequireCheckedSyscalls)
+if ($help) {
+    print {*STDOUT} "Pipe the output of a cron into this script and it will mail the output to you\n";
+    print {*STDOUT} "Empty output - no e-mail\n\n";
+    print {*STDOUT} "Usage:\nnpg_mail_cron_output --subject my_subject --to me --to you\n\n";
+    print {*STDOUT} "Example:\nnpg_mail_cron_output --subject 'more tests' --to mg8 --to kl2\n";
+    exit 0;
+}
+## use critic
+
+$subject = $subject ? $subject : 'npg cron job output';
+if (!@{$to}) {
+  croak '--to option is needed';
+}
+
+my $cron_output = q[];
+while (my $line = <>) {
+  $cron_output .= $line;
+}
+chomp $cron_output;
+if ($cron_output) {
+  my @emails =  @{$to};
+  my $msg = MIME::Lite->new(
+			  To            => pop @emails,
+                          Cc            => join(q[, ], @emails),
+			  Subject       => $subject,
+			  Type          => 'TEXT',
+			  Data          => $cron_output,
+  );
+
+  eval {
+    $msg->send();
+    1;
+  } or do {
+    warn "Error sending email : $EVAL_ERROR\n";
+  };
+}
+
+0;
+
+__END__
+
+=head1 NAME
+
+npg_mail_cron_output
+
+=head1 VERSION
+
+$LastChangedRevision$
+
+=head1 USAGE
+
+=head1 CONFIGURATION
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 SUBROUTINES/METHODS
+
+=head1 REQUIRED ARGUMENTS
+
+=head1 OPTIONS
+
+=head1 EXIT STATUS
+
+=head1 DIAGNOSTICS
+
+=head1 CONFIGURATION AND ENVIRONMENT
+
+=head1 DEPENDENCIES
+
+=over
+
+=item strict
+
+=item warnings
+
+=item Carp
+
+=item English
+
+=item Getopt::Long
+
+=item MIME::Lite
+
+=item Readonly
+
+=back
+
+=head1 INCOMPATIBILITIES
+
+=head1 BUGS AND LIMITATIONS
+
+=head1 AUTHOR
+
+ Marina Gourtovaia
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (C) 2012 GRL
+
+This file is part of NPG.
+
+NPG is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+=cut

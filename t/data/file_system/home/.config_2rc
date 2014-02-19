@@ -1,0 +1,4 @@
+[live]
+dbhost=host_2
+[special]
+dbhost=host_2_envtest

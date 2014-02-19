@@ -1,0 +1,22 @@
+#!/usr/bin/env perl
+# test samtools
+
+if($ARGV[0] eq 'index'){
+  my $index_filename = $ARGV[1];
+  $index_filename =~ s/bam$/bai/mxs;
+  `touch $index_filename`;
+} elsif ($ARGV[0] eq q{flagstat}) {
+} elsif ($ARGV[0] eq q{view}) {
+  my $file = $ARGV[2];
+  `cat $samfile`;
+} elsif ($ARGV[0] eq q{sort}) {
+  my $file = $ARGV[2];
+  `cat $file`;
+} else {
+  print qq{ $0 [main] unrecognized command };
+  foreach my $a (@ARGV) {
+    print "$a ";
+  }
+}
+
+exit;

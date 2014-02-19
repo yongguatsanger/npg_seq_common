@@ -1,0 +1,1 @@
+../fuzzypath/current/fuzzypath.csh

@@ -1,0 +1,8 @@
+[NamingConventions::Capitalization]
+packages = :no_restriction
+
+[Subroutines::ProhibitUnusedPrivateSubroutines]
+private_name_regex = _(?!build_)(?!default_)\w+
+allow = _get_seq_ids_from_file _process_message_with_supplied_code _force_disconnect _fields_to_add _unsubscribe
+[Documentation::PodSpelling]
+stop_words = accessor accessors afterwards arrayref arrayrefs authorised backticks bwa boolean CGI config CSV Cwd DateTime dbh dbhost DBI dbname dbpass dbport dbsection dbuser denormalized dev EACS eval filehandle filehandles flowcell goldcrest Gourtovaia groupname GQ GRL Guoying hasa hashref hashrefs hasmany heatmap heatmaps html iCal ini init IP iscurrent JSON LibraryTube libxml LIMS LSF LWP memcached mq MVC npg NPG Pettett PhiX PNG POSIX pre prephasing projectname qc Qi qseq Readonly realname refactor refactored requestor requestor's RESTful rgb rsd run's runfolder SangerPaths SangerWeb SequenceScape SQL strftime STDERR subdirectory subscribable superclass SVV taxon uid undef uptimes useragent usergroup usergroups username util utilisation xml yearmonthday yyyymmdd

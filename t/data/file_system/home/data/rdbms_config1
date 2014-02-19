@@ -1,0 +1,6 @@
+[live]
+rdbms=no_such_thing
+[test]
+dbhost=ignore_me_please
+[dev]
+dbhost=ignore_me_also

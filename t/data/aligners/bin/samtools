@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+cat <<End-of-version-string
+
+Program: samtools (Tools for alignments in the SAM format)
+Version: 0.1.11 (r851)
+
+Usage:   samtools <command> [options]
+
+Command: view        SAM<->BAM conversion
+         sort        sort alignment file
+         pileup      generate pileup output
+         mpileup     multi-way pileup
+         faidx       index/extract FASTA
+         tview       text alignment viewer
+         index       index alignment
+         idxstats    BAM index stats (r595 or later)
+         fixmate     fix mate information
+         glfview     print GLFv3 file
+         flagstat    simple stats
+         calmd       recalculate MD/NM tags and '=' bases
+         merge       merge sorted alignments
+         rmdup       remove PCR duplicates
+         reheader    replace BAM header
+
+End-of-version-string
+

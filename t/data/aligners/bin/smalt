@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+if [ "$1" = "version" ]
+then
+    cat <<End-of-version-string
+
+              SMALT - Sequence Mapping and Alignment Tool
+Version: 0.4
+Date:    14-10-2010
+Author:  Hannes Ponstingl (hp3@sanger.ac.uk)
+
+Copyright (C) 2010 Genome Research Ltd.
+
+End-of-version-string
+fi
