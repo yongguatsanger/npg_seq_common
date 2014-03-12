@@ -1,5 +1,8 @@
 LIST OF CHANGES
 
+release 48.18
+  - use study_publishable_name() not study_name() to be consistent with pipeline
+
 release 48.17
   - new version of bam_aligner_irods script which uses standard bam alignment script
     and biobambam commands to collate/sort bam files and remove alignment info

@@ -620,7 +620,7 @@ sub change_bam_header {
     my $lims = $self->_lims();
     my $sample_name = $lims->sample_publishable_name();
     my $library_id = $lims->library_id();
-    my $study_name = $lims->study_name();
+    my $study_name = $lims->study_publishable_name();
     my $study_description = $lims->study_description();
 
     my $old_bam = $self->working_dir().q{/}.$self->old_bam_filename();
