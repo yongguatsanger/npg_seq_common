@@ -1,6 +1,0 @@
-[live]
-dbhost=host_1
-[special]
-dbhost=host_1_envtest
-[dot_file_only]
-dbhost=host_1_dot_file_section

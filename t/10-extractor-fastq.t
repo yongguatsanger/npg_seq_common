@@ -6,13 +6,10 @@ use Test::Exception;
 use File::Temp qw/tempdir/;
 use Cwd qw/cwd/;
 use File::Compare;
-use t::util;
-
-my $util = t::util->new();
 
 my $source1 = q[t/data/s1.fastq];
 my $source2 = q[t/data/s2.fastq];
-my $dir = $util->temp_directory();
+my $dir = tempdir(CLEANUP => 1);
 
 my $empty = $dir . q[/empty_fastq.fastq];
 `touch $empty`;

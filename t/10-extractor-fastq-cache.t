@@ -3,11 +3,9 @@ use warnings;
 use Test::More tests => 38;
 use Test::Exception;
 use Test::Deep;
-use lib q{t};
-use t::util;
+use File::Temp qw{ tempdir };
 
-my $util = t::util->new();
-my $dir = $util->temp_directory();
+my $dir = tempdir(CLEANUP => 1);
 my $id_run = 1008;
 my $tag_index;
 my $position = 1;
@@ -26,8 +24,7 @@ foreach my $sub (@subs) {
 }
 
 {
-  my $u = t::util->new();
-  my $d = $u->temp_directory();
+  my $d = tempdir(CLEANUP => 1);
   my $file = $d . q[/1008_1.fastq];
   `cp t/data/1008_1_1.fastq $file`;
 
@@ -43,8 +40,7 @@ foreach my $sub (@subs) {
 }
 
 {
-  my $u = t::util->new();
-  my $d = $u->temp_directory();
+  my $d = tempdir(CLEANUP => 1);
   my $file = $d . q[/1008_1#1.fastq];
   `cp t/data/1008_1_1.fastq $file`;
  
@@ -137,8 +133,7 @@ foreach my $sub (@subs) {
 }
 
 {
-  my $u = t::util->new();
-  my $d = $u->temp_directory();
+  my $d = tempdir(CLEANUP => 1);
   my $file = $d . q[/1008_1.bam];
   `touch $file`;
 
@@ -148,8 +143,7 @@ foreach my $sub (@subs) {
 }
 
 {
-  my $u = t::util->new();
-  my $d = $u->temp_directory();
+  my $d = tempdir(CLEANUP => 1);
   my $file = $d . q[/1008_1.bam];
   `touch $file`;
 
@@ -159,4 +153,6 @@ foreach my $sub (@subs) {
   local $ENV{PATH}="$d";
   lives_ok { generate_cache($d, [$file], 5); } q[testing generate_cache with bam file $file];
 }
+
+1;
 

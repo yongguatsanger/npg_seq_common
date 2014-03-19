@@ -5,17 +5,16 @@ use English qw{-no_match_vars};
 use Test::More tests => 22;
 use Test::Exception;
 use Test::Deep;
-use lib qw{t t/lib};
-use t::util;
+use lib qw{t/lib};
 use Cwd;
+use File::Temp qw{ tempdir };
 
 BEGIN {
   use_ok( q{npg_common::roles::run::lane::tag_info} );
   use_ok( q{npg_common::role_tests::run_lane_tag_info} );
 }
-my $util = t::util->new();
-my $basedir = $util->temp_directory();
-diag $basedir;
+
+my $basedir = tempdir(CLEANUP => 1);
 $ENV{TEST_DIR} = $basedir; #so when npg_tracking::illumina::run::folder globs the test directory
 my $id_run = q{1234};
 my $name = q{IL2_1234};

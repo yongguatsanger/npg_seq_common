@@ -1,4 +1,0 @@
-[live]
-dbhost=host_1_otherdir
-[special]
-dbhost=host_1_otherdir_envtest

@@ -1,5 +1,12 @@
 LIST OF CHANGES
 
+release 49.0
+  - remove irods modules, tests and test data (moved to data-handling package)
+  - remove fs_resource and ConfigBase roles (code moved npg_pipeline package)
+  - remove unused npg_common::config role
+  - remove unused npg_common::roles:::run::intensities::config role
+  - remove t/util.pm, create temp directories directly in tests
+
 release 48.18
   - use study_publishable_name() not study_name() to be consistent with pipeline
 

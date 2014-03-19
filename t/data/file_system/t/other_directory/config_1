@@ -1,4 +1,0 @@
-[test]
-dbhost=host_1_t_test
-[special]
-dbhost=host_1_t_test_envtest
