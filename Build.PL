@@ -2,7 +2,28 @@ use strict;
 use warnings;
 use Module::Build;
 
-my $requires = {
+my $class = Module::Build->subclass(code => <<'EOF');
+
+  sub git_tag {
+    my $version;
+    my $gitver = q[./bin/gitver];
+    if (!-e $gitver) {
+      warn "$gitver script not found";
+      $version = q[unknown];
+    }
+    if (!-x $gitver) {
+      warn "$gitver script is not executable";
+      $version = q[unknown];
+    }
+    if (!$version) {
+      $version = `$gitver`;
+      $version =~ s/\s$//smxg;
+    }
+    return $version;
+  }
+EOF
+
+my  $requires = {
                 'autodie'                         => '2.10',
                 'base'                            => '2.12',
                 'Carp'                            => '1.04',
@@ -80,7 +101,7 @@ my $builder =  Module::Build->new(
           'dist_author'         => q(wtsi-npg <npg@sanger.ac.uk>),
           'dist_abstract'       => 'General purpose scripts and modules used by WTSI production pipeline and manual data processing',
           'license'             => 'gpl',
-          'dist_version_from'   => 'lib/npg_common/bam_align.pm',
+          'dist_version'        => $class->git_tag(),
           'script_files' => [glob q[scripts/*]],
 
           'configure_requires' => {

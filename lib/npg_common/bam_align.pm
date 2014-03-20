@@ -22,6 +22,8 @@ use autodie qw(:all);
 use Parallel::ForkManager;
 use Cwd qw(cwd abs_path);
 
+use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision: 17202$ =~ /(\d+)/mxs; $r; };
+
 use npg_common::sequence::BAM_MarkDuplicate;
 
 with qw/
@@ -30,9 +32,7 @@ with qw/
     npg_common::roles::software_location
 /;
 
-our $VERSION = do { my ($r) = q$Revision$ =~ /(\d+)/msx; $r; };
 ## no critic (Documentation::RequirePodAtEnd)
-
 sub run {
     my ($self) = @_;
 
