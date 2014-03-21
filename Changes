@@ -1,5 +1,7 @@
 LIST OF CHANGES
 
+- don't strip tags from Biobambam's bamadapterfind
+
 release 49.0
   - remove irods modules, tests and test data (moved to data-handling package)
   - remove fs_resource and ConfigBase roles (code moved npg_pipeline package)

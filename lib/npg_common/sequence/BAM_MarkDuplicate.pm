@@ -52,7 +52,7 @@ Readonly::Scalar our $DEFAULT_BTS_OPTIONS            => {
                                CREATE_INDEX          => 'FALSE',
                                                  };
 Readonly::Scalar our $BAM_TAGS_TO_STRIP              => [qw(OQ)];
-Readonly::Scalar our $BAM_TAGS_TO_KEEP               => [qw(tr tq a3 ah br qr)]; #transposon read, transpsoson quality, adapter suffix length presumed, adapter sequence matches, random base sequence and qualities (for 3' RNAseq pulldown - distinguishing PCR dups)
+Readonly::Scalar our $BAM_TAGS_TO_KEEP               => [qw(tr tq a3 ah as af aa br qr)]; #transposon read, transpsoson quality, adapter detection tag * 5, random base sequence and qualities (for 3' RNAseq pulldown - distinguishing PCR dups)
 
 ## no critic (Documentation::RequirePodAtEnd)
 
