@@ -448,7 +448,7 @@ construct the whole biobambam markduplicate command
 sub mark_duplicate_cmd {
    my $self = shift;
 
-   my $cmd = $self->biobambam_bin() . q{/} . q{bammarkduplicates};
+   my $cmd = $self->bammarkduplicates_path;
 
    if( $self->sort_input() ){
       $cmd .= q{ I=} . $self->sorted_input_bam_prefix() . q{.bam};
