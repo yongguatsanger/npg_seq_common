@@ -11,8 +11,6 @@ use warnings;
 use Test::More;
 use English qw(-no_match_vars);
 
-use Readonly; Readonly::Scalar our $VERSION => do { my @r = (q$LastChangedRevision$ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
-
 eval {
   require Test::Distribution;
 };
