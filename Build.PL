@@ -21,6 +21,30 @@ my $class = Module::Build->subclass(code => <<'EOF');
     }
     return $version;
   }
+
+  sub ACTION_code {
+    my $self = shift;
+
+    $self->SUPER::ACTION_code;
+
+    my @sources = [q{lib/test.pm}];
+    foreach my $source (@sources) {
+      my $gitver = $self->git_tag();
+      if (-e $source) {
+        warn "Changing version of $source to $gitver\n";
+        my $backup = '.original';
+        local $^I = $backup;
+        local @ARGV = ($source);
+        while (<>) {
+          s/(\$Id\s*=\s*)('?\S+'?)\s*;/${1}'$gitver';/;
+          print;
+        }
+        #unlink "$source$backup";
+      } else {
+        warn "File $source not found\n";
+      }
+    }
+  }
 EOF
 
 my  $requires = {
