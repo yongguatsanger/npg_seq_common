@@ -21,7 +21,7 @@ SKIP: {
 
   skip "$exec executable not found", 10, if (!which($exec));
 
-  my $test_cmd = Test::Cmd->new(prog => 'scripts/generate_cached_fastq', workdir => '', );
+  my $test_cmd = Test::Cmd->new(prog => 'bin/generate_cached_fastq', workdir => '', );
   #if ($test_cmd) { print "all right 1\n"; } else { print "not all right 1\n"; }
 
   my $id_run = 7197;
