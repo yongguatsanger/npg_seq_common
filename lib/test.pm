@@ -9,5 +9,9 @@
 
 package test;
 
-use Carp;
+use strict;
+use warnings;
+
+our $VERSION = '0';
+
 1;

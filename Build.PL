@@ -27,22 +27,20 @@ my $class = Module::Build->subclass(code => <<'EOF');
 
     $self->SUPER::ACTION_code;
 
-    my @sources = [q{lib/test.pm}];
-    foreach my $source (@sources) {
-      my $gitver = $self->git_tag();
-      if (-e $source) {
-        warn "Changing version of $source to $gitver\n";
-        my $backup = '.original';
-        local $^I = $backup;
-        local @ARGV = ($source);
-        while (<>) {
-          s/(\$Id\s*=\s*)('?\S+'?)\s*;/${1}'$gitver';/;
-          print;
-        }
-        #unlink "$source$backup";
-      } else {
-        warn "File $source not found\n";
+    my $view = q[blib/lib/test.pm];
+    my $gitver = $self->git_tag();
+    if (-e $view) {
+      warn "Changing version of $view to $gitver\n";
+      my $backup = '.original';
+      local $^I = $backup;
+      local @ARGV = ($view);
+      while (<>) {
+        s/(\$VERSION\s*=\s*)('?\S+'?)\s*;/${1}'$gitver';/;
+        print;
       }
+      unlink "$view$backup";
+    } else {
+      warn "File $view not found\n";
     }
   }
 EOF
@@ -119,7 +117,7 @@ if ($^X !~ /^\/software\/perl-5\.8\.8/smx) {
   $requires->{'YAML::XS'} = 0;
 }
 
-my $builder =  Module::Build->new(
+my $builder =  $class->new(
 
           'module_name'         => 'useful_modules',
           'dist_author'         => q(wtsi-npg <npg@sanger.ac.uk>),
