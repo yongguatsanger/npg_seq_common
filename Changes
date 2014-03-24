@@ -1,5 +1,6 @@
 LIST OF CHANGES
 
+- remove duplicate of bam_align_irods: README enhancements; move scripts to bin
 - don't strip tags from Biobambam's bamadapterfind
 
 release 49.0
