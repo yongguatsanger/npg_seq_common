@@ -6,7 +6,7 @@ my $class = Module::Build->subclass(code => <<'EOF');
 
   sub git_tag {
     my $version;
-    my $gitver = q[./bin/gitver];
+    my $gitver = q[./scripts/gitver];
     if (!-e $gitver) {
       warn "$gitver script not found";
       $version = q[unknown];
