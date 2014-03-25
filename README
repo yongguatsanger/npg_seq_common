@@ -6,23 +6,20 @@ General purpose scripts and modules used by WTSI Illumina sequencing production 
 Dependencies on other NPG Perl packages:
 
 1. npg_tracking package https://github.com/wtsi-npg/npg_tracking
-2. npg-qc package - currently available only internally
-3. data-handling package - currently available only internally
-
-
+2. npg-qc package - currently available internally only
 
 Dependencies on other NPG bioinformatics tools
 
 1. illumina2bam https://github.com/wtsi-npg/illumina2bam
 2. samtools_irods https://github.com/wtsi-npg/samtools_irods
 
-
 Dependencies on third party bioinformatics tools
 
 1. bwa http://bio-bwa.sourceforge.net/
 2. samtools http://samtools.sourceforge.net/
 3. picard http://picard.sourceforge.net/
-4. cram toolkit http://www.ebi.ac.uk/ena/about/cram_toolkit
+4. cram toolkit https://github.com/jkbonfield/samtools.git
+5. biobambam https://github.com/gt1/biobambam
 
 Installation:
 
@@ -33,5 +30,4 @@ perl Build.PL --install_base your_dir
 ./Build install
 
 Where real bioinformatics tools are used in tests, an attempt to dynamically assert presence of tools is made and those tests are skipped. If TOOLS_INSTALLED environment variable is true, the tests that require presence of tools are run.
-
 

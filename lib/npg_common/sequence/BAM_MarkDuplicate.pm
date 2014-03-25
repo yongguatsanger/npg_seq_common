@@ -52,7 +52,7 @@ Readonly::Scalar our $DEFAULT_BTS_OPTIONS            => {
                                CREATE_INDEX          => 'FALSE',
                                                  };
 Readonly::Scalar our $BAM_TAGS_TO_STRIP              => [qw(OQ)];
-Readonly::Scalar our $BAM_TAGS_TO_KEEP               => [qw(tr tq a3 ah br qr)]; #transposon read, transpsoson quality, adapter suffix length presumed, adapter sequence matches, random base sequence and qualities (for 3' RNAseq pulldown - distinguishing PCR dups)
+Readonly::Scalar our $BAM_TAGS_TO_KEEP               => [qw(tr tq a3 ah as af aa br qr)]; #transposon read, transpsoson quality, adapter detection tag * 5, random base sequence and qualities (for 3' RNAseq pulldown - distinguishing PCR dups)
 
 ## no critic (Documentation::RequirePodAtEnd)
 
@@ -448,7 +448,7 @@ construct the whole biobambam markduplicate command
 sub mark_duplicate_cmd {
    my $self = shift;
 
-   my $cmd = $self->biobambam_bin() . q{/} . q{bammarkduplicates};
+   my $cmd = $self->bammarkduplicates_path;
 
    if( $self->sort_input() ){
       $cmd .= q{ I=} . $self->sorted_input_bam_prefix() . q{.bam};
