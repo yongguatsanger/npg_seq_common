@@ -455,13 +455,11 @@ sub mark_duplicate_cmd {
    }else {
       $cmd .= q{ I=}.$self->input_bam();
    }
+   $cmd .= q{ O=/dev/stdout};
+   $cmd .= q{ tmpfile=}.$self->temp_dir().q{/};
    my %options = ();
    if( !$self->not_strip_bam_tag() ){
-      $cmd .= q{ O=/dev/stdout};
-      $cmd .= q{ tmpfile=}.$self->temp_dir().q{/};
       $options{level} = 0;
-   }else{
-      $cmd .= q{ O=}.$self->output_bam();
    }
 
    $cmd .= q{ M=}.$self->metrics_file();
