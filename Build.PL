@@ -27,20 +27,20 @@ my $class = Module::Build->subclass(code => <<'EOF');
 
     $self->SUPER::ACTION_code;
 
-    my $view = q[blib/lib/test.pm];
+    my $module = q[blib/lib/npg_common/bam_align.pm];
     my $gitver = $self->git_tag();
-    if (-e $view) {
-      warn "Changing version of $view to $gitver\n";
+    if (-e $module) {
+      warn "Changing version of $module to $gitver\n";
       my $backup = '.original';
       local $^I = $backup;
-      local @ARGV = ($view);
+      local @ARGV = ($module);
       while (<>) {
         s/(\$VERSION\s*=\s*)('?\S+'?)\s*;/${1}'$gitver';/;
         print;
       }
-      unlink "$view$backup";
+      unlink "$module$backup";
     } else {
-      warn "File $view not found\n";
+      warn "File $module not found\n";
     }
   }
 EOF
