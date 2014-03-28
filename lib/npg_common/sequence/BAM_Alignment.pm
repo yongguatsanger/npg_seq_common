@@ -1216,7 +1216,7 @@ sub generate {
 
      push @markduplicates_commands, $self->_generate_markduplicates_cmd( $self->output(), undef, $self->reference() );
 
-     if( $self->non_consent_split() ) {
+     if( $self->non_consent_split() || $self->contains_nonconsented_xahuman() || $self->separate_y_chromosome_data() ) {
         push @markduplicates_commands, $self->_generate_markduplicates_cmd($self->non_consented_output(), $self->nonconsented_file_name_suffix, $self->human_reference());
      }
 
@@ -1398,12 +1398,6 @@ sub _run_bwa_sam { ##no critic (Subroutines/ProhibitExcessComplexity)
       $pm->finish;
   }
   $pm->wait_all_children;
-
-  if ($fifo2chr_split) {
-    # the non-consented part should be picked up by the downstream processing
-    $self->log('Setting non_consent_split flag to 1');
-    $self->_set_non_consent_split(1);
-  }
 
   return 1;
 }

@@ -119,12 +119,12 @@ if ($^X !~ /^\/software\/perl-5\.8\.8/smx) {
 
 my $builder =  $class->new(
 
-          'module_name'         => 'useful_modules',
+          'module_name'         => 'npg_seq_common',
           'dist_author'         => q(wtsi-npg <npg@sanger.ac.uk>),
           'dist_abstract'       => 'General purpose scripts and modules used by WTSI production pipeline and manual data processing',
           'license'             => 'gpl',
           'dist_version'        => $class->git_tag(),
-          'script_files' => [glob q[scripts/*]],
+          'script_files' => [glob q[bin/*]],
 
           'configure_requires' => {
                 'ExtUtils::CBuilder'              => 0,
