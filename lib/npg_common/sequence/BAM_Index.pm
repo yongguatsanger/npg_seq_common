@@ -17,6 +17,7 @@ use English qw(-no_match_vars);
 use File::Basename;
 use File::Spec::Functions qw(catfile);
 use Cwd qw(abs_path);
+use Readonly;
 
 with qw /
          MooseX::Getopt
@@ -24,7 +25,7 @@ with qw /
          npg_common::roles::software_location
         /;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 Readonly::Scalar our $DEFAULT_COMMAND_OPTIONS => {
                                VALIDATION_STRINGENCY => 'SILENT',

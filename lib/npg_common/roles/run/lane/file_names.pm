@@ -12,7 +12,7 @@ use Moose::Role;
 use Carp;
 use npg_tracking::glossary::tag;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 sub file_ext {
     my ($self, $file_extension) = @_;

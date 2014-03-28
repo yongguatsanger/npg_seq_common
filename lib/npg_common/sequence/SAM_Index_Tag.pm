@@ -17,7 +17,7 @@ use English qw(-no_match_vars);
 
 with 'MooseX::Getopt';
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/smx; $r; };
+our $VERSION = '0';
 ## no critic (Documentation::RequirePodAtEnd)
 
 =head1 NAME

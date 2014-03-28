@@ -18,7 +18,7 @@ use POSIX;
 
 ## no critic(ProhibitParensWithBuiltins Capitalization ProhibitMixedCaseSubs ProhibitManyArgs)
 
-our $VERSION   = do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 Readonly::Scalar our $DELIMETER      => q[&];
 Readonly::Scalar our $GOOGLE_URL     => q[http://chart.apis.google.com/chart?];

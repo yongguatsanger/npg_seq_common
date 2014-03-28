@@ -14,12 +14,13 @@ use warnings;
 use Carp qw(carp cluck croak confess);
 use Perl6::Slurp;
 use English qw{-no_match_vars};
+use Readonly;
 
 with qw{npg_tracking::illumina::run::short_info npg_tracking::illumina::run::folder};
 with qw{npg_common::roles::log};
 with qw{npg_tracking::glossary::tag};
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 ## no critic (RequirePodAtEnd)
 
 Readonly::Array our @LANE_RANGE_ARRAY => ( 1..8 );

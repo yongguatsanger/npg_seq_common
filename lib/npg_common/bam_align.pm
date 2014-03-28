@@ -22,7 +22,7 @@ use autodie qw(:all);
 use Parallel::ForkManager;
 use Cwd qw(cwd abs_path);
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision: 17202$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 use npg_common::sequence::BAM_MarkDuplicate;
 

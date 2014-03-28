@@ -22,7 +22,7 @@ with Storage( 'traits' => ['OnlyWhenBuilt'],
               'io'     => 'File' );
 
 
-our $VERSION    = do { my ($r) = q$Revision: 7844 $ =~ /(\d+)/smx; $r; };
+our $VERSION = '0';
 ## no critic (Documentation::RequirePodAtEnd ProhibitParensWithBuiltins)
 
 =head1 NAME

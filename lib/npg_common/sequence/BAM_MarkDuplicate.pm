@@ -30,7 +30,7 @@ with qw/
         npg_common::roles::software_location
        /;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 Readonly::Scalar our $DEFAULT_ESTIMATE_LIBRARY_COMPLEXITY_JAR => q{EstimateLibraryComplexity.jar};
 Readonly::Scalar our $DEFAULT_BAM_TAG_STRIPPER_JAR   => q[BamTagStripper.jar];

@@ -15,7 +15,7 @@ use npg::api::request;
 use npg::api::run_status_dict;
 
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 with qw{npg_common::roles::log};
 

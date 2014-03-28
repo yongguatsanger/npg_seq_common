@@ -24,6 +24,7 @@ use File::Basename;
 use Parallel::ForkManager;
 use Perl6::Slurp;
 use FindBin qw($Bin);
+use Readonly;
 
 use st::api::lims;
 use npg_tracking::data::reference;
@@ -39,7 +40,7 @@ with qw/
 with 'npg_tracking::illumina::run::folder';
 with 'npg_tracking::illumina::run::long_info';
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 Readonly::Scalar our $PICARD_SAM_FORMAT_CONVERTER_JAR
                                                => q[SamFormatConverter.jar];

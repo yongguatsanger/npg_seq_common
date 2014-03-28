@@ -20,7 +20,7 @@ use Moose;
 
 with 'npg_tracking::data::reference::list';
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision: 13501 $ =~ /(\d+)/smx; $r; };
+our $VERSION = '0';
 ## no critic (Documentation::RequirePodAtEnd ProhibitBacktickOperators)
 
 =head1 NAME

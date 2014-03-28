@@ -9,8 +9,9 @@
 package npg_common::roles::SequenceInfo;
 use Moose::Role;
 use Carp;
+use Readonly;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 Readonly::Scalar our $FAILED_TO_FIND_INDEX  => -1;
 Readonly::Scalar our $SANGER_QUALITY_OFFSET => 33;

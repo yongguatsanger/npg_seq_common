@@ -23,7 +23,7 @@ use File::Basename;
 
 use npg_common::fastqcheck;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 our @EXPORT_OK = qw(
                     first_read_length

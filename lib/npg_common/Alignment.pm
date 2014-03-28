@@ -14,8 +14,9 @@ use English qw(-no_match_vars);
 use File::Temp qw(tempdir);
 use Parallel::ForkManager;
 use Moose;
+use Readonly;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 with qw( npg_common::roles::software_location );
 

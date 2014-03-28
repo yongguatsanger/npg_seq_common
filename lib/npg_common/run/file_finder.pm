@@ -15,7 +15,7 @@ use File::Spec::Functions qw(catfile);
 use File::Basename;
 use npg_qc::Schema;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 with    qw/ npg_tracking::glossary::lane
             npg_tracking::glossary::tag

@@ -15,7 +15,7 @@ use Carp;
 use Cwd;
 use English qw{-no_match_vars};
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 ## no critic (Documentation::RequirePodAtEnd)
 
