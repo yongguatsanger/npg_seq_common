@@ -61,6 +61,7 @@ my $class = Module::Build->subclass(code => <<'EOF');
         local @ARGV = ($module);
         while (<>) {
           s/(\$VERSION\s*=\s*)('?\S+'?)\s*;/${1}'$gitver';/;
+          s/head1 VERSION$/head1  VERSION\n\nVersion $gitver/;
           print;
         }
         unlink "$module$backup";
