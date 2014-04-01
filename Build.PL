@@ -27,20 +27,46 @@ my $class = Module::Build->subclass(code => <<'EOF');
 
     $self->SUPER::ACTION_code;
 
-    my $module = q[blib/lib/npg_common/bam_align.pm];
-    my $gitver = $self->git_tag();
-    if (-e $module) {
-      warn "Changing version of $module to $gitver\n";
-      my $backup = '.original';
-      local $^I = $backup;
-      local @ARGV = ($module);
-      while (<>) {
-        s/(\$VERSION\s*=\s*)('?\S+'?)\s*;/${1}'$gitver';/;
-        print;
+    my $root = q[./blib/lib];
+    my @dirs  = ($root);
+    for my $path (@dirs){
+      opendir ( DIR, $path ) or next;   # skip dirs we can't read
+      while (my $file = readdir DIR) {
+        my $full_path = join '/', $path, $file;
+        next if $file eq '.' or $file eq '..'; # skip dot files
+           if ( -d $full_path ) {
+            push @dirs, $full_path;     # add dir to list
+          } 
       }
-      unlink "$module$backup";
-    } else {
-      warn "File $module not found\n";
+      closedir DIR;
+    }
+
+    my @modules;
+    foreach my $dir (@dirs) {
+    opendir(DIR, $dir) or die $!;
+    while (my $file = readdir(DIR)) {
+        next unless (-f "$dir/$file");
+        next unless ($file =~ m/\.pm$/);
+        push @modules, $dir . q[/] . $file;
+    }
+    closedir(DIR);
+  }
+
+    foreach my $module (@modules) {
+      my $gitver = $self->git_tag();
+      if (-e $module) {
+        warn "Changing version of $module to $gitver\n";
+        my $backup = '.original';
+        local $^I = $backup;
+        local @ARGV = ($module);
+        while (<>) {
+          s/(\$VERSION\s*=\s*)('?\S+'?)\s*;/${1}'$gitver';/;
+          print;
+        }
+        unlink "$module$backup";
+      } else {
+        warn "File $module not found\n";
+      }
     }
   }
 EOF

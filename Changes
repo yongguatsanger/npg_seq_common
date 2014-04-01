@@ -1,5 +1,7 @@
 LIST OF CHANGES
 
+- use Build code target to update all modules with the current git tag and SHA
+
 release 49.1
 - first release from git
 - remove duplicate of bam_align_irods: README enhancements; move scripts to bin
