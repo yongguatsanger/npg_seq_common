@@ -1,9 +1,13 @@
 LIST OF CHANGES
 
+release 49.2
+  - fix to not call AlignmentFilter QC wrapping for y and ax_human split
+  - fix to ensure flagstats, cram, bamcheck etc are run with y split but no phiX
+
 release 49.1
-- first release from git
-- remove duplicate of bam_align_irods: README enhancements; move scripts to bin
-- don't strip tags from Biobambam's bamadapterfind
+  - first release from git
+  - remove duplicate of bam_align_irods: README enhancements; move scripts to bin
+  - don't strip tags from Biobambam's bamadapterfind
 
 release 49.0
   - remove irods modules, tests and test data (moved to data-handling package)
