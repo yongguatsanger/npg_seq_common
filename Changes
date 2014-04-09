@@ -1,6 +1,7 @@
 LIST OF CHANGES
 
-- use Build code target to update all modules version and POD with the current git tag and SHA
+- use Build code target to update all modules version and POD with the current git tag and SHA 
+  using npg_tracking module
 
 release 49.1
 - first release from git
@@ -23,7 +24,8 @@ release 48.17
 
 release 48.16
   - BAM_MarkDuplicates test modifications to use TOOL_INSTALLED flag and extended mock environment
-  - sequence_BAM_Alignment, irods_run_Bam, irods_BamDeletion, extractor_fastq, bam_align and ref_maker test modifications to use TOOL_INSTALLED flag
+  - sequence_BAM_Alignment, irods_run_Bam, irods_BamDeletion, extractor_fastq, bam_align and ref_maker 
+    test modifications to use TOOL_INSTALLED flag
   - extractor_fastq sleeps to avoid pipe issues
 
 release 48.15
