@@ -1,10 +1,6 @@
 #############
-# $Id$
 # Created By: ajb
-# Mast Maintained By: $Author$
 # Created On: 2010-06-12
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::role_tests::run_lane_tag_info;
 use Moose;
@@ -17,7 +13,7 @@ use List::Util qw(first);
 with qw{npg_tracking::illumina::run::short_info npg_tracking::illumina::run::folder};
 with qw{npg_common::roles::run::lane::tag_info};
 
-Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 has q{verbose} => ( isa => q{Int}, is => q{ro} );
 
@@ -38,7 +34,6 @@ npg_common::role_tests::run_lane_tag_info
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

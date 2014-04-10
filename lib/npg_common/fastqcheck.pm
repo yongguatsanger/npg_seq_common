@@ -1,10 +1,6 @@
 #############
-# $Id$
 # Created By: ajb
-# Last Maintained By: $Author$
 # Created On: 2009-10-08
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::fastqcheck;
 
@@ -20,6 +16,7 @@ use File::Basename;
 
 use npg_qc::Schema;
 
+use Readonly;
 our $VERSION = '0';
 ## no critic (Documentation::RequirePodAtEnd)
 
@@ -29,7 +26,6 @@ npg_common::fastqcheck
 
 =head1 VERSION
 
-$Revision$
 
 =head1 SYNOPSIS
 

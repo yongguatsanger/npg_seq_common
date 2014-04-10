@@ -1,10 +1,6 @@
 #############
-# $Id$
 # Created By: gq1
-# Last Maintained By: $Author$
 # Created On: 2010-03-17
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::roles::run::lane::tag_info;
 use Moose::Role;
@@ -14,12 +10,12 @@ use warnings;
 use Carp qw(carp cluck croak confess);
 use Perl6::Slurp;
 use English qw{-no_match_vars};
-use Readonly;
 
 with qw{npg_tracking::illumina::run::short_info npg_tracking::illumina::run::folder};
 with qw{npg_common::roles::log};
 with qw{npg_tracking::glossary::tag};
 
+use Readonly;
 our $VERSION = '0';
 ## no critic (RequirePodAtEnd)
 
@@ -32,7 +28,6 @@ npg_common::roles::run::lane::tag_info
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

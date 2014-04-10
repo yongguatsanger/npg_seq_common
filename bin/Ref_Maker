@@ -45,7 +45,8 @@ use Perl6::Slurp;
 use POSIX qw(strftime);
 use autodie qw(:all);
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/msx; $r; };
+use Readonly;
+our $VERSION = '0';
 
 Readonly::Array  my @ALIGNERS             => qw{ bowtie bowtie2 bwa samtools };
 Readonly::Scalar my $DIR_PERM             => oct 755;
@@ -376,7 +377,6 @@ use.
 
 =head1 VERSION
 
-$Revision$
 
 =head1 SYNOPSIS
 

@@ -18,7 +18,8 @@ use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 
 use npg_common::sequence::reference::base_count;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/smx; $r; };
+use Readonly;
+our $VERSION = '0';
 
 # This script runs correctly if the working directory is above
 # the fasta directory

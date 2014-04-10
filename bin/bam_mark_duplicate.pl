@@ -21,7 +21,8 @@ use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 
 use npg_common::sequence::BAM_MarkDuplicate;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision: 9783 $ =~ /(\d+)/smx; $r; };
+use Readonly;
+our $VERSION = '0';
 
 npg_common::sequence::BAM_MarkDuplicate->new_with_options()->process();
 
@@ -35,7 +36,6 @@ bam_mark_duplicate.pl
 
 =head1 VERSION
 
-$LastChangedRevision: 9783 $
 
 =head1 USAGE
 

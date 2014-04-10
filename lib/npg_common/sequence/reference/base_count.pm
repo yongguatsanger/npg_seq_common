@@ -1,9 +1,5 @@
 # Author:        John O'Brien and Marina Gourtovaia
-# Maintainer:    $Author: mg8 $
 # Created:       26 January 2010
-# Last Modified: $Date: 2010-01-13 15:07:25 +0000 (Wed, 13 Jan 2010) $
-# Id:            $Id: reference.pm 7844 2010-01-13 15:07:25Z mg8 $
-# $HeadURL: svn+ssh://svn.internal.sanger.ac.uk/repos/svn/new-pipeline-dev/npg-qc/branches/prerelease-21.0/lib/npg_qc/autoqc/align/reference.pm $
 #
 
 package npg_common::sequence::reference::base_count;
@@ -13,7 +9,6 @@ use MooseX::ClassAttribute;
 use Carp;
 use IO::File;
 use Fatal qw( open close );
-use Readonly;
 
 use MooseX::Storage;
 
@@ -22,6 +17,7 @@ with Storage( 'traits' => ['OnlyWhenBuilt'],
               'io'     => 'File' );
 
 
+use Readonly;
 our $VERSION = '0';
 ## no critic (Documentation::RequirePodAtEnd ProhibitParensWithBuiltins)
 
@@ -31,7 +27,6 @@ npg_common::sequence::reference::base_count
 
 =head1 VERSION
 
-$Revision: 7844 $
 
 =head1 SYNOPSIS
 

@@ -1,10 +1,6 @@
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2009-04-17
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::Alignment;
@@ -14,8 +10,8 @@ use English qw(-no_match_vars);
 use File::Temp qw(tempdir);
 use Parallel::ForkManager;
 use Moose;
-use Readonly;
 
+use Readonly;
 our $VERSION = '0';
 
 with qw( npg_common::roles::software_location );
@@ -203,7 +199,6 @@ npg_common::Alignment
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

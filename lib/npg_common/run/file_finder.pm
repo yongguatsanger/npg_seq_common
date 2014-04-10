@@ -1,10 +1,6 @@
 #############
 # Created By: Marina Gourtovaia
-# Maintainer: $Author$
 # Created On: 23 April 2010
-# Last Modified: $Date$
-# $Id$
-# $HeadURL$
 
 package npg_common::run::file_finder;
 
@@ -15,6 +11,7 @@ use File::Spec::Functions qw(catfile);
 use File::Basename;
 use npg_qc::Schema;
 
+use Readonly;
 our $VERSION = '0';
 
 with    qw/ npg_tracking::glossary::lane
@@ -168,7 +165,6 @@ npg_common::run::file_finder
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

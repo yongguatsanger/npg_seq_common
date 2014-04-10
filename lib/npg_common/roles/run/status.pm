@@ -1,10 +1,6 @@
 #############
-# $Id$
 # Created By: ajb
-# Last Maintained By: $Author$
 # Created On: 2010-12-06
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::roles::run::status;
 use Moose::Role;
@@ -15,6 +11,7 @@ use npg::api::request;
 use npg::api::run_status_dict;
 
 
+use Readonly;
 our $VERSION = '0';
 
 with qw{npg_common::roles::log};
@@ -26,7 +23,6 @@ npg_common::roles::run::status
 
 =head1 VERSION
 
-$Revision$
 
 =head1 SYNOPSIS
 
@@ -47,7 +43,6 @@ and npg::api::run_status_dict modules
 Takes a run id and a status, and updates this run to this status.
 
   $oClass->update_run_status( {
-    id_run => $iIdRun,
     status_desc => $sStatus
   } );
 

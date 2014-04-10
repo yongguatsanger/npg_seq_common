@@ -1,16 +1,12 @@
 #############
-# $Id$
 # Created By: ajb
-# Last Maintained By: $Author$
 # Created On: 2011-06-14
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::roles::SequenceInfo;
 use Moose::Role;
 use Carp;
-use Readonly;
 
+use Readonly;
 our $VERSION = '0';
 
 Readonly::Scalar our $FAILED_TO_FIND_INDEX  => -1;
@@ -23,7 +19,6 @@ npg_common::roles::SequenceInfo
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

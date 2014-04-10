@@ -21,7 +21,8 @@ use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 
 use npg_common::sequence::BAM_Alignment;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/smx; $r; };
+use Readonly;
+our $VERSION = '0';
 
 npg_common::sequence::BAM_Alignment->new_with_options()->generate();
 
@@ -35,7 +36,6 @@ bam_alignment.pl
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 USAGE
 

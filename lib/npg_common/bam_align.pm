@@ -1,9 +1,5 @@
 #########
 # Author:        jo3
-# Maintainer:    $Author$
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 
 package npg_common::bam_align;
 
@@ -22,6 +18,7 @@ use autodie qw(:all);
 use Parallel::ForkManager;
 use Cwd qw(cwd abs_path);
 
+use Readonly;
 our $VERSION = '0';
 
 use npg_common::sequence::BAM_MarkDuplicate;
@@ -1375,7 +1372,6 @@ npg_common::bam_align - align the sequence in a BAM file to a reference.
 
 =head1 VERSION
 
-$Revision$
 
 =head1 SYNOPSIS
 

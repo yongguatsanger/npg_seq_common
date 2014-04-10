@@ -15,7 +15,8 @@ use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 
 use npg_common::sequence::SAM_Index_Tag;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/smx; $r; };
+use Readonly;
+our $VERSION = '0';
 
 npg_common::sequence::SAM_Index_Tag->new_with_options()->process();
 
@@ -29,7 +30,6 @@ sam_index_tag.pl
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 USAGE
   

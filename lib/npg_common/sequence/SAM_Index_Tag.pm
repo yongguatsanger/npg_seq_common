@@ -1,10 +1,6 @@
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2010-08-03
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::sequence::SAM_Index_Tag;
@@ -17,6 +13,7 @@ use English qw(-no_match_vars);
 
 with 'MooseX::Getopt';
 
+use Readonly;
 our $VERSION = '0';
 ## no critic (Documentation::RequirePodAtEnd)
 
@@ -26,7 +23,6 @@ npg_common::sequence::SAM_Index_Tag
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

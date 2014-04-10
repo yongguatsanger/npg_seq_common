@@ -1,10 +1,6 @@
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2010-10-05
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::sequence::BAM_Index;
@@ -17,7 +13,6 @@ use English qw(-no_match_vars);
 use File::Basename;
 use File::Spec::Functions qw(catfile);
 use Cwd qw(abs_path);
-use Readonly;
 
 with qw /
          MooseX::Getopt
@@ -25,6 +20,7 @@ with qw /
          npg_common::roles::software_location
         /;
 
+use Readonly;
 our $VERSION = '0';
 
 Readonly::Scalar our $DEFAULT_COMMAND_OPTIONS => {
@@ -42,7 +38,6 @@ npg_common::sequence::BAM_Index
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

@@ -1,10 +1,6 @@
 ########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2011-08-25
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::sequence::BAM_Alignment;
@@ -24,7 +20,6 @@ use File::Basename;
 use Parallel::ForkManager;
 use Perl6::Slurp;
 use FindBin qw($Bin);
-use Readonly;
 
 use st::api::lims;
 use npg_tracking::data::reference;
@@ -40,6 +35,7 @@ with qw/
 with 'npg_tracking::illumina::run::folder';
 with 'npg_tracking::illumina::run::long_info';
 
+use Readonly;
 our $VERSION = '0';
 
 Readonly::Scalar our $PICARD_SAM_FORMAT_CONVERTER_JAR
@@ -71,7 +67,6 @@ npg_common::sequence::BAM_Alignment
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

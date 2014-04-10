@@ -12,7 +12,8 @@ use strict;
 use warnings;
 use FindBin qw($Bin);
 use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/msx; $r; };
+use Readonly;
+our $VERSION = '0';
 use npg_common::bam_align;
 
 #**********************************************************
@@ -35,7 +36,6 @@ bam_aligner - align the sequence data in a bam file
 
 =head1 VERSION
 
-$Revision$
 
 =head1 SYNOPSIS
 

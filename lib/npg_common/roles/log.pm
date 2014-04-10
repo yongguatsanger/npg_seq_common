@@ -1,10 +1,6 @@
 #############
-# $Id$
 # Created By: ajb
-# Mast Maintained By: $Author$
 # Created On: 2009-10-29
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::roles::log;
 use strict;   # here to satisfy
@@ -15,6 +11,7 @@ use Carp;
 use Cwd;
 use English qw{-no_match_vars};
 
+use Readonly;
 our $VERSION = '0';
 
 ## no critic (Documentation::RequirePodAtEnd)
@@ -25,7 +22,6 @@ npg_common::roles::log
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

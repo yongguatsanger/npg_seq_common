@@ -1,23 +1,19 @@
 #########
 # Author:        Marina Gourtovaia
-# Maintainer:    $Author$
 # Created:       05 May 2009
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::diagram::visio_histo_google;
 
 use strict;
 use warnings;
-use Readonly;
 use Carp;
 use English qw(-no_match_vars);
 use POSIX;
 
 ## no critic(ProhibitParensWithBuiltins Capitalization ProhibitMixedCaseSubs ProhibitManyArgs)
 
+use Readonly;
 our $VERSION = '0';
 
 Readonly::Scalar our $DELIMETER      => q[&];
@@ -311,7 +307,6 @@ npg_common::diagram::visio_histo_google - an API for producing bar diagrams with
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

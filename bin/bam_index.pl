@@ -19,7 +19,8 @@ use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 
 use npg_common::sequence::BAM_Index;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/smx; $r; };
+use Readonly;
+our $VERSION = '0';
 
 npg_common::sequence::BAM_Index->new_with_options()->process();
 
@@ -33,7 +34,6 @@ bam_index.pl
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 USAGE
 

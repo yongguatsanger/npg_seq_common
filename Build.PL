@@ -1,8 +1,6 @@
 use strict;
 use warnings;
-use Module::Build;
 
-use lib 'lib';
 use npg_tracking::util::build;
 
 my $class = npg_tracking::util::build->subclass(code => <<'EOF');
@@ -98,6 +96,7 @@ my $builder =  $class->new(
 
           'build_requires' => {
                 'ExtUtils::CBuilder'              => 0,
+                'npg_tracking::util::build'       => 0,
                 'Test::Cmd'                       => 0,
                 'Test::Compile'                   => 0,
                 'Test::Distribution'              => 0,

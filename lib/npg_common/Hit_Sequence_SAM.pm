@@ -1,10 +1,6 @@
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2009-04-17
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::Hit_Sequence_SAM;
@@ -15,6 +11,7 @@ use Carp;
 use English qw(-no_match_vars);
 use base qw(Class::Accessor);
 
+use Readonly;
 our $VERSION = '0';
 
 __PACKAGE__->mk_accessors(qw(filename hit_ids non_hit_ids num_sequences_total num_sequences_hit num_sequences_nonhit));
@@ -103,7 +100,6 @@ npg_common::Hit_Sequence_SAM
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

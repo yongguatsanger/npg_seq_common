@@ -1,10 +1,6 @@
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2010 06 21
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::sequence::BAM_MarkDuplicate;
@@ -30,6 +26,7 @@ with qw/
         npg_common::roles::software_location
        /;
 
+use Readonly;
 our $VERSION = '0';
 
 Readonly::Scalar our $DEFAULT_ESTIMATE_LIBRARY_COMPLEXITY_JAR => q{EstimateLibraryComplexity.jar};
@@ -62,7 +59,6 @@ npg_common::sequence::BAM_MarkDuplicate
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

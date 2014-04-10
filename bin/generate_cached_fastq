@@ -20,7 +20,8 @@ use File::Basename;
 
 use npg_common::extractor::fastq qw/generate_cache/;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
+use Readonly;
+our $VERSION = '0';
 
 # for each of the fastqcheck files found in the cache dir, check for a rename (necessary
 #  for single-end reads with no index cycles - e.g. rrrr_p_1.fastqcheck => rrrr_p.fastqcheck).
@@ -160,7 +161,6 @@ generate_cached_fasq
 
 =head1 VERSION
 
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 
