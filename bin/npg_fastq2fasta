@@ -1,11 +1,7 @@
 #!/usr/bin/env perl
 #########
 # Author:        Marina Gourtovaia
-# Maintainer:    $Author$
 # Created:       7 March 2011
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 use strict;
@@ -15,7 +11,7 @@ use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 use Carp;
 use npg_common::extractor::fastq qw(to_fasta);
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/smx; $r; };
+our $VERSION = '0';
 
 my $num_args = scalar @ARGV;
 if (!$num_args) {
@@ -38,8 +34,6 @@ __END__
 fastq2fasta
 
 =head1 VERSION
-
-$Revision$
 
 =head1 USAGE
 

@@ -1,11 +1,6 @@
-
 #########
 # Author:        Marina Gourtovaia
-# Maintainer:    $Author: gq1 $
 # Created:       12 July 2011
-# Last Modified: $Date: 2011-06-30 16:05:58 +0100 (Thu, 30 Jun 2011) $
-# Id:            $Id: find.pm 13501 2011-06-30 15:05:58Z gq1 $
-# $HeadURL: svn+ssh://svn.internal.sanger.ac.uk/repos/svn/new-pipeline-dev/useful_modules/branches/prerelease-37.0/lib/npg_common/sequence/reference/roles/find.pm $
 #
 
 package npg_common::sequence::reference::index;
@@ -20,7 +15,7 @@ use Moose;
 
 with 'npg_tracking::data::reference::list';
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision: 13501 $ =~ /(\d+)/smx; $r; };
+our $VERSION = '0';
 ## no critic (Documentation::RequirePodAtEnd ProhibitBacktickOperators)
 
 =head1 NAME
@@ -28,8 +23,6 @@ use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision: 13501 
 npg_common::sequence::reference::index
 
 =head1 VERSION
-
-$Revision: 13501 $
 
 =head1 SYNOPSIS
 
@@ -216,7 +209,7 @@ __END__
 
 =head1 AUTHOR
 
-Author: Marina Gourtovaia E<lt>mg8@sanger.ac.ukE<gt>
+Marina Gourtovaia E<lt>mg8@sanger.ac.ukE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 

@@ -1,10 +1,6 @@
 #############
-# $Id$
 # Created By: ajb
-# Mast Maintained By: $Author$
 # Created On: 2009-10-01
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::role_tests::log;
 use Moose;
@@ -13,10 +9,6 @@ use English qw{-no_match_vars};
 use Readonly;
 
 with qw{npg_common::roles::log};
-
-Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
-
-
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -28,8 +20,6 @@ __END__
 npg_common::role_tests::log
 
 =head1 VERSION
-
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

@@ -1,10 +1,6 @@
 #########
 # Author:        ejz
-# Maintainer:    $Author$
 # Created:       2013-01-08
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::roles::software_location;
@@ -17,8 +13,9 @@ use Cwd qw(abs_path);
 use File::Which qw(which);
 use IPC::Open3;
 use Perl6::Slurp;
+use Readonly;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/msx; $r; };
+our $VERSION = '0';
 
 Readonly::Array  my @TOOLS => qw/bwa samtools samtools_irods bowtie java/;
 
@@ -136,8 +133,6 @@ __END__
 npg_common::roles::software_location
 
 =head1 VERSION
-
-$Revision$
 
 =head1 SYNOPSIS
 

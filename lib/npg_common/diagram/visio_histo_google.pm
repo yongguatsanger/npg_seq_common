@@ -1,24 +1,20 @@
 #########
 # Author:        Marina Gourtovaia
-# Maintainer:    $Author$
 # Created:       05 May 2009
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::diagram::visio_histo_google;
 
 use strict;
 use warnings;
-use Readonly;
 use Carp;
 use English qw(-no_match_vars);
 use POSIX;
+use Readonly;
 
 ## no critic(ProhibitParensWithBuiltins Capitalization ProhibitMixedCaseSubs ProhibitManyArgs)
 
-our $VERSION   = do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 Readonly::Scalar our $DELIMETER      => q[&];
 Readonly::Scalar our $GOOGLE_URL     => q[http://chart.apis.google.com/chart?];
@@ -311,8 +307,6 @@ npg_common::diagram::visio_histo_google - an API for producing bar diagrams with
 
 =head1 VERSION
 
-$LastChangedRevision$
-
 =head1 SYNOPSIS
 
   use npg_common::diagram::visio_histo_google;
@@ -405,7 +399,7 @@ To avoid possible problems, only use the hashref if your data has come from this
 
 =head1 AUTHOR
 
-$Author$
+Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 

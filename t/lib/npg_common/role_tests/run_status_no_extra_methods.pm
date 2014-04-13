@@ -1,22 +1,15 @@
 #############
-# $Id$
 # Created By: ajb
-# Last Maintained By: $Author$
 # Created On: 2010-12-10
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::role_tests::run_status_no_extra_methods;
 use Moose;
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
 
 with qw{npg_common::roles::run::status};
 
 =head1 NAME
 
 =head1 VERSION
-
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 
