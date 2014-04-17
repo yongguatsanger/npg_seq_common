@@ -1,9 +1,5 @@
 #########
 # Author:        jo3
-# Maintainer:    $Author$
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 
 package npg_common::bam_align;
 
@@ -22,8 +18,6 @@ use autodie qw(:all);
 use Parallel::ForkManager;
 use Cwd qw(cwd abs_path);
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision: 17202$ =~ /(\d+)/mxs; $r; };
-
 use npg_common::sequence::BAM_MarkDuplicate;
 
 with qw/
@@ -31,6 +25,8 @@ with qw/
     npg_tracking::data::reference::list
     npg_common::roles::software_location
 /;
+
+our $VERSION = '0';
 
 ## no critic (Documentation::RequirePodAtEnd)
 sub run {
@@ -1363,7 +1359,6 @@ sub validate_pg_arg {
     return @{$pg_lines};
 }
 
-
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;
@@ -1374,8 +1369,6 @@ __END__
 npg_common::bam_align - align the sequence in a BAM file to a reference.
 
 =head1 VERSION
-
-$Revision$
 
 =head1 SYNOPSIS
 

@@ -1,10 +1,6 @@
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2009-04-17
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::Alignment;
@@ -15,9 +11,9 @@ use File::Temp qw(tempdir);
 use Parallel::ForkManager;
 use Moose;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
-
 with qw( npg_common::roles::software_location );
+
+our $VERSION = '0';
 
 has 'bwa_options' => (
     is            => 'rw',
@@ -201,8 +197,6 @@ __END__
 npg_common::Alignment
 
 =head1 VERSION
-
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

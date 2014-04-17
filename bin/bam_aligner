@@ -1,29 +1,18 @@
 #!/usr/bin/env perl
 #########
 # Author:        jo3
-# Maintainer:    $Author$
-# Created:
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 use strict;
 use warnings;
 use FindBin qw($Bin);
 use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/msx; $r; };
+
 use npg_common::bam_align;
 
-#**********************************************************
-#**********************************************************
-#        Change debug to 0 before releasing!
-#**********************************************************
-#**********************************************************
+our $VERSION = '0';
 
-my $align_job = npg_common::bam_align->new_with_options();
-
-$align_job->run();
+npg_common::bam_align->new_with_options()->run();
 
 1;
 __END__
@@ -34,8 +23,6 @@ __END__
 bam_aligner - align the sequence data in a bam file
 
 =head1 VERSION
-
-$Revision$
 
 =head1 SYNOPSIS
 

@@ -1,16 +1,14 @@
 #############
-# $Id$
 # Created By: ajb
-# Last Maintained By: $Author$
 # Created On: 2011-06-14
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::roles::SequenceInfo;
 use Moose::Role;
 use Carp;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
+use Readonly;
+
+our $VERSION = '0';
 
 Readonly::Scalar our $FAILED_TO_FIND_INDEX  => -1;
 Readonly::Scalar our $SANGER_QUALITY_OFFSET => 33;
@@ -21,8 +19,6 @@ Readonly::Scalar our $SANGER_QUALITY_OFFSET => 33;
 npg_common::roles::SequenceInfo
 
 =head1 VERSION
-
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 
@@ -126,7 +122,7 @@ __END__
 
 =head1 AUTHOR
 
-$Author$
+Andy Brown
 
 =head1 LICENSE AND COPYRIGHT
 

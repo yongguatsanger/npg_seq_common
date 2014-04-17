@@ -2,9 +2,6 @@
 #########
 # Author:        John O'Brien
 # Created:       2008-06-17
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 
 package FastaFormat;
 
@@ -15,8 +12,9 @@ use English qw(-no_match_vars);
 use File::Temp qw(tempfile);
 use autodie qw(:all);
 use File::Copy;
+use Readonly;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/msx; $r; };
+our $VERSION = '0';
 
 Readonly::Scalar my $DEFAULT_LINE_LENGTH => 80;
 
@@ -115,8 +113,6 @@ __END__
 FastaFormat - make sure all sequence lines in fasta files are the same length.
 
 =head1 VERSION
-
-$Revision$
 
 =head1 SYNOPSIS
 

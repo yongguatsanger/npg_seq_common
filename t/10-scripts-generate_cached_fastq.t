@@ -1,10 +1,6 @@
 #########
 # Author:        kl2
-# Maintainer:    $Author $
 # Created:       2012-10-31
-# Last Modified: $Date $
-# Id:            $Id $
-# $HeadURL $
 #
 
 use strict;

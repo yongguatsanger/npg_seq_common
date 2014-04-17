@@ -1,11 +1,7 @@
 #!/usr/bin/env perl
 #########
 # Author:        gq1
-# Maintainer:    $Author: gq1 $
 # Created:       2010-06-21
-# Last Modified: $Date: 2010-06-25 09:52:45 +0100 (Fri, 25 Jun 2010) $
-# Id:            $Id: bam_mark_duplicate.pl 9783 2010-06-25 08:52:45Z gq1 $
-# $HeadURL: svn+ssh://svn.internal.sanger.ac.uk/repos/svn/new-pipeline-dev/useful_modules/branches/prerelease-23.0/scripts/bam_mark_duplicate.pl $
 #
 
 #########################
@@ -21,7 +17,7 @@ use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 
 use npg_common::sequence::BAM_MarkDuplicate;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision: 9783 $ =~ /(\d+)/smx; $r; };
+our $VERSION = '0';
 
 npg_common::sequence::BAM_MarkDuplicate->new_with_options()->process();
 
@@ -34,8 +30,6 @@ __END__
 bam_mark_duplicate.pl
 
 =head1 VERSION
-
-$LastChangedRevision: 9783 $
 
 =head1 USAGE
 

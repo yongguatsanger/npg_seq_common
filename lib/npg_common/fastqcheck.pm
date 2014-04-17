@@ -1,26 +1,21 @@
 #############
-# $Id$
 # Created By: ajb
-# Last Maintained By: $Author$
 # Created On: 2009-10-08
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::fastqcheck;
 
-use strict;   # here to satisfy
-use warnings; # webpublish
 use Moose;
 use Moose::Util::TypeConstraints;
 use Carp;
 use Perl6::Slurp;
 use Math::Round qw(round);
 use English qw{-no_match_vars};
+use Readonly;
 use File::Basename;
 
 use npg_qc::Schema;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/smx; $r; };
+our $VERSION = '0';
 ## no critic (Documentation::RequirePodAtEnd)
 
 =head1 NAME
@@ -28,9 +23,7 @@ use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\
 npg_common::fastqcheck
 
 =head1 VERSION
-
-$Revision$
-
+i
 =head1 SYNOPSIS
 
   use npg_common::fastqcheck;
@@ -566,10 +559,6 @@ __END__
 
 =item Readonly
 
-=item strict
-
-=item warnings
-
 =item npg_qc::Schema
 
 =back
@@ -580,7 +569,7 @@ __END__
 
 =head1 AUTHOR
 
-Author: Marina Gourtovaia E<lt>mg8@sanger.ac.ukE<gt> and Andy Brown E<lt>ajb@sanger.ac.ukE<gt>
+Marina Gourtovaia E<lt>mg8@sanger.ac.ukE<gt> and Andy Brown E<lt>ajb@sanger.ac.ukE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 
