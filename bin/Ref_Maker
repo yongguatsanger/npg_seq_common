@@ -2,9 +2,6 @@
 #########
 # Author:        John O'Brien
 # Created:       2008-06-17
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$)
 
 ##no critic(ProhibitMultiplePackages)
 
@@ -44,8 +41,8 @@ use List::Util qw(sum);
 use Perl6::Slurp;
 use POSIX qw(strftime);
 use autodie qw(:all);
-
 use Readonly;
+
 our $VERSION = '0';
 
 Readonly::Array  my @ALIGNERS             => qw{ bowtie bowtie2 bwa samtools };

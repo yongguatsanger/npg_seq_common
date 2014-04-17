@@ -7,6 +7,7 @@ use Moose::Role;
 use Carp;
 
 use Readonly;
+
 our $VERSION = '0';
 
 Readonly::Scalar our $FAILED_TO_FIND_INDEX  => -1;
@@ -18,7 +19,6 @@ Readonly::Scalar our $SANGER_QUALITY_OFFSET => 33;
 npg_common::roles::SequenceInfo
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 
@@ -122,7 +122,7 @@ __END__
 
 =head1 AUTHOR
 
-$Author$
+Andy Brown
 
 =head1 LICENSE AND COPYRIGHT
 

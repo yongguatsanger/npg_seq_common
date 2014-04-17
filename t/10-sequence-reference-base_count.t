@@ -1,10 +1,6 @@
 #########
 # Author:        Marina Gourtovaia
-# Maintainer:    $Author: mg8 $
 # Created:       27 January 2010
-# Last Modified: $Date: 2010-01-15 16:17:37 +0000 (Fri, 15 Jan 2010) $
-# Id:            $Id: 10-sequence-reference.t 7881 2010-01-15 16:17:37Z mg8 $
-# $HeadURL: svn+ssh://svn.internal.sanger.ac.uk/repos/svn/new-pipeline-dev/useful_modules/branches/prerelease-17.0/t/10-sequence-reference.t $
 #
 
 use strict;

@@ -8,7 +8,6 @@ use Moose::Role;
 use Carp;
 use npg_tracking::glossary::tag;
 
-use Readonly;
 our $VERSION = '0';
 
 sub file_ext {
@@ -81,7 +80,6 @@ npg_common::roles::run::lane::file_names
 
 =head1 VERSION
 
-
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
@@ -139,8 +137,6 @@ following convention id-run_position_end.extension. The default default end is 1
 
 =item Carp
 
-=item Readonly
-
 =back
 
 =head1 INCOMPATIBILITIES
@@ -149,7 +145,7 @@ following convention id-run_position_end.extension. The default default end is 1
 
 =head1 AUTHOR
 
-$Author$
+Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 

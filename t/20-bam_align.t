@@ -1,10 +1,6 @@
 #########
 # Author:        John O'Brien
-# Maintainer:    $Author$
 # Created:       12/01/2011
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 package test_bam_align;
 

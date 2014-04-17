@@ -13,8 +13,8 @@ use Cwd qw(abs_path);
 use File::Which qw(which);
 use IPC::Open3;
 use Perl6::Slurp;
-
 use Readonly;
+
 our $VERSION = '0';
 
 Readonly::Array  my @TOOLS => qw/bwa samtools samtools_irods bowtie java/;
@@ -133,7 +133,6 @@ __END__
 npg_common::roles::software_location
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 

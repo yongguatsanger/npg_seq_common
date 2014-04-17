@@ -6,14 +6,11 @@ package npg_common::role_tests::run_lane_tag_info;
 use Moose;
 use Carp;
 use English qw{-no_match_vars};
-use Readonly;
 use File::Spec::Functions qw(splitdir);
 use List::Util qw(first);
 
 with qw{npg_tracking::illumina::run::short_info npg_tracking::illumina::run::folder};
 with qw{npg_common::roles::run::lane::tag_info};
-
-our $VERSION = '0';
 
 has q{verbose} => ( isa => q{Int}, is => q{ro} );
 
@@ -33,7 +30,6 @@ __END__
 npg_common::role_tests::run_lane_tag_info
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 

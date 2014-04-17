@@ -13,8 +13,8 @@ use English qw(-no_match_vars);
 
 with 'MooseX::Getopt';
 
-use Readonly;
 our $VERSION = '0';
+
 ## no critic (Documentation::RequirePodAtEnd)
 
 =head1 NAME
@@ -22,7 +22,6 @@ our $VERSION = '0';
 npg_common::sequence::SAM_Index_Tag
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 
@@ -207,8 +206,6 @@ __END__
 =item Carp
 
 =item English -no_match_vars
-
-=item Readonly
 
 =back
 

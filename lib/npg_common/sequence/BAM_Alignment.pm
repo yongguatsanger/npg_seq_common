@@ -36,6 +36,7 @@ with 'npg_tracking::illumina::run::folder';
 with 'npg_tracking::illumina::run::long_info';
 
 use Readonly;
+
 our $VERSION = '0';
 
 Readonly::Scalar our $PICARD_SAM_FORMAT_CONVERTER_JAR
@@ -66,7 +67,6 @@ Readonly::Scalar our $EXIT_CODE_SHIFT          => 8;
 npg_common::sequence::BAM_Alignment
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 

@@ -1,4 +1,3 @@
-
 #########
 # Author:        Marina Gourtovaia
 # Created:       12 July 2011
@@ -16,7 +15,6 @@ use Moose;
 
 with 'npg_tracking::data::reference::list';
 
-use Readonly;
 our $VERSION = '0';
 ## no critic (Documentation::RequirePodAtEnd ProhibitBacktickOperators)
 
@@ -25,7 +23,6 @@ our $VERSION = '0';
 npg_common::sequence::reference::index
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 
@@ -212,7 +209,7 @@ __END__
 
 =head1 AUTHOR
 
-Author: Marina Gourtovaia E<lt>mg8@sanger.ac.ukE<gt>
+Marina Gourtovaia E<lt>mg8@sanger.ac.ukE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 

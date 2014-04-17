@@ -1,13 +1,8 @@
 use strict;
 use warnings;
-
 use npg_tracking::util::build;
 
-my $class = npg_tracking::util::build->subclass(code => <<'EOF');
-
-EOF
-
-my  $requires = {
+my $requires = {
                 'autodie'                         => '2.10',
                 'base'                            => '2.12',
                 'Carp'                            => '1.04',
@@ -56,11 +51,11 @@ my  $requires = {
                 'warnings'                        => '1.05',
                 'YAML'                            => '0.68',
 
-	              'npg::api::request'                       => 0,
+                'npg::api::request'                       => 0,
                 'npg::api::run'                           => 0,
-          	    'npg::api::run_status_dict'               => 0,
+                'npg::api::run_status_dict'               => 0,
 
-	       	      'npg_qc::autoqc::results::bam_flagstats'  => 0,
+                'npg_qc::autoqc::results::bam_flagstats'  => 0,
                 'npg_qc::Schema'                          => 0,
 
                 'npg_tracking::data::reference'           => 0,
@@ -75,23 +70,18 @@ my  $requires = {
                 'st::api::lims'                           => 0,
 };
 
-if ($^X !~ /^\/software\/perl-5\.8\.8/smx) {
-  $requires->{'YAML::XS'} = 0;
-}
-
-my $builder =  $class->new(
+my $builder =  npg_tracking::util::build->new(
 
           'module_name'         => 'npg_seq_common',
           'dist_author'         => q(wtsi-npg <npg@sanger.ac.uk>),
-          'dist_abstract'       => 'General purpose scripts and modules used by WTSI production pipeline and manual data processing',
+          'dist_abstract'       =>
+  'General purpose scripts and modules used by WTSI production pipeline and manual data processing',
           'license'             => 'gpl',
-          'dist_version'        => $class->git_tag(),
-          'script_files' => [glob q[bin/*]],
+          'dist_version'        => npg_tracking::util::build->git_tag(),
 
           'configure_requires' => {
                 'ExtUtils::CBuilder'              => 0,
-                'Readonly'                        => 0,
-                'Readonly::XS'                    => 0,
+                'npg_tracking::util::build'       => 0,
           },
 
           'build_requires' => {
@@ -114,7 +104,7 @@ my $builder =  $class->new(
           'requires'     => $requires,
 
           'dist'         => { COMPRESS => 'gzip', SUFFIX => 'gz', },
-         );
+);
 
 $builder->create_build_script();
 

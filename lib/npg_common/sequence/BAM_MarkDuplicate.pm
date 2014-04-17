@@ -27,6 +27,7 @@ with qw/
        /;
 
 use Readonly;
+
 our $VERSION = '0';
 
 Readonly::Scalar our $DEFAULT_ESTIMATE_LIBRARY_COMPLEXITY_JAR => q{EstimateLibraryComplexity.jar};
@@ -58,7 +59,6 @@ Readonly::Scalar our $BAM_TAGS_TO_KEEP               => [qw(tr tq a3 ah as af aa
 npg_common::sequence::BAM_MarkDuplicate
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 

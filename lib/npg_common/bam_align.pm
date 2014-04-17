@@ -18,9 +18,6 @@ use autodie qw(:all);
 use Parallel::ForkManager;
 use Cwd qw(cwd abs_path);
 
-use Readonly;
-our $VERSION = '0';
-
 use npg_common::sequence::BAM_MarkDuplicate;
 
 with qw/
@@ -28,6 +25,8 @@ with qw/
     npg_tracking::data::reference::list
     npg_common::roles::software_location
 /;
+
+our $VERSION = '0';
 
 ## no critic (Documentation::RequirePodAtEnd)
 sub run {
@@ -1360,7 +1359,6 @@ sub validate_pg_arg {
     return @{$pg_lines};
 }
 
-
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;
@@ -1371,7 +1369,6 @@ __END__
 npg_common::bam_align - align the sequence in a BAM file to a reference.
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 

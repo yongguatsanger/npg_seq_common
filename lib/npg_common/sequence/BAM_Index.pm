@@ -21,6 +21,7 @@ with qw /
         /;
 
 use Readonly;
+
 our $VERSION = '0';
 
 Readonly::Scalar our $DEFAULT_COMMAND_OPTIONS => {
@@ -37,7 +38,6 @@ Readonly::Scalar our $BUILD_BAM_INDEX_JAR => qw[BuildBamIndex.jar];
 npg_common::sequence::BAM_Index
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 

@@ -11,7 +11,6 @@ use Carp;
 use Cwd;
 use English qw{-no_match_vars};
 
-use Readonly;
 our $VERSION = '0';
 
 ## no critic (Documentation::RequirePodAtEnd)
@@ -21,7 +20,6 @@ our $VERSION = '0';
 npg_common::roles::log
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 
@@ -163,8 +161,6 @@ __END__
 
 =item Carp
 
-=item Readonly
-
 =item POSIX
 
 =item Cwd
@@ -177,7 +173,7 @@ __END__
 
 =head1 AUTHOR
 
-$Author$
+Andy Brown
 
 =head1 LICENSE AND COPYRIGHT
 

@@ -11,10 +11,9 @@ use File::Temp qw(tempdir);
 use Parallel::ForkManager;
 use Moose;
 
-use Readonly;
-our $VERSION = '0';
-
 with qw( npg_common::roles::software_location );
+
+our $VERSION = '0';
 
 has 'bwa_options' => (
     is            => 'rw',
@@ -198,7 +197,6 @@ __END__
 npg_common::Alignment
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 

@@ -1,10 +1,6 @@
 #!/usr/bin/env perl
 #########
 # Author:        Marina Gourtovaia
-# Maintainer:    $Author$
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 use strict;
@@ -14,7 +10,6 @@ use MIME::Lite;
 use Getopt::Long;
 use Carp;
 
-use Readonly;
 our $VERSION = '0';
 
 my $subject = q[];
@@ -76,7 +71,6 @@ npg_mail_cron_output
 
 =head1 VERSION
 
-
 =head1 USAGE
 
 =head1 CONFIGURATION
@@ -113,8 +107,6 @@ npg_mail_cron_output
 
 =item MIME::Lite
 
-=item Readonly
-
 =back
 
 =head1 INCOMPATIBILITIES
@@ -123,7 +115,7 @@ npg_mail_cron_output
 
 =head1 AUTHOR
 
- Marina Gourtovaia
+Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 

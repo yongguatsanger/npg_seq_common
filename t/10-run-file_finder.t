@@ -1,8 +1,5 @@
 #########
 # Author:        ajb
-# Last Modified: $Date: 2010-02-22 12:16:42 +0000 (Mon, 22 Feb 2010) $ $Author: mg8 $
-# Id:            $Id: 10-run-finder.t 8343 2010-02-22 12:16:42Z mg8 $
-# $HeadURL: svn+ssh://svn.internal.sanger.ac.uk/repos/svn/new-pipeline-dev/useful_modules/branches/prerelease-20.0/t/10-run-finder.t $
 #
 
 use strict;

@@ -10,11 +10,9 @@ use npg::api::run;
 use npg::api::request;
 use npg::api::run_status_dict;
 
-
-use Readonly;
-our $VERSION = '0';
-
 with qw{npg_common::roles::log};
+
+our $VERSION = '0';
 
 ## no critic (Documentation::RequirePodAtEnd)
 =head1 NAME
@@ -22,7 +20,6 @@ with qw{npg_common::roles::log};
 npg_common::roles::run::status
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 
@@ -224,8 +221,6 @@ __END__
 
 =item English -no_match_vars
 
-=item Readonly
-
 =back
 
 =head1 INCOMPATIBILITIES
@@ -234,7 +229,7 @@ __END__
 
 =head1 AUTHOR
 
-$Author$
+Andy Brown
 
 =head1 LICENSE AND COPYRIGHT
 

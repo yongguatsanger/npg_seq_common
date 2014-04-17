@@ -1,11 +1,7 @@
 #!/usr/bin/env perl
 #########
 # Author:        Marina Gourtovaia
-# Maintainer:    $Author$
 # Created:       07 November 2011
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 use strict;
@@ -20,7 +16,6 @@ use File::Basename;
 
 use npg_common::extractor::fastq qw/generate_cache/;
 
-use Readonly;
 our $VERSION = '0';
 
 # for each of the fastqcheck files found in the cache dir, check for a rename (necessary
@@ -161,7 +156,6 @@ generate_cached_fasq
 
 =head1 VERSION
 
-
 =head1 SYNOPSIS
 
 Script to generate a chache of short (usually 10000 reads long) fastq files
@@ -212,8 +206,6 @@ Script to generate a chache of short (usually 10000 reads long) fastq files
 
 =item File::Basename
 
-=item Readonly
-
 =item npg_common::extractor::fastq
 
 =back
@@ -224,7 +216,7 @@ Script to generate a chache of short (usually 10000 reads long) fastq files
 
 =head1 AUTHOR
 
-$Author$
+Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 

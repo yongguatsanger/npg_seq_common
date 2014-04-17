@@ -1,11 +1,7 @@
 #!/usr/bin/env perl
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2011-08-31
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 #########################
@@ -21,7 +17,6 @@ use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 
 use npg_common::sequence::BAM_Alignment;
 
-use Readonly;
 our $VERSION = '0';
 
 npg_common::sequence::BAM_Alignment->new_with_options()->generate();
@@ -35,7 +30,6 @@ __END__
 bam_alignment.pl
 
 =head1 VERSION
-
 
 =head1 USAGE
 

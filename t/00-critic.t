@@ -1,11 +1,7 @@
 #########
 # Author:        rmp
-# Last Modified: $Date$ $Author$
-# Id:            $Id$
-# Source:        $Source: /cvsroot/Bio-DasLite/Bio-DasLite/t/00-critic.t,v $
-# $HeadURL$
 #
-package critic;
+
 use strict;
 use warnings;
 use Test::More;

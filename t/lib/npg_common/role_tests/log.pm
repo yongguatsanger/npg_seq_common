@@ -10,9 +10,6 @@ use Readonly;
 
 with qw{npg_common::roles::log};
 
-use Readonly;
-our $VERSION = '0';
-
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;
@@ -23,7 +20,6 @@ __END__
 npg_common::role_tests::log
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 

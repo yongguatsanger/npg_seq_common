@@ -9,16 +9,15 @@ use MooseX::ClassAttribute;
 use Carp;
 use IO::File;
 use Fatal qw( open close );
-
 use MooseX::Storage;
+use Readonly;
 
 with Storage( 'traits' => ['OnlyWhenBuilt'],
               'format' => 'JSON',
               'io'     => 'File' );
 
-
-use Readonly;
 our $VERSION = '0';
+
 ## no critic (Documentation::RequirePodAtEnd ProhibitParensWithBuiltins)
 
 =head1 NAME
@@ -27,13 +26,11 @@ npg_common::sequence::reference::base_count
 
 =head1 VERSION
 
-
 =head1 SYNOPSIS
 
  my $bc = npg_tracking::data::reference::base_count->new(reference_path => q[my.ref]);
  $bc->run;
  
-
 =head1 DESCRIPTION
 
 =head1 SUBROUTINES/METHODS
@@ -195,7 +192,7 @@ __END__
 
 =head1 AUTHOR
 
-Author: Marina Gourtovaia E<lt>mg8@sanger.ac.ukE<gt>
+Marina Gourtovaia E<lt>mg8@sanger.ac.ukE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 

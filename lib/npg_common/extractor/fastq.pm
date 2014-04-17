@@ -16,10 +16,10 @@ use Fcntl ':seek';
 use File::Spec;
 use File::stat;
 use File::Basename;
+use Readonly;
 
 use npg_common::fastqcheck;
 
-use Readonly;
 our $VERSION = '0';
 
 our @EXPORT_OK = qw(
@@ -643,7 +643,7 @@ A fastq to fasta converter
 
 =head1 AUTHOR
 
-$Author: mg8 $
+Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 

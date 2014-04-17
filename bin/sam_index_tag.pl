@@ -1,11 +1,7 @@
 #!/usr/bin/env perl
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       09 Aug 2010
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 use strict;
@@ -15,7 +11,6 @@ use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 
 use npg_common::sequence::SAM_Index_Tag;
 
-use Readonly;
 our $VERSION = '0';
 
 npg_common::sequence::SAM_Index_Tag->new_with_options()->process();
@@ -29,7 +24,6 @@ __END__
 sam_index_tag.pl
 
 =head1 VERSION
-
 
 =head1 USAGE
   

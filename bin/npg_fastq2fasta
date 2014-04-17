@@ -1,11 +1,7 @@
 #!/usr/bin/env perl
 #########
 # Author:        Marina Gourtovaia
-# Maintainer:    $Author$
 # Created:       7 March 2011
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 use strict;
@@ -15,7 +11,6 @@ use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 use Carp;
 use npg_common::extractor::fastq qw(to_fasta);
 
-use Readonly;
 our $VERSION = '0';
 
 my $num_args = scalar @ARGV;
@@ -39,7 +34,6 @@ __END__
 fastq2fasta
 
 =head1 VERSION
-
 
 =head1 USAGE
 

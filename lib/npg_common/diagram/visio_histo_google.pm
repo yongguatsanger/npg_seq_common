@@ -10,10 +10,10 @@ use warnings;
 use Carp;
 use English qw(-no_match_vars);
 use POSIX;
+use Readonly;
 
 ## no critic(ProhibitParensWithBuiltins Capitalization ProhibitMixedCaseSubs ProhibitManyArgs)
 
-use Readonly;
 our $VERSION = '0';
 
 Readonly::Scalar our $DELIMETER      => q[&];
@@ -307,7 +307,6 @@ npg_common::diagram::visio_histo_google - an API for producing bar diagrams with
 
 =head1 VERSION
 
-
 =head1 SYNOPSIS
 
   use npg_common::diagram::visio_histo_google;
@@ -400,7 +399,7 @@ To avoid possible problems, only use the hashref if your data has come from this
 
 =head1 AUTHOR
 
-$Author$
+Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 

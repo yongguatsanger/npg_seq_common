@@ -10,12 +10,12 @@ use warnings;
 use Carp qw(carp cluck croak confess);
 use Perl6::Slurp;
 use English qw{-no_match_vars};
+use Readonly;
 
 with qw{npg_tracking::illumina::run::short_info npg_tracking::illumina::run::folder};
 with qw{npg_common::roles::log};
 with qw{npg_tracking::glossary::tag};
 
-use Readonly;
 our $VERSION = '0';
 ## no critic (RequirePodAtEnd)
 
@@ -27,7 +27,6 @@ Readonly::Scalar our $LSF_INDEX_MULTIPLIER => 1000;
 npg_common::roles::run::lane::tag_info
 
 =head1 VERSION
-
 
 =head1 SYNOPSIS
 
@@ -387,7 +386,7 @@ __END__
 
 =head1 AUTHOR
 
-$Author$
+Guoying Qi
 
 =head1 LICENSE AND COPYRIGHT
 

@@ -4,19 +4,17 @@
 
 package npg_common::fastqcheck;
 
-use strict;   # here to satisfy
-use warnings; # webpublish
 use Moose;
 use Moose::Util::TypeConstraints;
 use Carp;
 use Perl6::Slurp;
 use Math::Round qw(round);
 use English qw{-no_match_vars};
+use Readonly;
 use File::Basename;
 
 use npg_qc::Schema;
 
-use Readonly;
 our $VERSION = '0';
 ## no critic (Documentation::RequirePodAtEnd)
 
@@ -25,8 +23,7 @@ our $VERSION = '0';
 npg_common::fastqcheck
 
 =head1 VERSION
-
-
+i
 =head1 SYNOPSIS
 
   use npg_common::fastqcheck;
@@ -562,10 +559,6 @@ __END__
 
 =item Readonly
 
-=item strict
-
-=item warnings
-
 =item npg_qc::Schema
 
 =back
@@ -576,7 +569,7 @@ __END__
 
 =head1 AUTHOR
 
-Author: Marina Gourtovaia E<lt>mg8@sanger.ac.ukE<gt> and Andy Brown E<lt>ajb@sanger.ac.ukE<gt>
+Marina Gourtovaia E<lt>mg8@sanger.ac.ukE<gt> and Andy Brown E<lt>ajb@sanger.ac.ukE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 

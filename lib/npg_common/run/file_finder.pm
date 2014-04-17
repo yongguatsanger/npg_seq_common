@@ -9,10 +9,9 @@ use Carp;
 use English qw{-no_match_vars};
 use File::Spec::Functions qw(catfile);
 use File::Basename;
-use npg_qc::Schema;
-
 use Readonly;
-our $VERSION = '0';
+
+use npg_qc::Schema;
 
 with    qw/ npg_tracking::glossary::lane
             npg_tracking::glossary::tag
@@ -21,6 +20,7 @@ with    qw/ npg_tracking::glossary::lane
             npg_tracking::illumina::run::folder
           /;
 
+our $VERSION = '0';
 
 Readonly::Scalar our $FILE_EXTENSION      => q[fastq];
 Readonly::Scalar our $RESULT_CLASS_NAME   => q[Fastqcheck];
@@ -165,7 +165,6 @@ npg_common::run::file_finder
 
 =head1 VERSION
 
-
 =head1 SYNOPSIS
 
   my $finder = npg_common::run::file_finder->new(id_run => 2222, position => 1);
@@ -239,7 +238,7 @@ also a file for a tag if requested. The possible keys are forward, reverse, and 
 
 =head1 AUTHOR
 
-$Author$
+Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 
