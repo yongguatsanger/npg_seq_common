@@ -1,10 +1,6 @@
 #########
 # Author:        Marina Gourtovaia
-# Maintainer:    $Author: mg8 $
 # Created:       03 April 2009
-# Last Modified: $Date: 2009-04-08 18:30:40 +0100 (Wed, 08 Apr 2009) $
-# Id:            $Id: fastq.pm 4830 2009-04-08 17:30:40Z mg8 $
-# $HeadURL: svn+ssh://svn.internal.sanger.ac.uk/repos/svn/new-pipeline-dev/useful_modules/trunk/lib/npg_common/extractor/fastq.pm $
 #
 
 package npg_common::extractor::fastq;
@@ -20,10 +16,11 @@ use Fcntl ':seek';
 use File::Spec;
 use File::stat;
 use File::Basename;
+use Readonly;
 
 use npg_common::fastqcheck;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 our @EXPORT_OK = qw(
                     first_read_length
@@ -505,7 +502,6 @@ npg_common::extractor::fastq
 
 =head1 VERSION
 
-$Revision$
 
 =head1 SYNOPSIS
 This module is for extracting parts of fastq files.
@@ -647,7 +643,7 @@ A fastq to fasta converter
 
 =head1 AUTHOR
 
-$Author: mg8 $
+Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 

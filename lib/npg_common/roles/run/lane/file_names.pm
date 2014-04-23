@@ -1,10 +1,6 @@
 #############
 # Created By: Marina Gourtovaia
-# Maintainer: $Author$
 # Created On: 6 September 2010
-# Last Modified: $Date$
-# $Id$
-# $HeadURL$
 
 package npg_common::roles::run::lane::file_names;
 
@@ -12,7 +8,7 @@ use Moose::Role;
 use Carp;
 use npg_tracking::glossary::tag;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 sub file_ext {
     my ($self, $file_extension) = @_;
@@ -84,8 +80,6 @@ npg_common::roles::run::lane::file_names
 
 =head1 VERSION
 
-$LastChangedRevision$
-
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
@@ -143,8 +137,6 @@ following convention id-run_position_end.extension. The default default end is 1
 
 =item Carp
 
-=item Readonly
-
 =back
 
 =head1 INCOMPATIBILITIES
@@ -153,7 +145,7 @@ following convention id-run_position_end.extension. The default default end is 1
 
 =head1 AUTHOR
 
-$Author$
+Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 
