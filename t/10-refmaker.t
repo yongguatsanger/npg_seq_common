@@ -70,12 +70,9 @@ my %expectedMD5 = (
 
 ok (-e 'npgqc/E-coli-K12.fa.json', 'json file exists');
 
-chdir($startDir);
-my ($version, $sha, $state) = split q(-),  npg_tracking::util::build::git_tag();
-chdir($tmp);
-my $class_name = qq(npg_common::sequence::reference::base_count-$version);
-my $json_hash = {'__CLASS__'=>$class_name,'reference_path'=>'fasta/E-coli-K12.fa','_summary'=>{'ref_length'=>4639675,'counts'=>{'A'=>1142228,'T'=>1140970,'C'=>1179554,'G'=>1176923}}};
+my $json_hash = {'__CLASS__'=>'npg_common::sequence::reference::base_count','reference_path'=>'fasta/E-coli-K12.fa','_summary'=>{'ref_length'=>4639675,'counts'=>{'A'=>1142228,'T'=>1140970,'C'=>1179554,'G'=>1176923}}};
 my $json = from_json(read_file('npgqc/E-coli-K12.fa.json'));
+$json->{__CLASS__} = 'npg_common::sequence::reference::base_count';
 
 is_deeply($json,$json_hash,'Compare the JSON file');
 
