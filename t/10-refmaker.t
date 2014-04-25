@@ -27,7 +27,7 @@ system("cp $fastaMaster $tmpFasta");
 local $ENV{'PATH'} = join q[:], join(q[/], $startDir, 'scripts'), $ENV{'PATH'};
 chdir($tmp);
 
-is(system('Ref_Maker &> Ref_Maker.log'), 0, 'Ref_Maker exit status');
+is(system("$startDir/bin/Ref_Maker &> Ref_Maker.log"), 0, 'Ref_Maker exit status');
 
 # can't use checksum on Picard .dict, as it contains full path to fasta file
 my $picard = "picard/E-coli-K12.fa.dict";
