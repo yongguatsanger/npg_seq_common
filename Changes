@@ -1,6 +1,8 @@
 LIST OF CHANGES
 
-  - add gitver call to 10-refmaker to match the release tag
+release 49.4
+  - add local bin and lib to RefMaker
+  - remove the version from 10-refmaker test to avoid clash with Jenkins tags
 
 release 49.3
   - Build.PL scripts uses npg_tracking::util::bild as a builder parent, therefore,
