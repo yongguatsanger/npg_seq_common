@@ -4,6 +4,8 @@ LIST OF CHANGES
   - RefMaker script test:
       uses the local version of the RefMaker script;
       for base_count script, does no enforce module version
+  - copyright for all modules and script belongs to GRL - the copyright
+    notice edited where it was incorrect
 
 release 49.3
   - Build.PL scripts uses npg_tracking::util::bild as a builder parent, therefore,
