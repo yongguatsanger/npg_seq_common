@@ -573,7 +573,7 @@ Marina Gourtovaia E<lt>mg8@sanger.ac.ukE<gt> and Andy Brown E<lt>ajb@sanger.ac.u
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2010 Andy Brown (ajb@sanger.ac.uk) and Marina Gourtovaia (mg8@sanger.ac.uk)
+Copyright (C) GRL 2010 by Andy Brown (ajb@sanger.ac.uk) and Marina Gourtovaia (mg8@sanger.ac.uk)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

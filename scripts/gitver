@@ -62,5 +62,5 @@ echo -n >&2 "Cannot make a version number; "
     fi
 fi
 
-git describe --match "[0-9]*" $git_args
+git describe $git_args
 

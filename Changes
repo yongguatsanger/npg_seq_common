@@ -1,8 +1,11 @@
 LIST OF CHANGES
 
-release 49.4
-  - add local bin and lib to RefMaker
-  - remove the version from 10-refmaker test to avoid clash with Jenkins tags
+  - RefMaker script uses local lib if available
+  - RefMaker script test:
+      uses the local version of the RefMaker script;
+      for base_count script, does no enforce module version
+  - copyright for all modules and script belongs to GRL - the copyright
+    notice edited where it was incorrect
 
 release 49.3
   - Build.PL scripts uses npg_tracking::util::bild as a builder parent, therefore,
