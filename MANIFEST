@@ -89,8 +89,6 @@ t/data/aligners/bowtie/bowtie_not_a_dir
 t/data/aligners/fuzzypath/fuzzypath_v3.1/fuzzypath.csh
 t/data/aligners/not_a_dir
 t/data/fastq_split/2518_2_5_merge_part.sam
-t/data/fastq_split/2605_1_1.fastq
-t/data/fastq_split/2605_1.srf
 t/data/fastq_split/Homo_sapiens.NCBI36.48.dna.all.fa
 t/data/fastq_split/seq_ids.txt
 t/data/fuse/mpsafs/runs/1234/1234_1_1#33.fastqcheck
@@ -187,9 +185,6 @@ t/data/sequence/references/Streptococcus_pneumoniae/ATCC_700669/all/bwa/S_pneumo
 t/data/sequence/references/Streptococcus_pneumoniae/ATCC_700669/all/bwa/S_pneumoniae_700669.fasta.options
 t/data/sequence/references/Streptococcus_pneumoniae/ATCC_700669/all/fasta/S_pneumoniae_700669.fasta
 t/data/sequence/references/Streptococcus_pneumoniae/ATCC_700669/all/picard/S_pneumoniae_700669.fasta.dict
-t/data/sequence/SecondCall/4392_1.bam
-t/data/sequence/SecondCall/4392_1_part.fastq
-t/data/sequence/SecondCall/4392_1.sam
 t/data/sequence/SecondCall/4394_1_t.fastq
 t/data/sequence/SecondCall_paired/4394_1_1.fastq
 t/data/sequence/SecondCall_paired/4394_1_2.fastq
