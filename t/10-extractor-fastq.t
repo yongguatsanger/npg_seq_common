@@ -244,12 +244,13 @@ foreach my $sub (@subs) {
   my $line = $lines[0];
   $line =~ s/\s+$//;
   is ($line, q[>@IL14_1008:1:1:470:276/1], 'first fasta line');
+  my $expected_line = q[AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA];
   $line = $lines[3];
   $line =~ s/\s+$//;
-  is ($line, q[GATGTGATTTTTGTTCCCCTTATTTGCCTTCAGGATA], '4th fasta line');
+  is ($line, $expected_line, '4th fasta line');
   $line = $lines[5];
   $line =~ s/\s+$//;
-  is ($line, q[GTGGCTGTGAATCCGTCTGGTCCTGGAGTTTTTTTAG], '6th fasta line');
+  is ($line, $expected_line, '6th fasta line');
 
   my $out_empty = join(q[/], $dir, q[outempty.fasta]);
   lives_ok {to_fasta($empty, $out_empty)} 'fasta on an empty file lives';

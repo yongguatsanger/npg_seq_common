@@ -1,6 +1,6 @@
 LIST OF CHANGES
 
-  - remove unused bam/sam/fastq
+  - remove unused bam/sam/fastq and modify used data
   - RefMaker script uses local lib if available
   - RefMaker script test:
       uses the local version of the RefMaker script;
