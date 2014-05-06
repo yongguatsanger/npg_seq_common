@@ -250,6 +250,7 @@ foreach my $sub (@subs) {
   is ($line, $expected_line, '4th fasta line');
   $line = $lines[5];
   $line =~ s/\s+$//;
+  $expected_line = q[AAANNNAAAAAAAAAAAAAAAAAAAAAAAANNAAAAA];
   is ($line, $expected_line, '6th fasta line');
 
   my $out_empty = join(q[/], $dir, q[outempty.fasta]);
