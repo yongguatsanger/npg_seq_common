@@ -242,6 +242,7 @@ has 'reference'     => ( isa             => 'Str',
                           required        => 0,
                           documentation   => 'reference file',
                         );
+
 =head2 metrics_file
 
 output metrics file name
@@ -524,6 +525,36 @@ sub _build_bam_tag_stripper_cmd {
    return $cmd;
 }
 
+=head2 bamseqchksum_cmd
+
+a command to execute bamseqchksum for every final bam or cram file to create file_name.[b|cr]am.seqchksum 
+
+=cut
+
+sub bamseqchksum_cmd {
+  my $self = shift;
+  my $file_type = shift;
+
+
+  my $output = $self->output_bam;
+
+  my $chk_command = qq(bamseqchksum verbose=0 inputformat=$file_type );
+
+  if ($file_type eq q(cram) ) {
+    if ($self->reference()) {
+      my $reference = $self->reference();
+      $chk_command .= qq{reference=$reference };
+    }
+    $output =~ s/[.]bam$/.cram/mxs;
+  }
+
+  $output .= '.seqchksum';
+  $chk_command .= qq(> $output);
+
+  return $chk_command;
+}
+
+
 =head2 bamsort_cmd
 
 biobambam sort command for the input bam
@@ -709,9 +740,14 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     if ($self->scramble_cmd()) {
       if ($self->reference()) {
         my $refname = $self->reference();
+        my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
         $refname =~ s{/bwa/}{/fasta/}msx;
         $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
-        $mark_duplicate_cmd .= "-r $refname > $cram_file_name_mk) ";
+        $mark_duplicate_cmd .= "-r $refname ";
+        $mark_duplicate_cmd .= ' | tee ';
+        $mark_duplicate_cmd .= "> $cram_file_name_mk ";
+        $mark_duplicate_cmd .= ">($bamseqchksum_cmd) ";
+        $mark_duplicate_cmd .= ') ';
       }
     }
     if ($self->pb_cal_cmd()) {
@@ -719,6 +755,8 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
       $prefix =~ s/[.]bam$//msx;
       $mark_duplicate_cmd .= '>(' . $self->pb_cal_cmd() . " -p $prefix -filter-bad-tiles 2 -) ";
     }
+    my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
+    $mark_duplicate_cmd .= '>(' . $bamseqchksum_cmd . ') ';
   }
 
   $mark_duplicate_cmd .= ' > ' . $self->output_bam;
