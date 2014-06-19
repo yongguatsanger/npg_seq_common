@@ -399,7 +399,7 @@ has 'tee_cmd' => (isa  => 'Str',
                      required => 0,
                      documentation => 'used in tests to ensure the tee command is correctly build',
                     );
-      
+
 =head2 estimate_library_complexity_cmd
 
 construct the picard EstmateLibraryComplexity command
@@ -541,22 +541,25 @@ sub bamseqchksum_cmd {
   my $self = shift;
   my $file_type = shift;
 
+  my $chk_command = q{};
 
-  my $output = $self->output_bam;
+  if (!$self->no_alignment) {
 
-  my $chk_command = qq(bamseqchksum verbose=0 inputformat=$file_type );
+    my $output = $self->output_bam;
 
-  if ($file_type eq q(cram) ) {
-    if ($self->reference()) {
-      my $reference = $self->reference();
-      $chk_command .= qq{reference=$reference };
+    $chk_command = qq(bamseqchksum verbose=0 inputformat=$file_type );
+
+    if ($file_type eq q(cram) ) {
+      if ($self->reference()) {
+        my $reference = $self->reference();
+        $chk_command .= qq{reference=$reference };
+      }
+      $output =~ s/[.]bam$/.cram/mxs;
     }
-    $output =~ s/[.]bam$/.cram/mxs;
+
+    $output .= '.seqchksum';
+    $chk_command .= qq(> $output);
   }
-
-  $output .= '.seqchksum';
-  $chk_command .= qq(> $output);
-
   return $chk_command;
 }
 
@@ -749,11 +752,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
         my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
         $refname =~ s{/bwa/}{/fasta/}msx;
         $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
-        $mark_duplicate_cmd .= "-r $refname ";
-        $mark_duplicate_cmd .= ' | tee ';
-        $mark_duplicate_cmd .= "> $cram_file_name_mk ";
-        $mark_duplicate_cmd .= ">($bamseqchksum_cmd) ";
-        $mark_duplicate_cmd .= ') ';
+        $mark_duplicate_cmd .= "-r $refname " . ' | tee ' . "> $cram_file_name_mk " . ">($bamseqchksum_cmd) " . ') ';
       }
     }
     if ($self->pb_cal_cmd()) {

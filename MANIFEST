@@ -262,6 +262,7 @@ t/data/sequence/st/studies/397.xml
 t/data/sequence/st/studies/401.xml
 t/data/sequence/st/studies/438.xml
 t/data/sequence/st/studies/2617.xml
+t/data/sequence/unaligned.bam
 t/data/SplitBamByChromosomes.jar
 t/data/ss1.fastq
 t/data/ss1.fastqcheck
