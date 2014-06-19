@@ -394,6 +394,12 @@ has 'replace_file'=> (isa        => 'Bool',
                       documentation   => 'replace the input bam file with the output duplicates marked bam file',
                      );
 
+has 'tee_cmd' => (isa  => 'Str',
+                     is => 'rw',
+                     required => 0,
+                     documentation => 'used in tests to ensure the tee command is correctly build',
+                    );
+      
 =head2 estimate_library_complexity_cmd
 
 construct the picard EstmateLibraryComplexity command
@@ -821,6 +827,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     if (!$mark_duplicate_cmd) { $self->log('WEIRDNESS WARNING: mark_duplicate_cmd is NOT set'); }
   }
 
+  $self->tee_cmd($mark_duplicate_cmd);
   $self->log('Finished in BAM_Markduplicate!');
 
   return 1;

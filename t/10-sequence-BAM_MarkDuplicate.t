@@ -5,7 +5,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More tests => 26;
 use Test::Exception;
 
 use File::Temp qw(tempdir);
@@ -39,6 +39,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
   like($bam->mark_duplicate_cmd(), qr/bammarkduplicates I=input\.bam O=\/dev\/stdout tmpfile=$temp_dir\/ M=metrics\.txt/, 'correct picard command with absolute path to jar');
   is($bam->bamseqchksum_cmd(q{bam}), q{bamseqchksum verbose=0 inputformat=bam > output.bam.seqchksum}, 'correct bamseqchsum command for a bam file');
   is($bam->bamseqchksum_cmd(q{cram}), q{bamseqchksum verbose=0 inputformat=cram > output.cram.seqchksum}, 'correct bamseqchsum command for a cram file with no reference');
+  
        };
 }
 
@@ -87,6 +88,9 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       ok ($bam->_result->info->{'Picard-tools'}, 'test picard version is defined');
 
       lives_ok{$bam->process()} q{Processed OK};
+
+      my $expected_tee_cmd = qq{set -o pipefail;/software/hpag/biobambam/0.0.147/bin/bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt level='0' | /software/jdk1.7.0_25/bin/java -Xmx200m -jar /software/solexa/pkg/illumina2bam/Illumina2bam-tools-V1.13/BamTagStripper.jar INPUT=/dev/stdin OUTPUT=/dev/stdout TMP_DIR=$temp_dir CREATE_INDEX='FALSE' CREATE_MD5_FILE='FALSE' VALIDATION_STRINGENCY='SILENT' VERBOSITY='INFO' STRIP='OQ' KEEP='a3' KEEP='aa' KEEP='af' KEEP='ah' KEEP='as' KEEP='br' KEEP='qr' KEEP='tq' KEEP='tr' | tee  >(md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_mk.bam.md5) >(/software/solexa/pkg/samtools/samtools-0.1.18/samtools flagstat -  > $temp_dir/output_mk.flagstat) >(/software/solexa/pkg/samtools/samtools-0.1.19/misc/bamcheck > $temp_dir/output_mk.bamcheck) >(/software/solexa/pkg/samtools/samtools-0.1.18/samtools index /dev/stdin /dev/stdout > $temp_dir/output_mk.bai) >(/software/badger/bin/scramble -I bam -O cram -r t/data/references/E_coli/default/fasta/E-coli-K12.fa  | tee > $temp_dir/output_mk.cram >(bamseqchksum verbose=0 inputformat=cram reference=t/data/references/E_coli/default/fasta/E-coli-K12.fa > $temp_dir/output_mk.cram.seqchksum) ) >(/software/solexa/pkg/pb_calibration/v10.14/bin/calibration_pu -p t/data/sequence/6062_1#0 -filter-bad-tiles 2 -) >(bamseqchksum verbose=0 inputformat=bam > $temp_dir/output_mk.bam.seqchksum)  > $temp_dir/output_mk.bam};
+      is($bam->tee_cmd, $expected_tee_cmd, 'entire tee command generated correctly');
       is (-e "$temp_dir/output_mk.bam", 1, 'BAM file created');      
       is (-e "$temp_dir/output_mk.bai", 1, 'BAM index created');      
       is (-e "$temp_dir/output_mk.bam.md5", 1, 'BAM md5 created');      
