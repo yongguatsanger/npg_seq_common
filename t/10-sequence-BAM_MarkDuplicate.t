@@ -5,7 +5,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 42;
+use Test::More tests => 46;
 use Test::Exception;
 
 use File::Temp qw(tempdir);
@@ -47,7 +47,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 {
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-         16 unless ($ENV{'TOOLS_INSTALLED'});
+         19 unless ($ENV{'TOOLS_INSTALLED'});
     my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                {
                  input_bam     => 't/data/sequence/SecondCall/4392_1.bam',
@@ -75,11 +75,18 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       $bam->not_strip_bam_tag(0);
       $bam->no_alignment(0);
        $expected_bam_tag_stripper_cmd = qq{INPUT=/dev/stdin OUTPUT=/dev/stdout TMP_DIR=$temp_dir CREATE_INDEX='FALSE' CREATE_MD5_FILE='FALSE' VALIDATION_STRINGENCY='SILENT' VERBOSITY='INFO' STRIP='OQ' KEEP='a3' KEEP='aa' KEEP='af' KEEP='ah' KEEP='as' KEEP='br' KEEP='qr' KEEP='tq' KEEP='tr'};
-      like($bam->bam_tag_stripper_cmd(), qr/$expected_bam_tag_stripper_cmd/, 'correct bam_tag_stripper command');
+      my $bam_tag_stripper_cmd = $bam->bam_tag_stripper_cmd();
+      like($bam_tag_stripper_cmd, qr/$expected_bam_tag_stripper_cmd/, 'correct bam_tag_stripper command');
       
       # stop qr// in like interpolating READ_NAME_REGEX by enclosing value in \Q..\E
       my $expected_elc_cmd = qq{INPUT=t/data/sequence/6062_1#0.bam OUTPUT=$temp_dir/metrics.txt TMP_DIR=$temp_dir READ_NAME_REGEX='\Q[a-zA-Z0-9_]+:[0-9]:([0-9]+):([0-9]+):([0-9]+).*\E' VALIDATION_STRINGENCY='SILENT' VERBOSITY='ERROR'};
       like($bam->estimate_library_complexity_cmd(), qr/$expected_elc_cmd/, 'correct elc command');
+
+      my $bam_pb_cal_cmd = $bam->pb_cal_cmd();
+      is($bam_pb_cal_cmd, q{/software/solexa/pkg/pb_calibration/v10.14/bin/calibration_pu}, 'correct pb_cal comand');
+
+      my $bam_bamcheck_cmd = $bam->bamcheck_cmd();
+      is($bam_bamcheck_cmd, q{/software/solexa/pkg/samtools/samtools-0.1.19/misc/bamcheck}, 'correct bamcheck command for bam file');
 
       my $expected_bamseqchk_cmd = qq{bamseqchksum verbose=0 inputformat=cram reference=t/data/references/E_coli/default/fasta/E-coli-K12.fa > $temp_dir/output_mk.cram.seqchksum};
       is($bam->bamseqchksum_cmd(q{cram}), $expected_bamseqchk_cmd, 'correct bamseqchsum command for a cram file with reference');
@@ -88,9 +95,12 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       ok ($bam->_result->info->{'Samtools'}, 'samtools version is defined for an unaligned bam');
       ok ($bam->_result->info->{'Picard-tools'}, 'test picard version is defined for an unaligned bam');
 
+      my $samtools_version_str = $bam->_result->info->{'Samtools'};
+      ok ($samtools_version_str, 'samtools version is defined');
+      my ($samtools_version, $samtools_revison) = split / /, $samtools_version_str;
       lives_ok{$bam->process()} q{Processed OK};
 
-      my $expected_tee_cmd = qq{set -o pipefail;/software/hpag/biobambam/0.0.147/bin/bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt level='0' | /software/jdk1.7.0_25/bin/java -Xmx200m -jar /software/solexa/pkg/illumina2bam/Illumina2bam-tools-V1.13/BamTagStripper.jar INPUT=/dev/stdin OUTPUT=/dev/stdout TMP_DIR=$temp_dir CREATE_INDEX='FALSE' CREATE_MD5_FILE='FALSE' VALIDATION_STRINGENCY='SILENT' VERBOSITY='INFO' STRIP='OQ' KEEP='a3' KEEP='aa' KEEP='af' KEEP='ah' KEEP='as' KEEP='br' KEEP='qr' KEEP='tq' KEEP='tr' | tee  >(md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_mk.bam.md5) >(/software/solexa/pkg/samtools/samtools-0.1.18/samtools flagstat -  > $temp_dir/output_mk.flagstat) >(/software/solexa/pkg/samtools/samtools-0.1.19/misc/bamcheck > $temp_dir/output_mk.bamcheck) >(/software/solexa/pkg/samtools/samtools-0.1.18/samtools index /dev/stdin /dev/stdout > $temp_dir/output_mk.bai) >(/software/badger/bin/scramble -I bam -O cram -r t/data/references/E_coli/default/fasta/E-coli-K12.fa  | tee > $temp_dir/output_mk.cram >(bamseqchksum verbose=0 inputformat=cram reference=t/data/references/E_coli/default/fasta/E-coli-K12.fa > $temp_dir/output_mk.cram.seqchksum) ) >(/software/solexa/pkg/pb_calibration/v10.14/bin/calibration_pu -p t/data/sequence/6062_1#0 -filter-bad-tiles 2 -) >(bamseqchksum verbose=0 inputformat=bam > $temp_dir/output_mk.bam.seqchksum)  > $temp_dir/output_mk.bam};
+      my $expected_tee_cmd = qq{set -o pipefail;/software/hpag/biobambam/0.0.147/bin/bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt level='0' | $bam_tag_stripper_cmd | tee  >(md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_mk.bam.md5) >(/software/solexa/pkg/samtools/samtools-$samtools_version/samtools flagstat -  > $temp_dir/output_mk.flagstat) >($bam_bamcheck_cmd > $temp_dir/output_mk.bamcheck) >(/software/solexa/pkg/samtools/samtools-$samtools_version/samtools index /dev/stdin /dev/stdout > $temp_dir/output_mk.bai) >(/software/badger/bin/scramble -I bam -O cram -r t/data/references/E_coli/default/fasta/E-coli-K12.fa  | tee > $temp_dir/output_mk.cram >(bamseqchksum verbose=0 inputformat=cram reference=t/data/references/E_coli/default/fasta/E-coli-K12.fa > $temp_dir/output_mk.cram.seqchksum) ) >($bam_pb_cal_cmd -p t/data/sequence/6062_1#0 -filter-bad-tiles 2 -) >(bamseqchksum verbose=0 inputformat=bam > $temp_dir/output_mk.bam.seqchksum)  > $temp_dir/output_mk.bam};
       is($bam->tee_cmd, $expected_tee_cmd, 'entire tee command generated correctly');
       is (-e "$temp_dir/output_mk.bam", 1, 'BAM file created');      
       is (-e "$temp_dir/output_mk.bai", 1, 'BAM index created');      
@@ -103,7 +113,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 {
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-         16 unless ($ENV{'TOOLS_INSTALLED'});
+         17 unless ($ENV{'TOOLS_INSTALLED'});
     my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                {
                  input_bam     => 't/data/sequence/unaligned.bam',
@@ -121,22 +131,29 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       like($bam->mark_duplicate_cmd(), qr/$expected_mark_duplicate_cmd/, 'correct biobambam command');
       ok( $bam->no_alignment(), 'input bam without alignment');
       my $expected_bam_tag_stripper_cmd = qq{INPUT=t/data/sequence/unaligned.bam OUTPUT=/dev/stdout TMP_DIR=$temp_dir CREATE_INDEX='FALSE' CREATE_MD5_FILE='FALSE' VALIDATION_STRINGENCY='SILENT' VERBOSITY='INFO' STRIP='OQ' KEEP='a3' KEEP='aa' KEEP='af' KEEP='ah' KEEP='as' KEEP='br' KEEP='qr' KEEP='tq' KEEP='tr'};
-      like($bam->bam_tag_stripper_cmd(), qr/$expected_bam_tag_stripper_cmd/, 'correct bam_tag_stripper command');
+      my $bam_tag_stripper_cmd = $bam->bam_tag_stripper_cmd();
+      like($bam_tag_stripper_cmd, qr/$expected_bam_tag_stripper_cmd/, 'correct bam_tag_stripper command');
       
       # stop qr// in like interpolating READ_NAME_REGEX by enclosing value in \Q..\E
       my $expected_elc_cmd = qq{INPUT=t/data/sequence/unaligned.bam OUTPUT=$temp_dir/metrics.txt TMP_DIR=$temp_dir READ_NAME_REGEX='\Q[a-zA-Z0-9_]+:[0-9]:([0-9]+):([0-9]+):([0-9]+).*\E' VALIDATION_STRINGENCY='SILENT' VERBOSITY='ERROR'};
       like($bam->estimate_library_complexity_cmd(), qr/$expected_elc_cmd/, 'correct elc command');
 
-      is($bam->bamseqchksum_cmd(q{bam}), q{}, 'correct bamseqchsum command for a bam file with reference');
-      is($bam->bamseqchksum_cmd(q{cram}), q{}, 'correct bamseqchsum command for a cram file with reference');
+      is($bam->bamseqchksum_cmd(q{bam}), qq{bamseqchksum verbose=0 inputformat=bam > $temp_dir/output_no_align.bam.seqchksum}, 'correct bamseqchsum command for a bam file with reference but no alignment');
+      is($bam->bamseqchksum_cmd(q{cram}), qq{bamseqchksum verbose=0 inputformat=cram reference=t/data/references/E_coli/default/fasta/E-coli-K12.fa > $temp_dir/output_no_align.cram.seqchksum}, 'correct bamseqchsum command for a cram file with reference but no alignment');
 
       lives_ok {$bam->_version_info} 'getting tools version info lives';
-      ok ($bam->_result->info->{'Samtools'}, 'samtools version is defined');
+      my $samtools_version_str = $bam->_result->info->{'Samtools'};
+      ok ($samtools_version_str, 'samtools version is defined');
+      my ($samtools_version, $samtools_revison) = split / /, $samtools_version_str;
+
       is ($bam->_result->info->{'Picard-tools'}, undef, 'test picard version is not defined if no_alignment flag used');
+
+      my $bam_bamcheck_cmd = $bam->bamcheck_cmd();
+      is($bam_bamcheck_cmd, q{/software/solexa/pkg/samtools/samtools-0.1.19/misc/bamcheck}, 'correct bamcheck command for bam file');
 
       lives_ok{$bam->process()} q{Processed OK};
 
-      my $expected_tee_cmd = qq{set -o pipefail;/software/jdk1.7.0_25/bin/java -Xmx200m -jar /software/solexa/pkg/illumina2bam/Illumina2bam-tools-V1.13/BamTagStripper.jar INPUT=t/data/sequence/unaligned.bam OUTPUT=/dev/stdout TMP_DIR=$temp_dir CREATE_INDEX='FALSE' CREATE_MD5_FILE='FALSE' VALIDATION_STRINGENCY='SILENT' VERBOSITY='INFO' STRIP='OQ' KEEP='a3' KEEP='aa' KEEP='af' KEEP='ah' KEEP='as' KEEP='br' KEEP='qr' KEEP='tq' KEEP='tr' | tee  >(md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_no_align.bam.md5) >(/software/solexa/pkg/samtools/samtools-0.1.18/samtools flagstat -  > $temp_dir/output_no_align.flagstat) >(/software/solexa/pkg/samtools/samtools-0.1.19/misc/bamcheck > $temp_dir/output_no_align.bamcheck)  > $temp_dir/output_no_align.bam};
+      my $expected_tee_cmd = qq{set -o pipefail;$bam_tag_stripper_cmd | tee  >(md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_no_align.bam.md5) >(/software/solexa/pkg/samtools/samtools-$samtools_version/samtools flagstat -  > $temp_dir/output_no_align.flagstat) >($bam_bamcheck_cmd > $temp_dir/output_no_align.bamcheck)  > $temp_dir/output_no_align.bam};
       is($bam->tee_cmd, $expected_tee_cmd, 'entire tee command generated correctly if no_alignment flag used');
       is (-e "$temp_dir/output_no_align.bam", 1, 'BAM file created');      
       is (!-e "$temp_dir/output_no_align.bai", 1, 'BAM index NOT created if no_alignment flag used');      

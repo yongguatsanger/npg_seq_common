@@ -541,25 +541,20 @@ sub bamseqchksum_cmd {
   my $self = shift;
   my $file_type = shift;
 
-  my $chk_command = q{};
+  my $output = $self->output_bam;
+  my $chk_command = qq(bamseqchksum verbose=0 inputformat=$file_type );
 
-  if (!$self->no_alignment) {
-
-    my $output = $self->output_bam;
-
-    $chk_command = qq(bamseqchksum verbose=0 inputformat=$file_type );
-
-    if ($file_type eq q(cram) ) {
-      if ($self->reference()) {
-        my $reference = $self->reference();
-        $chk_command .= qq{reference=$reference };
-      }
-      $output =~ s/[.]bam$/.cram/mxs;
+  if ($file_type eq q(cram) ) {
+    if ($self->reference()) {
+      my $reference = $self->reference();
+      $chk_command .= qq{reference=$reference };
     }
-
-    $output .= '.seqchksum';
-    $chk_command .= qq(> $output);
+    $output =~ s/[.]bam$/.cram/mxs;
   }
+
+  $output .= '.seqchksum';
+  $chk_command .= qq(> $output);
+
   return $chk_command;
 }
 
