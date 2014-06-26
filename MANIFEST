@@ -119,6 +119,10 @@ t/data/references/Homo_sapiens/1000Genomes_hs37d5/all/fasta/hs37d5.fa
 t/data/references/Homo_sapiens/NCBI36/all/bwa/ncbi36.fa.amb
 t/data/references/Homo_sapiens/NCBI36/all/fasta/ncbi36.fa
 t/data/references/E_coli/K12/fasta/E-coli-K12.fa
+t/data/references/Plasmodium_falciparum/3D7_Oct11v3/all/fasta/Pf3D7_v3.fasta
+t/data/references/Plasmodium_falciparum/3D7_Oct11v3/all/fasta/Pf3D7_v3.fasta.fai
+t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta
+t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta.fai
 t/data/request/npg/run/1234.xml
 t/data/request/npg/run_status_dict.xml
 t/data/request/npg/run_status.xml
@@ -165,6 +169,7 @@ t/data/sequence/npg/run/6993.xml
 t/data/sequence/npg/run/7753.xml
 t/data/sequence/npg/run/7754.xml
 t/data/sequence/npg/run/10371.xml
+t/data/sequence/plasmodium.bam
 t/data/sequence/references/Bordetella_bronchiseptica/RB50/all/bwa/ref.fa.amb
 t/data/sequence/references/Bordetella_bronchiseptica/RB50/all/bwa/ref.fa.options
 t/data/sequence/references/Bordetella_bronchiseptica/RB50/all/fasta/ref.fa

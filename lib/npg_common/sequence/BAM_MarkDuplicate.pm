@@ -542,7 +542,7 @@ sub bamseqchksum_cmd {
   my $file_type = shift;
 
   my $output = $self->output_bam;
-  my $chk_command = qq(bamseqchksum verbose=0 inputformat=$file_type );
+  my $chk_command = qq(bamseqchksum verbose=1 inputformat=$file_type );
 
   if ($file_type eq q(cram) ) {
     if ($self->reference()) {
@@ -755,9 +755,9 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
       $prefix =~ s/[.]bam$//msx;
       $mark_duplicate_cmd .= '>(' . $self->pb_cal_cmd() . " -p $prefix -filter-bad-tiles 2 -) ";
     }
-    my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
-    $mark_duplicate_cmd .= '>(' . $bamseqchksum_cmd . ') ';
   }
+  my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
+  $mark_duplicate_cmd .= '>(' . $bamseqchksum_cmd . ') ';
 
   $mark_duplicate_cmd .= ' > ' . $self->output_bam;
 
@@ -770,6 +770,23 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
        croak 'Biobambam MarkDuplicates failed!';
      }
      $bam_to_stats = $self->output_bam();
+  }
+  $self->tee_cmd($mark_duplicate_cmd);
+
+  if (! $self->no_alignment()) {
+    my $bam_bamseqchksum_name_mk = $self->output_bam;
+    $bam_bamseqchksum_name_mk .= q{.seqchksum};
+    my $cram_bamseqchksum_name_mk = $self->output_bam;
+    $cram_bamseqchksum_name_mk =~ s/[.]bam$/.cram.seqchksum/mxs;
+
+    my $diff_files_cmd = q{diff -q } . $bam_bamseqchksum_name_mk . q{ } . $cram_bamseqchksum_name_mk;
+    $self->log(qq(Checking that the two bamseqchksum files agree: $diff_files_cmd));
+## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+    my $diff_rs = system '$diff_files_cmd';
+## use critic
+    if ($diff_rs != 0) {
+      croak "Files $bam_bamseqchksum_name_mk and $cram_bamseqchksum_name_mk are not identical";
+    }
   }
 
   $self->log('Parsing metrics file:' . $self->metrics_json);
@@ -821,7 +838,6 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     if (!$mark_duplicate_cmd) { $self->log('WEIRDNESS WARNING: mark_duplicate_cmd is NOT set'); }
   }
 
-  $self->tee_cmd($mark_duplicate_cmd);
   $self->log('Finished in BAM_Markduplicate!');
 
   return 1;
