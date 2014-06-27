@@ -747,7 +747,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
         my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
         $refname =~ s{/bwa/}{/fasta/}msx;
         $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
-        $mark_duplicate_cmd .= "-r $refname " . ' | tee ' . "> $cram_file_name_mk " . ">($bamseqchksum_cmd) " . ') ';
+        $mark_duplicate_cmd .= "-r $refname " . ' | tee ' .  ">($bamseqchksum_cmd) " .  "> $cram_file_name_mk " .  ') ';
       }
     }
     if ($self->pb_cal_cmd()) {
@@ -779,13 +779,22 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     my $cram_bamseqchksum_name_mk = $self->output_bam;
     $cram_bamseqchksum_name_mk =~ s/[.]bam$/.cram.seqchksum/mxs;
 
-    my $diff_files_cmd = q{diff -q } . $bam_bamseqchksum_name_mk . q{ } . $cram_bamseqchksum_name_mk;
+    (-e $bam_bamseqchksum_name_mk) || croak "$bam_bamseqchksum_name_mk does not exist";
+    (-e $cram_bamseqchksum_name_mk) || croak "$cram_bamseqchksum_name_mk does not exist";
+
+    my $diff_files_cmd = q{diff } . $bam_bamseqchksum_name_mk . q{ } . $cram_bamseqchksum_name_mk;
+    # removing the next four lines 
+    my $ls_bam_rs = `ls -la $bam_bamseqchksum_name_mk`;
+    my $ls_cram_rs = `ls -la $cram_bamseqchksum_name_mk`;
+    $self->log($ls_bam_rs);
+    $self->log($ls_cram_rs);
+    # gives # died: autodie::exception::system ("diff /tmp/ZfFcvv3OC3/output_mk.bam.seqchksum /tmp/ZfFcvv3OC3/output_mk.cram.seqchksum" unexpectedly returned exit value 1 
+    # files not closed explicitly?
+
     $self->log(qq(Checking that the two bamseqchksum files agree: $diff_files_cmd));
-## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-    my $diff_rs = system '$diff_files_cmd';
-## use critic
+    my $diff_rs = system $diff_files_cmd;
     if ($diff_rs != 0) {
-      croak "Files $bam_bamseqchksum_name_mk and $cram_bamseqchksum_name_mk are not identical";
+      croak "Files $bam_bamseqchksum_name_mk and $cram_bamseqchksum_name_mk differ: $diff_rs";
     }
   }
 
