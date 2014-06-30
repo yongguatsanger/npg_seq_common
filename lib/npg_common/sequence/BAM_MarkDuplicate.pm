@@ -783,6 +783,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     (-e $cram_bamseqchksum_name_mk) || croak "$cram_bamseqchksum_name_mk does not exist";
 
     my $diff_files_cmd = q{diff } . $bam_bamseqchksum_name_mk . q{ } . $cram_bamseqchksum_name_mk;
+=head2
     # removing the next four lines 
     my $ls_bam_rs = `ls -la $bam_bamseqchksum_name_mk`;
     my $ls_cram_rs = `ls -la $cram_bamseqchksum_name_mk`;
@@ -790,6 +791,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     $self->log($ls_cram_rs);
     # gives # died: autodie::exception::system ("diff /tmp/ZfFcvv3OC3/output_mk.bam.seqchksum /tmp/ZfFcvv3OC3/output_mk.cram.seqchksum" unexpectedly returned exit value 1 
     # files not closed explicitly?
+=cut
 
     $self->log(qq(Checking that the two bamseqchksum files agree: $diff_files_cmd));
     my $diff_rs = system $diff_files_cmd;
