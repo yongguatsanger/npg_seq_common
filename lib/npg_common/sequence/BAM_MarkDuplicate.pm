@@ -779,19 +779,20 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     my $cram_bamseqchksum_name_mk = $self->output_bam;
     $cram_bamseqchksum_name_mk =~ s/[.]bam$/.cram.seqchksum/mxs;
 
+    my $tee_break = 1;
+
     (-e $bam_bamseqchksum_name_mk) || croak "$bam_bamseqchksum_name_mk does not exist";
     (-e $cram_bamseqchksum_name_mk) || croak "$cram_bamseqchksum_name_mk does not exist";
 
+    (-r $bam_bamseqchksum_name_mk) || croak "$bam_bamseqchksum_name_mk cannot be read";
+    (-r $cram_bamseqchksum_name_mk) || croak "$cram_bamseqchksum_name_mk cannot be read";
+
+    while (-z $cram_bamseqchksum_name_mk) {
+      $self->log("Waiting for $cram_bamseqchksum_name_mk to be filled ...");
+      sleep $tee_break;
+    }
+
     my $diff_files_cmd = q{diff } . $bam_bamseqchksum_name_mk . q{ } . $cram_bamseqchksum_name_mk;
-=head2
-    # removing the next four lines 
-    my $ls_bam_rs = `ls -la $bam_bamseqchksum_name_mk`;
-    my $ls_cram_rs = `ls -la $cram_bamseqchksum_name_mk`;
-    $self->log($ls_bam_rs);
-    $self->log($ls_cram_rs);
-    # gives # died: autodie::exception::system ("diff /tmp/ZfFcvv3OC3/output_mk.bam.seqchksum /tmp/ZfFcvv3OC3/output_mk.cram.seqchksum" unexpectedly returned exit value 1 
-    # files not closed explicitly?
-=cut
 
     $self->log(qq(Checking that the two bamseqchksum files agree: $diff_files_cmd));
     my $diff_rs = system $diff_files_cmd;

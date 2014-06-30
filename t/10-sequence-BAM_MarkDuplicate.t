@@ -9,7 +9,7 @@ use Test::More tests => 46;
 use Test::Exception;
 
 use File::Temp qw(tempdir);
-my $temp_dir = tempdir( CLEANUP => 0 );
+my $temp_dir = tempdir( CLEANUP => 1 );
 
 my $elc_memory_for_deployment = 300;
 my $bts_memory_for_deployment = 200;
