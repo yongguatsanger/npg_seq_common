@@ -395,10 +395,94 @@ has 'replace_file'=> (isa        => 'Bool',
                      );
 
 has 'tee_cmd' => (isa  => 'Str',
-                     is => 'rw',
-                     required => 0,
-                     documentation => 'used in tests to ensure the tee command is correctly build',
-                    );
+                  is => 'ro',
+                  required => 0,
+                  documentation => 'used in tests to ensure the tee command is correctly build',
+                  lazy    => 1,
+                  builder => '_build_tee_cmd',
+                  );
+
+sub _build_tee_cmd {
+  my $self = shift;
+
+  my $mark_duplicate_cmd = q{};
+
+  if( $self->no_alignment() ){
+
+     if(!$self->no_estimate_library_complexity()){
+
+	     my $estimate_library_complexity_cmd = $self->estimate_library_complexity_cmd();
+	     $self->log("estimate_library_complexity_smd: $estimate_library_complexity_cmd");
+         my $es_cmd_rs = system $estimate_library_complexity_cmd;
+	     if($es_cmd_rs != 0){
+	        croak 'Picard estimate library complexity failed!';
+	     }
+	  }
+
+     if( ! $self->not_strip_bam_tag() ){
+         $mark_duplicate_cmd = $self->bam_tag_stripper_cmd();
+	 }
+
+  }else{
+     $mark_duplicate_cmd = $self->mark_duplicate_cmd();
+     my $using_pipe;
+     if( ! $self->not_strip_bam_tag() ){
+         $mark_duplicate_cmd .= q{ | } . $self->bam_tag_stripper_cmd();
+         $using_pipe++;
+     }
+  }
+
+  $mark_duplicate_cmd ||= 'cat ' . $self->bam_input;
+  $mark_duplicate_cmd = qq{set -o pipefail;$mark_duplicate_cmd};
+
+  my $flagstat_file_name_mk = $self->output_bam;
+  $flagstat_file_name_mk =~ s/[.]bam$/.flagstat/mxs;
+  my $index_file_name_mk = $self->output_bam;
+  $index_file_name_mk =~ s/[.]bam$/.bai/mxs;
+  my $bamcheck_file_name_mk = $self->output_bam;
+  $bamcheck_file_name_mk =~ s/[.]bam$/.bamcheck/mxs;
+  my $md5_file_name_mk = $self->output_bam;
+  $md5_file_name_mk =~ s/[.]bam$/.bam.md5/mxs;
+  my $cram_file_name_mk = $self->output_bam;
+  $cram_file_name_mk =~ s/[.]bam$/.cram/mxs;
+
+  $mark_duplicate_cmd .= ' | tee ' . ' >(' . $self->create_md5_cmd() .
+                         ' | tr -d "\\n *-" > ' . #note \\ squashes down to \ even in this 'unevaluated' string
+                         $md5_file_name_mk . ') ' .
+                         '>(' . $self->samtools_cmd() . ' flagstat -  > ' . $flagstat_file_name_mk . ')';
+  if ($self->bamcheck_cmd()) {
+    $mark_duplicate_cmd .= ' >(' . $self->bamcheck_cmd;
+    if($self->bamcheck_flags) {
+        $mark_duplicate_cmd .= q{ } . $self->bamcheck_flags;
+    }
+    $mark_duplicate_cmd .= " > $bamcheck_file_name_mk) ";
+  }
+
+  # we only create an index if we are doing alignment
+  if (! $self->no_alignment()) {
+    $mark_duplicate_cmd .= '>(' . $self->create_index_cmd() . ' > ' . $index_file_name_mk . ') ';
+    if ($self->scramble_cmd()) {
+      if ($self->reference()) {
+        my $refname = $self->reference();
+        my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
+        $refname =~ s{/bwa/}{/fasta/}msx;
+        $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
+        $mark_duplicate_cmd .= "-r $refname " . ' | tee ' .  ">($bamseqchksum_cmd) " .  "> $cram_file_name_mk " .  ') ';
+      }
+    }
+    if ($self->pb_cal_cmd()) {
+      my $prefix = $self->input_bam;
+      $prefix =~ s/[.]bam$//msx;
+      $mark_duplicate_cmd .= '>(' . $self->pb_cal_cmd() . " -p $prefix -filter-bad-tiles 2 -) ";
+    }
+  }
+  my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
+  $mark_duplicate_cmd .= '>(' . $bamseqchksum_cmd . ') ';
+
+  $mark_duplicate_cmd .= ' > ' . $self->output_bam;
+
+  return $mark_duplicate_cmd;
+}
 
 =head2 estimate_library_complexity_cmd
 
@@ -685,36 +769,6 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
       }
   }
 
-  my $mark_duplicate_cmd = q{};
-
-  if( $self->no_alignment() ){
-
-     if(!$self->no_estimate_library_complexity()){
-
-	     my $estimate_library_complexity_cmd = $self->estimate_library_complexity_cmd();
-	     $self->log("estimate_library_complexity_smd: $estimate_library_complexity_cmd");
-         my $es_cmd_rs = system $estimate_library_complexity_cmd;
-	     if($es_cmd_rs != 0){
-	        croak 'Picard estimate library complexity failed!';
-	     }
-	  }
-
-     if( ! $self->not_strip_bam_tag() ){
-         $mark_duplicate_cmd = $self->bam_tag_stripper_cmd();
-	 }
-
-  }else{
-     $mark_duplicate_cmd = $self->mark_duplicate_cmd();
-     my $using_pipe;
-     if( ! $self->not_strip_bam_tag() ){
-         $mark_duplicate_cmd .= q{ | } . $self->bam_tag_stripper_cmd();
-         $using_pipe++;
-     }
-  }
-
-  $mark_duplicate_cmd ||= 'cat ' . $self->bam_input;
-  $mark_duplicate_cmd = qq{set -o pipefail;$mark_duplicate_cmd};
-
   my $flagstat_file_name_mk = $self->output_bam;
   $flagstat_file_name_mk =~ s/[.]bam$/.flagstat/mxs;
   my $index_file_name_mk = $self->output_bam;
@@ -726,40 +780,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   my $cram_file_name_mk = $self->output_bam;
   $cram_file_name_mk =~ s/[.]bam$/.cram/mxs;
 
-  $mark_duplicate_cmd .= ' | tee ' . ' >(' . $self->create_md5_cmd() .
-                         ' | tr -d "\\n *-" > ' . #note \\ squashes down to \ even in this 'unevaluated' string
-                         $md5_file_name_mk . ') ' .
-                         '>(' . $self->samtools_cmd() . ' flagstat -  > ' . $flagstat_file_name_mk . ')';
-  if ($self->bamcheck_cmd()) {
-    $mark_duplicate_cmd .= ' >(' . $self->bamcheck_cmd;
-    if($self->bamcheck_flags) {
-        $mark_duplicate_cmd .= q{ } . $self->bamcheck_flags;
-    }
-    $mark_duplicate_cmd .= " > $bamcheck_file_name_mk) ";
-  }
-
-  # we only create an index if we are doing alignment
-  if (! $self->no_alignment()) {
-    $mark_duplicate_cmd .= '>(' . $self->create_index_cmd() . ' > ' . $index_file_name_mk . ') ';
-    if ($self->scramble_cmd()) {
-      if ($self->reference()) {
-        my $refname = $self->reference();
-        my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
-        $refname =~ s{/bwa/}{/fasta/}msx;
-        $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
-        $mark_duplicate_cmd .= "-r $refname " . ' | tee ' .  ">($bamseqchksum_cmd) " .  "> $cram_file_name_mk " .  ') ';
-      }
-    }
-    if ($self->pb_cal_cmd()) {
-      my $prefix = $self->input_bam;
-      $prefix =~ s/[.]bam$//msx;
-      $mark_duplicate_cmd .= '>(' . $self->pb_cal_cmd() . " -p $prefix -filter-bad-tiles 2 -) ";
-    }
-  }
-  my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
-  $mark_duplicate_cmd .= '>(' . $bamseqchksum_cmd . ') ';
-
-  $mark_duplicate_cmd .= ' > ' . $self->output_bam;
+  my $mark_duplicate_cmd = $self->tee_cmd();
 
   my $bam_to_stats = $self->input_bam();
   if($mark_duplicate_cmd){
@@ -771,7 +792,6 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
      }
      $bam_to_stats = $self->output_bam();
   }
-  $self->tee_cmd($mark_duplicate_cmd);
 
   if (! $self->no_alignment()) {
     my $bam_bamseqchksum_name_mk = $self->output_bam;

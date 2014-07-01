@@ -38,8 +38,8 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
   $bam->metrics_file('metrics.txt');
   $bam->temp_dir($temp_dir);
   like($bam->mark_duplicate_cmd(), qr/bammarkduplicates I=input\.bam O=\/dev\/stdout tmpfile=$temp_dir\/ M=metrics\.txt/, 'correct picard command with absolute path to jar');
-  is($bam->bamseqchksum_cmd(q{bam}), q{bamseqchksum verbose=1 inputformat=bam > output.bam.seqchksum}, 'correct bamseqchsum command for a bam file');
-  is($bam->bamseqchksum_cmd(q{cram}), q{bamseqchksum verbose=1 inputformat=cram > output.cram.seqchksum}, 'correct bamseqchsum command for a cram file with no reference');
+  is($bam->bamseqchksum_cmd(q{bam}), q{bamseqchksum verbose=1 inputformat=bam > output.bam.seqchksum}, 'correct bamseqchksum command for a bam file');
+  is($bam->bamseqchksum_cmd(q{cram}), q{bamseqchksum verbose=1 inputformat=cram > output.cram.seqchksum}, 'correct bamseqchksum command for a cram file with no reference');
   
        };
 }
@@ -89,7 +89,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       is($bam_bamcheck_cmd, q{/software/solexa/pkg/samtools/samtools-0.1.19/misc/bamcheck}, 'correct bamcheck command for bam file, using newer samtools than current');
 
       my $expected_bamseqchk_cmd = qq{bamseqchksum verbose=1 inputformat=cram reference=t/data/references/Plasmodium_falciparum/3D7_Oct11v3/all/fasta/Pf3D7_v3.fasta > $temp_dir/output_mk.cram.seqchksum};
-      is($bam->bamseqchksum_cmd(q{cram}), $expected_bamseqchk_cmd, 'correct bamseqchsum command for a cram file with reference');
+      is($bam->bamseqchksum_cmd(q{cram}), $expected_bamseqchk_cmd, 'correct bamseqchksum command for a cram file with reference');
 
       lives_ok {$bam->_version_info} 'getting tools version info lives';
       ok ($bam->_result->info->{'Samtools'}, 'samtools version is defined for an unaligned bam');
@@ -141,8 +141,8 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       my $expected_elc_cmd = qq{INPUT=t/data/sequence/unaligned.bam OUTPUT=$temp_dir/metrics.txt TMP_DIR=$temp_dir READ_NAME_REGEX='\Q[a-zA-Z0-9_]+:[0-9]:([0-9]+):([0-9]+):([0-9]+).*\E' VALIDATION_STRINGENCY='SILENT' VERBOSITY='ERROR'};
       like($bam->estimate_library_complexity_cmd(), qr/$expected_elc_cmd/, 'correct elc command');
 
-      is($bam->bamseqchksum_cmd(q{bam}), qq{bamseqchksum verbose=1 inputformat=bam > $temp_dir/output_no_align.bam.seqchksum}, 'correct bamseqchsum command for a bam file with reference but no alignment');
-      is($bam->bamseqchksum_cmd(q{cram}), qq{bamseqchksum verbose=1 inputformat=cram > $temp_dir/output_no_align.cram.seqchksum}, 'correct bamseqchsum command for a cram file with reference but no alignment');
+      is($bam->bamseqchksum_cmd(q{bam}), qq{bamseqchksum verbose=1 inputformat=bam > $temp_dir/output_no_align.bam.seqchksum}, 'correct bamseqchksum command for a bam file with reference but no alignment');
+      is($bam->bamseqchksum_cmd(q{cram}), qq{bamseqchksum verbose=1 inputformat=cram > $temp_dir/output_no_align.cram.seqchksum}, 'correct bamseqchksum command for a cram file with reference but no alignment');
 
       lives_ok {$bam->_version_info} 'getting tools version info lives';
       my $samtools_version_str = $bam->_result->info->{'Samtools'};
