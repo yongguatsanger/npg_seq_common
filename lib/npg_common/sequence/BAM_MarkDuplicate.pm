@@ -394,10 +394,10 @@ has 'replace_file'=> (isa        => 'Bool',
                       documentation   => 'replace the input bam file with the output duplicates marked bam file',
                      );
 
-has 'tee_cmd' => (isa  => 'Str',
+has '_tee_cmd' => (isa  => 'Str',
                   is => 'ro',
                   required => 0,
-                  documentation => 'used in tests to ensure the tee command is correctly build',
+                  documentation => 'entire tee cmd',
                   lazy    => 1,
                   builder => '_build_tee_cmd',
                   );
@@ -461,14 +461,12 @@ sub _build_tee_cmd {
   # we only create an index if we are doing alignment
   if (! $self->no_alignment()) {
     $mark_duplicate_cmd .= '>(' . $self->create_index_cmd() . ' > ' . $index_file_name_mk . ') ';
-    if ($self->scramble_cmd()) {
-      if ($self->reference()) {
-        my $refname = $self->reference();
-        my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
-        $refname =~ s{/bwa/}{/fasta/}msx;
-        $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
-        $mark_duplicate_cmd .= "-r $refname " . ' | tee ' .  ">($bamseqchksum_cmd) " .  "> $cram_file_name_mk " .  ') ';
-      }
+    if ($self->reference()) {
+      my $refname = $self->reference();
+      my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
+      $refname =~ s{/bwa/}{/fasta/}msx;
+      $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
+      $mark_duplicate_cmd .= "-r $refname " . ' | tee ' .  ">($bamseqchksum_cmd) " .  "> $cram_file_name_mk " .  ') ';
     }
     if ($self->pb_cal_cmd()) {
       my $prefix = $self->input_bam;
@@ -780,7 +778,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   my $cram_file_name_mk = $self->output_bam;
   $cram_file_name_mk =~ s/[.]bam$/.cram/mxs;
 
-  my $mark_duplicate_cmd = $self->tee_cmd();
+  my $mark_duplicate_cmd = $self->_tee_cmd();
 
   my $bam_to_stats = $self->input_bam();
   if($mark_duplicate_cmd){

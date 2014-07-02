@@ -119,8 +119,6 @@ t/data/references/Homo_sapiens/1000Genomes_hs37d5/all/fasta/hs37d5.fa
 t/data/references/Homo_sapiens/NCBI36/all/bwa/ncbi36.fa.amb
 t/data/references/Homo_sapiens/NCBI36/all/fasta/ncbi36.fa
 t/data/references/E_coli/K12/fasta/E-coli-K12.fa
-t/data/references/Plasmodium_falciparum/3D7_Oct11v3/all/fasta/Pf3D7_v3.fasta
-t/data/references/Plasmodium_falciparum/3D7_Oct11v3/all/fasta/Pf3D7_v3.fasta.fai
 t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta
 t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta.fai
 t/data/request/npg/run/1234.xml
