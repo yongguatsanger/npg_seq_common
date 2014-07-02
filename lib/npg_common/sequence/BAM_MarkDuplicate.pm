@@ -14,6 +14,7 @@ use English qw(-no_match_vars);
 use File::Temp qw/ tempfile tempdir /;
 use File::Spec::Functions qw(catfile);
 use Perl6::Slurp;
+use Parallel::ForkManager;
 use IPC::Open3;
 use npg_qc::autoqc::results::bam_flagstats;
 use Cwd qw(abs_path);
@@ -435,16 +436,11 @@ sub _build_tee_cmd {
   $mark_duplicate_cmd ||= 'cat ' . $self->bam_input;
   $mark_duplicate_cmd = qq{set -o pipefail;$mark_duplicate_cmd};
 
-  my $flagstat_file_name_mk = $self->output_bam;
-  $flagstat_file_name_mk =~ s/[.]bam$/.flagstat/mxs;
-  my $index_file_name_mk = $self->output_bam;
-  $index_file_name_mk =~ s/[.]bam$/.bai/mxs;
-  my $bamcheck_file_name_mk = $self->output_bam;
-  $bamcheck_file_name_mk =~ s/[.]bam$/.bamcheck/mxs;
-  my $md5_file_name_mk = $self->output_bam;
-  $md5_file_name_mk =~ s/[.]bam$/.bam.md5/mxs;
-  my $cram_file_name_mk = $self->output_bam;
-  $cram_file_name_mk =~ s/[.]bam$/.cram/mxs;
+  my $flagstat_file_name_mk = $self->_flagstat_file_name_mk();
+  my $index_file_name_mk = $self->_index_file_name_mk();
+  my $bamcheck_file_name_mk = $self->_bamcheck_file_name_mk();
+  my $md5_file_name_mk = $self->_md5_file_name_mk();
+  my $cram_file_name_mk = $self->_cram_file_name_mk();
 
   $mark_duplicate_cmd .= ' | tee ' . ' >(' . $self->create_md5_cmd() .
                          ' | tr -d "\\n *-" > ' . #note \\ squashes down to \ even in this 'unevaluated' string
@@ -461,25 +457,218 @@ sub _build_tee_cmd {
   # we only create an index if we are doing alignment
   if (! $self->no_alignment()) {
     $mark_duplicate_cmd .= '>(' . $self->create_index_cmd() . ' > ' . $index_file_name_mk . ') ';
-    if ($self->reference()) {
-      my $refname = $self->reference();
-      my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
-      $refname =~ s{/bwa/}{/fasta/}msx;
-      $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
-      $mark_duplicate_cmd .= "-r $refname " . ' | tee ' .  ">($bamseqchksum_cmd) " .  "> $cram_file_name_mk " .  ') ';
-    }
     if ($self->pb_cal_cmd()) {
       my $prefix = $self->input_bam;
       $prefix =~ s/[.]bam$//msx;
       $mark_duplicate_cmd .= '>(' . $self->pb_cal_cmd() . " -p $prefix -filter-bad-tiles 2 -) ";
     }
   }
-  my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
-  $mark_duplicate_cmd .= '>(' . $bamseqchksum_cmd . ') ';
-
   $mark_duplicate_cmd .= ' > ' . $self->output_bam;
 
   return $mark_duplicate_cmd;
+}
+
+=head2 seqchksum_cmds
+
+construct the scramble, seqchksum and diff
+
+=cut
+
+sub seqchksum_cmds {
+  my $self = shift;
+
+  my @cmds = ();
+  my $cmd = q{};
+
+  my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
+  $cmd = $bamseqchksum_cmd . ' < ' .  $self->output_bam();
+  push @cmds, $cmd;
+
+  if ($self->reference()) {
+    $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
+    my $refname = $self->reference();
+    $refname =~ s{/bwa/}{/fasta/}msx;
+    $cmd = $self->scramble_cmd() . ' -I bam -O cram';
+    $cmd .= ' < ' . $self->output_bam();
+    $cmd .= " -r $refname" ;
+    $cmd .= ' | tee ' . '>(' . $bamseqchksum_cmd . ') ';
+    $cmd .= '> ' . $self->_cram_file_name_mk();
+    push @cmds, $cmd;
+
+    $cmd =  q{bamseqchksum verbose=1 inputformat=cram > } . $self->_cram_seqchksum_file_name_mk();
+    $cmd .= ' < ' . $self->_cram_file_name_mk();
+    push @cmds, $cmd;
+  }
+
+  return \@cmds;
+}
+
+=head2 _cram_file_name_mk
+
+Make the cram file name
+
+=cut 
+
+has '_cram_file_name_mk'  => (isa   => 'Str',
+                              is            => 'ro',
+                              required      => 0,
+                              lazy_build    => 1,
+                              );
+
+sub _build__cram_file_name_mk {
+    my $self = shift;
+
+    my $cram_file_name_mk = $self->output_bam;
+    $cram_file_name_mk =~ s/[.]bam$/.cram/mxs;
+
+    return $cram_file_name_mk;
+}
+
+=head2 _cram_seqchksum_fifo_name_mk
+
+Make the cram_seqchksum fifo name
+
+=cut 
+
+has '_cram_seqchksum_fifo_name_mk'  => (isa   => 'Str',
+                              is            => 'ro',
+                              required      => 0,
+                              lazy_build    => 1,
+                              );
+
+sub _build__cram_seqchksum_fifo_name_mk {
+    my $self = shift;
+
+    my $cram_seqchksum_fifo_name_mk = $self->output_bam;
+    $cram_seqchksum_fifo_name_mk =~ s/[.]bam$/.cram.seqchksum.fifo/mxs;
+
+    return $cram_seqchksum_fifo_name_mk;
+}
+
+=head2 _cram_seqchksum_file_name_mk
+
+Make the cram_seqchksum file name
+
+=cut 
+
+has '_cram_seqchksum_file_name_mk'  => (isa   => 'Str',
+                              is            => 'ro',
+                              required      => 0,
+                              lazy_build    => 1,
+                              );
+
+sub _build__cram_seqchksum_file_name_mk {
+    my $self = shift;
+
+    my $cram_seqchksum_file_name_mk = $self->output_bam;
+    $cram_seqchksum_file_name_mk =~ s/[.]bam$/.cram.seqchksum/mxs;
+
+    return $cram_seqchksum_file_name_mk;
+}
+
+=head2 _bam_seqchksum_file_name_mk
+
+Make the bam_seqchksum file name
+
+=cut 
+
+has '_bam_seqchksum_file_name_mk'  => (isa   => 'Str',
+                              is            => 'ro',
+                              required      => 0,
+                              lazy_build    => 1,
+                              );
+
+sub _build__bam_seqchksum_file_name_mk {
+    my $self = shift;
+
+    my $bam_seqchksum_file_name_mk = $self->output_bam;
+    $bam_seqchksum_file_name_mk .= q{.seqchksum};
+
+    return $bam_seqchksum_file_name_mk;
+}
+
+=head2 _index_file_name_mk
+
+Make the index file name
+
+=cut 
+
+has '_index_file_name_mk'  => (isa   => 'Str',
+                               is            => 'ro',
+                               required      => 0,
+                               lazy_build    => 1,
+                              );
+
+sub _build__index_file_name_mk {
+    my $self = shift;
+
+    my $index_file_name_mk = $self->output_bam;
+    $index_file_name_mk =~ s/[.]bam$/.bai/mxs;
+
+    return $index_file_name_mk;
+}
+
+=head2 _flagstat_file_name_mk
+
+Make the flagstat file name
+
+=cut 
+
+has '_flagstat_file_name_mk'  => (isa   => 'Str',
+                                  is            => 'ro',
+                                  required      => 0,
+                                  lazy_build    => 1,
+                                  );
+
+sub _build__flagstat_file_name_mk {
+    my $self = shift;
+
+    my $flagstat_file_name_mk = $self->output_bam;
+    $flagstat_file_name_mk =~ s/[.]bam$/.flagstat/mxs;
+
+    return $flagstat_file_name_mk;
+}
+
+=head2 _bamcheck_file_name_mk
+
+Make the bamcheck file name
+
+=cut 
+
+has '_bamcheck_file_name_mk'  => (isa   => 'Str',
+                                  is            => 'ro',
+                                  required      => 0,
+                                  lazy_build    => 1,
+                                   );
+
+sub _build__bamcheck_file_name_mk {
+    my $self = shift;
+
+    my $bamcheck_file_name_mk = $self->output_bam;
+    $bamcheck_file_name_mk =~ s/[.]bam$/.bamcheck/mxs;
+
+    return $bamcheck_file_name_mk;
+}
+
+=head2 _md5_file_name_mk
+
+Make the md5 file name
+
+=cut 
+
+has '_md5_file_name_mk'  => (isa   => 'Str',
+                             is            => 'ro',
+                             required      => 0,
+                             lazy_build    => 1,
+                             );
+
+sub _build__md5_file_name_mk {
+    my $self = shift;
+
+    my $md5_file_name_mk = $self->output_bam;
+    $md5_file_name_mk =~ s/[.]bam$/.bam.md5/mxs;
+
+    return $md5_file_name_mk;
 }
 
 =head2 estimate_library_complexity_cmd
@@ -623,19 +812,20 @@ sub bamseqchksum_cmd {
   my $self = shift;
   my $file_type = shift;
 
-  my $output = $self->output_bam;
   my $chk_command = qq(bamseqchksum verbose=1 inputformat=$file_type );
+  my $output = q{};
 
   if ($file_type eq q(cram) ) {
     if ($self->reference()) {
       my $reference = $self->reference();
       $chk_command .= qq{reference=$reference };
     }
-    $output =~ s/[.]bam$/.cram/mxs;
+    my $fifo = $self->_cram_seqchksum_fifo_name_mk();
+    $chk_command .= qq{> $fifo};
+  } else {
+    $output = $self->_bam_seqchksum_file_name_mk();
+    $chk_command .= qq(> $output);
   }
-
-  $output .= '.seqchksum';
-  $chk_command .= qq(> $output);
 
   return $chk_command;
 }
@@ -767,16 +957,13 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
       }
   }
 
-  my $flagstat_file_name_mk = $self->output_bam;
-  $flagstat_file_name_mk =~ s/[.]bam$/.flagstat/mxs;
-  my $index_file_name_mk = $self->output_bam;
-  $index_file_name_mk =~ s/[.]bam$/.bai/mxs;
-  my $bamcheck_file_name_mk = $self->output_bam;
-  $bamcheck_file_name_mk =~ s/[.]bam$/.bamcheck/mxs;
-  my $md5_file_name_mk = $self->output_bam;
-  $md5_file_name_mk =~ s/[.]bam$/.bam.md5/mxs;
-  my $cram_file_name_mk = $self->output_bam;
-  $cram_file_name_mk =~ s/[.]bam$/.cram/mxs;
+  my $flagstat_file_name_mk = $self->_flagstat_file_name_mk;
+  my $index_file_name_mk = $self->_index_file_name_mk;
+  my $bamcheck_file_name_mk = $self->_bamcheck_file_name_mk;
+  my $md5_file_name_mk = $self->_md5_file_name_mk;
+  my $cram_file_name_mk = $self->_cram_file_name_mk;
+  my $bam_seqchksum_file_name_mk = $self->_bam_seqchksum_file_name_mk;
+  my $cram_seqchksum_file_name_mk = $self->_cram_seqchksum_file_name_mk;
 
   my $mark_duplicate_cmd = $self->_tee_cmd();
 
@@ -791,31 +978,38 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
      $bam_to_stats = $self->output_bam();
   }
 
+  $self->log("Setting up commands to make files $bam_seqchksum_file_name_mk and $cram_seqchksum_file_name_mk");
+
+  my $cram_seqchksum_fifo_name_mk = $self->_cram_seqchksum_fifo_name_mk();
+
   if (! $self->no_alignment()) {
-    my $bam_bamseqchksum_name_mk = $self->output_bam;
-    $bam_bamseqchksum_name_mk .= q{.seqchksum};
-    my $cram_bamseqchksum_name_mk = $self->output_bam;
-    $cram_bamseqchksum_name_mk =~ s/[.]bam$/.cram.seqchksum/mxs;
+    my $fifo_cmd = join q[ ] , 'mkfifo', $cram_seqchksum_fifo_name_mk;
+    $self->log("Setting up fifo: $fifo_cmd");
 
-    my $tee_break = 1;
-
-    (-e $bam_bamseqchksum_name_mk) || croak "$bam_bamseqchksum_name_mk does not exist";
-    (-e $cram_bamseqchksum_name_mk) || croak "$cram_bamseqchksum_name_mk does not exist";
-
-    (-r $bam_bamseqchksum_name_mk) || croak "$bam_bamseqchksum_name_mk cannot be read";
-    (-r $cram_bamseqchksum_name_mk) || croak "$cram_bamseqchksum_name_mk cannot be read";
-
-    while (-z $cram_bamseqchksum_name_mk) {
-      $self->log("Waiting for $cram_bamseqchksum_name_mk to be filled ...");
-      sleep $tee_break;
+    my $fifo_rs = system $fifo_cmd;
+    if ($fifo_rs != 0 ) {
+       croak "Failed to make fifo: $fifo_cmd";
     }
+  }
 
-    my $diff_files_cmd = q{diff } . $bam_bamseqchksum_name_mk . q{ } . $cram_bamseqchksum_name_mk;
+  my $seqchksum_cmds = $self->seqchksum_cmds();
+  my $rs;
+
+  foreach my $command (@{$seqchksum_cmds}) {
+      $self->log($command);
+      $rs = system 'bash', '-c', $command;
+      if ($rs != 0) {
+        croak "Error running $command: $rs";
+      }
+   };
+
+  if (! $self->no_alignment()) {
+    my $diff_files_cmd = q{diff } . $bam_seqchksum_file_name_mk . q{ } . $cram_seqchksum_fifo_name_mk;
 
     $self->log(qq(Checking that the two bamseqchksum files agree: $diff_files_cmd));
     my $diff_rs = system $diff_files_cmd;
     if ($diff_rs != 0) {
-      croak "Files $bam_bamseqchksum_name_mk and $cram_bamseqchksum_name_mk differ: $diff_rs";
+      croak "Files $bam_seqchksum_file_name_mk and $cram_seqchksum_file_name_mk differ: $diff_rs";
     }
   }
 

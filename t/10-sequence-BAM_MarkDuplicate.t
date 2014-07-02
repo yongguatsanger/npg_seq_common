@@ -5,11 +5,12 @@
 
 use strict;
 use warnings;
-use Test::More tests => 46;
+use Test::More tests => 53;
 use Test::Exception;
+use Test::Deep;
 
 use File::Temp qw(tempdir);
-my $temp_dir = tempdir( CLEANUP => 1 );
+my $temp_dir = tempdir( CLEANUP => 0 );
 
 my $elc_memory_for_deployment = 300;
 my $bts_memory_for_deployment = 200;
@@ -39,7 +40,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
   $bam->temp_dir($temp_dir);
   like($bam->mark_duplicate_cmd(), qr/bammarkduplicates I=input\.bam O=\/dev\/stdout tmpfile=$temp_dir\/ M=metrics\.txt/, 'correct picard command with absolute path to jar');
   is($bam->bamseqchksum_cmd(q{bam}), q{bamseqchksum verbose=1 inputformat=bam > output.bam.seqchksum}, 'correct bamseqchksum command for a bam file');
-  is($bam->bamseqchksum_cmd(q{cram}), q{bamseqchksum verbose=1 inputformat=cram > output.cram.seqchksum}, 'correct bamseqchksum command for a cram file with no reference');
+  is($bam->bamseqchksum_cmd(q{cram}), q{bamseqchksum verbose=1 inputformat=cram > output.cram.seqchksum.fifo}, 'correct bamseqchksum command for a cram file with no reference');
   
        };
 }
@@ -47,7 +48,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 {
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-         19 unless ($ENV{'TOOLS_INSTALLED'});
+         21 unless ($ENV{'TOOLS_INSTALLED'});
     my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                {
                  input_bam     => 't/data/sequence/SecondCall/4392_1.bam',
@@ -88,7 +89,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       my $bam_bamcheck_cmd = $bam->bamcheck_cmd();
       is($bam_bamcheck_cmd, q{/software/solexa/pkg/samtools/samtools-0.1.19/misc/bamcheck}, 'correct bamcheck command for bam file, using newer samtools than current');
 
-      my $expected_bamseqchk_cmd = qq{bamseqchksum verbose=1 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta > $temp_dir/output_mk.cram.seqchksum};
+      my $expected_bamseqchk_cmd = qq{bamseqchksum verbose=1 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta > $temp_dir/output_mk.cram.seqchksum.fifo};
       is($bam->bamseqchksum_cmd(q{cram}), $expected_bamseqchk_cmd, 'correct bamseqchksum command for a cram file with reference');
 
       lives_ok {$bam->_version_info} 'getting tools version info lives';
@@ -98,26 +99,49 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       my $samtools_version_str = $bam->_result->info->{'Samtools'};
       ok ($samtools_version_str, 'samtools version is defined');
       my ($samtools_version, $samtools_revison) = split / /, $samtools_version_str;
-      lives_ok{$bam->process()} q{Processed OK};
 
       my $expected_tee_cmd = qq{set -o pipefail;/software/hpag/biobambam/0.0.147/bin/bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt level='0' | $bam_tag_stripper_cmd | tee  >(md5sum -b | tr -d }.q{"\n *-"};
       $expected_tee_cmd .= qq{ > $temp_dir/output_mk.bam.md5) >(/software/solexa/pkg/samtools/samtools-$samtools_version/samtools flagstat -  > $temp_dir/output_mk.flagstat) >($bam_bamcheck_cmd > $temp_dir/output_mk.bamcheck) >(/software/solexa/pkg/samtools/samtools-$samtools_version/samtools index /dev/stdin /dev/stdout > $temp_dir/output_mk.bai) };
-      $expected_tee_cmd .= qq{>(/software/badger/bin/scramble -I bam -O cram -r t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta  | tee >(bamseqchksum verbose=1 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta > $temp_dir/output_mk.cram.seqchksum) > $temp_dir/output_mk.cram ) };
-      $expected_tee_cmd .= qq{>($bam_pb_cal_cmd -p t/data/sequence/plasmodium -filter-bad-tiles 2 -) >(bamseqchksum verbose=1 inputformat=bam > $temp_dir/output_mk.bam.seqchksum)  > $temp_dir/output_mk.bam};
+      $expected_tee_cmd .= qq{>($bam_pb_cal_cmd -p t/data/sequence/plasmodium -filter-bad-tiles 2 -)  > $temp_dir/output_mk.bam};
 
       is($bam->_tee_cmd, $expected_tee_cmd, 'entire tee command generated correctly');
+
+      my @expected_seqchksum_cmds = ();
+
+      my $expected_cmd0 = qq{bamseqchksum verbose=1 inputformat=bam > $temp_dir/output_mk.bam.seqchksum < $temp_dir/output_mk.bam};
+  
+      my $expected_cmd1 = qq{/software/badger/bin/scramble -I bam -O cram < $temp_dir/output_mk.bam -r t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta | tee >(bamseqchksum verbose=1 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta > $temp_dir/output_mk.cram.seqchksum.fifo) > $temp_dir/output_mk.cram};
+
+  #    my $expected_cmd2 = qq{cat $temp_dir/output_mk.cram.seqchksum.fifo > $temp_dir/output_mk.cram.seqchksum};
+      my $expected_cmd2 =  qq{bamseqchksum verbose=1 inputformat=cram > $temp_dir/output_mk.cram.seqchksum < $temp_dir/output_mk.cram};
+
+      my $cram_seqchksum_file_name_mk = qq{$temp_dir/output_mk.cram.seqchksum};
+      my $bam_seqchksum_file_name_mk = qq{$temp_dir/output_mk.bam.seqchksum};
+
+      push  @expected_seqchksum_cmds, $expected_cmd0;
+      push  @expected_seqchksum_cmds, $expected_cmd1;
+      push  @expected_seqchksum_cmds, $expected_cmd2;
+
+      my $expected_seqchksum_cmds = \@expected_seqchksum_cmds;
+      cmp_deeply($bam->seqchksum_cmds(), $expected_seqchksum_cmds, 'commands for bamseqchksum generated correctly');
+
+      lives_ok{$bam->process()} q{Processed OK};
+
       is (-e "$temp_dir/output_mk.bam", 1, 'BAM file created');      
       is (-e "$temp_dir/output_mk.bai", 1, 'BAM index created');      
       is (-e "$temp_dir/output_mk.bam.md5", 1, 'BAM md5 created');      
       is (-e "$temp_dir/output_mk.flagstat", 1, 'BAM flagstat created');      
       is (-e "$temp_dir/output_mk.cram", 1, 'CRAM file created');
+      is (-e "$temp_dir/output_mk.cram.seqchksum.fifo", 1, 'CRAM seqchksum fifo created');
+      is (-e "$temp_dir/output_mk.bam.seqchksum", 1, 'BAM seqchksum file created');
+      is (-e "$temp_dir/output_mk.cram.seqchksum", 1, 'CRAM seqchksum file created');
   }    
 }
 
 {
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-         17 unless ($ENV{'TOOLS_INSTALLED'});
+         20 unless ($ENV{'TOOLS_INSTALLED'});
     my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                {
                  input_bam     => 't/data/sequence/unaligned.bam',
@@ -142,7 +166,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       like($bam->estimate_library_complexity_cmd(), qr/$expected_elc_cmd/, 'correct elc command');
 
       is($bam->bamseqchksum_cmd(q{bam}), qq{bamseqchksum verbose=1 inputformat=bam > $temp_dir/output_no_align.bam.seqchksum}, 'correct bamseqchksum command for a bam file with reference but no alignment');
-      is($bam->bamseqchksum_cmd(q{cram}), qq{bamseqchksum verbose=1 inputformat=cram > $temp_dir/output_no_align.cram.seqchksum}, 'correct bamseqchksum command for a cram file with reference but no alignment');
+      is($bam->bamseqchksum_cmd(q{cram}), qq{bamseqchksum verbose=1 inputformat=cram > $temp_dir/output_no_align.cram.seqchksum.fifo}, 'correct bamseqchksum command for a cram file with reference but no alignment');
 
       lives_ok {$bam->_version_info} 'getting tools version info lives';
       my $samtools_version_str = $bam->_result->info->{'Samtools'};
@@ -154,15 +178,24 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       my $bam_bamcheck_cmd = $bam->bamcheck_cmd();
       is($bam_bamcheck_cmd, q{/software/solexa/pkg/samtools/samtools-0.1.19/misc/bamcheck}, 'correct bamcheck command for bam file');
 
+      my $expected_tee_cmd = qq{set -o pipefail;$bam_tag_stripper_cmd | tee  >(md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_no_align.bam.md5) >(/software/solexa/pkg/samtools/samtools-$samtools_version/samtools flagstat -  > $temp_dir/output_no_align.flagstat) >($bam_bamcheck_cmd > $temp_dir/output_no_align.bamcheck)  > $temp_dir/output_no_align.bam};
+      is($bam->_tee_cmd, $expected_tee_cmd, 'entire tee command generated correctly if no_alignment flag used');
+
+      my @expected_seqchksum_cmds = ();
+      my $expected_cmd0 = qq{bamseqchksum verbose=1 inputformat=bam > $temp_dir/output_no_align.bam.seqchksum < $temp_dir/output_no_align.bam};
+      push  @expected_seqchksum_cmds, $expected_cmd0;
+      my $expected_seqchksum_cmds = \@expected_seqchksum_cmds;
+      cmp_deeply($bam->seqchksum_cmds(), $expected_seqchksum_cmds, 'commands for bamseqchksum generated correctly');
+
       lives_ok{$bam->process()} q{Processed OK};
 
-      my $expected_tee_cmd = qq{set -o pipefail;$bam_tag_stripper_cmd | tee  >(md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_no_align.bam.md5) >(/software/solexa/pkg/samtools/samtools-$samtools_version/samtools flagstat -  > $temp_dir/output_no_align.flagstat) >($bam_bamcheck_cmd > $temp_dir/output_no_align.bamcheck) >(bamseqchksum verbose=1 inputformat=bam > $temp_dir/output_no_align.bam.seqchksum)  > $temp_dir/output_no_align.bam};
-      is($bam->_tee_cmd, $expected_tee_cmd, 'entire tee command generated correctly if no_alignment flag used');
       is (-e "$temp_dir/output_no_align.bam", 1, 'BAM file created');      
       is (!-e "$temp_dir/output_no_align.bai", 1, 'BAM index NOT created if no_alignment flag used');      
       is (-e "$temp_dir/output_no_align.bam.md5", 1, 'BAM md5 created');      
       is (-e "$temp_dir/output_no_align.flagstat", 1, 'BAM flagstat created');      
       is (!-e "$temp_dir/output_no_align.cram", 1, 'CRAM file NOT created if no_alignment flag used');
+      is (!-e "$temp_dir/output_no_align.cram.seqchksum", 1, 'CRAM seqchksum file NOT created if no_alignment flag used');
+      is (-e "$temp_dir/output_no_align.bam.seqchksum", 1, 'BAM seqchksum file created if no_alignment flag used');
   }
 }
 
