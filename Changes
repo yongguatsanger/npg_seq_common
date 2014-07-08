@@ -1,6 +1,6 @@
 LIST OF CHANGES
 
-  - add bamseqchksum command for cram and bam  and compare them iff alignment is done
+  - add bamseqchksum command for cram and bam and compare them iff alignment is done
 
 release 49.4
   - remove gitver script to use tracking module
