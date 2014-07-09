@@ -1,5 +1,7 @@
 LIST OF CHANGES
 
+  - Ref_Maker additionally generates indices for bwa >= 0.6
+
 release 49.4
   - remove gitver script to use tracking module
   - remove unused bam/sam/fastq and modify used data
