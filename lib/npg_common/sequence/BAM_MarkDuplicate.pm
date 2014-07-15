@@ -395,12 +395,12 @@ has 'replace_file'=> (isa        => 'Bool',
                       documentation   => 'replace the input bam file with the output duplicates marked bam file',
                      );
 
-has '_tee_cmd' => (isa  => 'Str',
-                  is => 'ro',
-                  required => 0,
-                  documentation => 'entire tee cmd',
-                  lazy    => 1,
-                  builder => '_build_tee_cmd',
+has '_tee_cmd' => ( isa       => 'Str',
+                    is        => 'ro',
+                    required  => 0,
+                    lazy      => 1,
+                    builder   => '_build_tee_cmd',
+                    documentation => 'entire tee cmd built according to alignment',
                   );
 
 sub _build_tee_cmd {
@@ -413,8 +413,8 @@ sub _build_tee_cmd {
      if(!$self->no_estimate_library_complexity()){
 
 	     my $estimate_library_complexity_cmd = $self->estimate_library_complexity_cmd();
-	     $self->log("estimate_library_complexity_smd: $estimate_library_complexity_cmd");
-         my $es_cmd_rs = system $estimate_library_complexity_cmd;
+	     $self->log("estimate_library_complexity_cmd: $estimate_library_complexity_cmd");
+       my $es_cmd_rs = system $estimate_library_complexity_cmd;
 	     if($es_cmd_rs != 0){
 	        croak 'Picard estimate library complexity failed!';
 	     }
@@ -436,13 +436,19 @@ sub _build_tee_cmd {
   $mark_duplicate_cmd ||= 'cat ' . $self->bam_input;
   $mark_duplicate_cmd = qq{set -o pipefail;$mark_duplicate_cmd};
   $mark_duplicate_cmd .= ' | tee' ;
-  $mark_duplicate_cmd .= ' > ' . $self->_bam_md5_fifo_name_mk;
-  $mark_duplicate_cmd .= ' > ' . $self->_bam_flagstat_fifo_name_mk;
-  $mark_duplicate_cmd .= ' > ' . $self->_bam_bamcheck_fifo_name_mk;
-  $mark_duplicate_cmd .= ' > ' . $self->_bam_index_fifo_name_mk;
-  $mark_duplicate_cmd .= ' > ' . $self->_bam_pb_cal_fifo_name_mk;
-  $mark_duplicate_cmd .= ' > ' . $self->_bam_scramble_fifo_name_mk;
-  $mark_duplicate_cmd .= ' > ' . $self->_bam_bschk_fifo_name_mk;
+  $mark_duplicate_cmd .= q{ } . $self->_bam_md5_fifo_name_mk;
+  $mark_duplicate_cmd .= q{ } . $self->_bam_flagstat_fifo_name_mk;
+  $mark_duplicate_cmd .= q{ } . $self->_bam_bamcheck_fifo_name_mk;
+  $mark_duplicate_cmd .= q{ } . $self->_bam_bschk_fifo_name_mk;
+
+  if (!$self->no_alignment) {
+    $mark_duplicate_cmd .= q{ } . $self->_bam_index_fifo_name_mk;
+    $mark_duplicate_cmd .= q{ } . $self->_bam_pb_cal_fifo_name_mk;
+    if ($self->human_split() ne q{phix}) {
+      $mark_duplicate_cmd .= q{ } . $self->_bam_scramble_fifo_name_mk;
+    }
+  }
+
   $mark_duplicate_cmd .= ' > ' . $self->output_bam;
 
   return $mark_duplicate_cmd;
@@ -450,7 +456,7 @@ sub _build_tee_cmd {
 
 =head2 fork_cmds
 
-construct the scramble, seqchksum and diff cmds
+construct the comands to be run by ForkManager
 
 =cut
 
@@ -464,43 +470,49 @@ sub fork_cmds {
   push @cmds, $cmd;
 
   my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
-  $cmd = $bamseqchksum_cmd . ' < ' .  $self->_bam_bschk_fifo_name_mk;
+  $cmd =  'cat ' . $self->_bam_bschk_fifo_name_mk . ' | ' . $bamseqchksum_cmd;
+  if ((! $self->no_alignment())  && ($self->human_split() ne q{phix})){
+    $cmd .=  ' | tee ' . $self->_bam_seqchksum_fifo_name_mk . ' > ' . $self->_bam_seqchksum_file_name_mk;
+  } else {
+    $cmd .= ' > ' . $self->_bam_seqchksum_file_name_mk;
+  }
   push @cmds, $cmd;
 
   if (! $self->no_alignment()) {
-    if ($self->reference()) {
-      $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
-      my $refname = $self->reference();
-      $refname =~ s{/bwa/}{/fasta/}msx;
-      $cmd = $self->scramble_cmd() . ' -I bam -O cram';
-      $cmd .= ' < ' . $self->_bam_scramble_fifo_name_mk();
-      $cmd .= " -r $refname" ;
-      $cmd .= ' > ' . $self->_cram_file_name_mk();
-      $cmd .= '; cat ' .  $self->_cram_file_name_mk() . ' > ' . $self->_cram_fifo_name_mk();
-      push @cmds, $cmd;
+    if ($self->scramble_cmd()) {
+      if ($self->reference()) {
+        my $refname = $self->reference();
+        $refname =~ s{/bwa/}{/fasta/}msx;
+        $cmd = $self->scramble_cmd() . ' -I bam -O cram';
+        $cmd .= ' < ' . $self->_bam_scramble_fifo_name_mk();
+        $cmd .= " -r $refname" ;
+        $cmd .=  ' | tee ' . $self->_cram_fifo_name_mk . ' > ' . $self->_cram_file_name_mk;
+        push @cmds, $cmd;
 
-      $cmd =  'cat ' . $self->_cram_fifo_name_mk . ' | ' . $self->bamseqchksum_cmd(q{cram}) . ' > ' . $self->_cram_seqchksum_file_name_mk;
-      $cmd .=  '; cat ' . $self->_cram_seqchksum_file_name_mk . ' > ' . $self->_cram_seqchksum_fifo_name_mk;
-      push @cmds, $cmd;
+        $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
+        $cmd =  'cat ' . $self->_cram_fifo_name_mk . ' | ' . $self->bamseqchksum_cmd(q{cram});
+        $cmd .=  ' | tee ' . $self->_cram_seqchksum_fifo_name_mk . ' > ' . $self->_cram_seqchksum_file_name_mk;
+        push @cmds, $cmd;
 
-      $cmd = join q{ }, q{diff}, $self->_bam_seqchksum_file_name_mk(), $self->_cram_seqchksum_fifo_name_mk();
-      push @cmds, $cmd;
+        $cmd = join q{ }, q{diff}, $self->_bam_seqchksum_fifo_name_mk(), $self->_cram_seqchksum_fifo_name_mk();
+        push @cmds, $cmd;
+      }
     }
   }
 
-  $cmd = $self->create_md5_cmd();
+  $cmd = 'cat ' . $self->_bam_md5_fifo_name_mk . ' | ';
+  $cmd .= $self->create_md5_cmd();
   $cmd .= ' | tr -d "\\n *-" > '; #note \\ squashes down to \ even in this 'unevaluated' string
   $cmd .= $self->_md5_file_name_mk;
-  $cmd .= ' < ' . $self->_bam_md5_fifo_name_mk;
   push @cmds, $cmd;
 
-  $cmd = $self->samtools_cmd() . ' flagstat -  > ' . $self->_flagstat_file_name_mk;
-  $cmd .= '< ' . $self->_bam_flagstat_fifo_name_mk;
+  $cmd = 'cat ' . $self->_bam_flagstat_fifo_name_mk . ' | ';
+  $cmd .= $self->samtools_cmd() . ' flagstat -  > ' . $self->_flagstat_file_name_mk;
   push @cmds, $cmd;
 
   if ($self->bamcheck_cmd()) {
-    $cmd = $self->bamcheck_cmd;
-    $cmd .= ' < ' . $self->_bam_bamcheck_fifo_name_mk;
+    $cmd = 'cat ' . $self->_bam_bamcheck_fifo_name_mk . ' | ';
+    $cmd .= $self->bamcheck_cmd;
     if($self->bamcheck_flags) {
         $cmd .= q{ } . $self->bamcheck_flags;
     }
@@ -510,19 +522,19 @@ sub fork_cmds {
 
   # we only create an index if we are doing alignment
   if (! $self->no_alignment()) {
-    $cmd  = $self->create_index_cmd() . ' > ' . $self->_index_file_name_mk;
-    $cmd .= ' < ' . $self->_bam_index_fifo_name_mk;
+    $cmd = 'cat ' . $self->_bam_index_fifo_name_mk . ' | ';
+    $cmd .= $self->create_index_cmd() . ' > ' . $self->_index_file_name_mk;
     push @cmds, $cmd;
 
     if ($self->pb_cal_cmd()) {
       my $prefix = $self->input_bam;
       $prefix =~ s/[.]bam$//msx;
-      $cmd = $self->pb_cal_cmd() . " -p $prefix -filter-bad-tiles 2 - ";
-      $cmd .= ' < ' . $self->_bam_pb_cal_fifo_name_mk;
+      $cmd = 'cat ' . $self->_bam_pb_cal_fifo_name_mk . ' | ';
+      $cmd .= $self->pb_cal_cmd() . " -p $prefix -filter-bad-tiles 2 -";
       push @cmds, $cmd;
     }
   }
- 
+
   return \@cmds;
 }
 
@@ -533,11 +545,11 @@ Make the bam bschk_fifo name
 
 =cut 
 
-has '_bam_bschk_fifo_name_mk'  => (isa   => 'Str',
-                              is            => 'ro',
-                              required      => 0,
-                              lazy_build    => 1,
-                              );
+has '_bam_bschk_fifo_name_mk'  => ( isa         => 'Str',
+                                    is          => 'ro',
+                                    required    => 0,
+                                    lazy_build  => 1,
+                                  );
 
 sub _build__bam_bschk_fifo_name_mk {
     my $self = shift;
@@ -554,11 +566,11 @@ Make the bam md5_fifo name
 
 =cut 
 
-has '_bam_md5_fifo_name_mk'  => (isa   => 'Str',
-                              is            => 'ro',
-                              required      => 0,
-                              lazy_build    => 1,
-                              );
+has '_bam_md5_fifo_name_mk'  => ( isa         => 'Str',
+                                  is          => 'ro',
+                                  required    => 0,
+                                  lazy_build  => 1,
+                                );
 
 sub _build__bam_md5_fifo_name_mk {
     my $self = shift;
@@ -575,10 +587,10 @@ Make the bam flagstat_fifo name
 
 =cut 
 
-has '_bam_flagstat_fifo_name_mk'  => (isa   => 'Str',
-                                      is            => 'ro',
-                                      required      => 0,
-                                      lazy_build    => 1,
+has '_bam_flagstat_fifo_name_mk'  => (isa         => 'Str',
+                                      is          => 'ro',
+                                      required    => 0,
+                                      lazy_build  => 1,
                                       );
 
 sub _build__bam_flagstat_fifo_name_mk {
@@ -596,11 +608,11 @@ Make the bam index_fifo name
 
 =cut 
 
-has '_bam_index_fifo_name_mk'  => (isa   => 'Str',
-                              is            => 'ro',
-                              required      => 0,
-                              lazy_build    => 1,
-                              );
+has '_bam_index_fifo_name_mk'  => ( isa         => 'Str',
+                                    is          => 'ro',
+                                    required    => 0,
+                                    lazy_build  => 1,
+                                  );
 
 sub _build__bam_index_fifo_name_mk {
     my $self = shift;
@@ -617,10 +629,10 @@ Make the bam bamcheck_fifo name
 
 =cut 
 
-has '_bam_bamcheck_fifo_name_mk'  => (isa   => 'Str',
-                                      is            => 'ro',
-                                      required      => 0,
-                                      lazy_build    => 1,
+has '_bam_bamcheck_fifo_name_mk'  => (isa         => 'Str',
+                                      is          => 'ro',
+                                      required    => 0,
+                                      lazy_build  => 1,
                                       );
 
 sub _build__bam_bamcheck_fifo_name_mk {
@@ -638,10 +650,10 @@ Make the bam pb_cal_fifo name
 
 =cut 
 
-has '_bam_pb_cal_fifo_name_mk'  => (isa   => 'Str',
-                                      is            => 'ro',
-                                      required      => 0,
-                                      lazy_build    => 1,
+has '_bam_pb_cal_fifo_name_mk'  => (  isa         => 'Str',
+                                      is          => 'ro',
+                                      required    => 0,
+                                      lazy_build  => 1,
                                       );
 
 sub _build__bam_pb_cal_fifo_name_mk {
@@ -659,11 +671,11 @@ Make the bam scramble_fifo name
 
 =cut 
 
-has '_bam_scramble_fifo_name_mk'  => (isa   => 'Str',
-                              is            => 'ro',
-                              required      => 0,
-                              lazy_build    => 1,
-                              );
+has '_bam_scramble_fifo_name_mk'  => (isa           => 'Str',
+                                      is            => 'ro',
+                                      required      => 0,
+                                      lazy_build    => 1,
+                                      );
 
 sub _build__bam_scramble_fifo_name_mk {
     my $self = shift;
@@ -680,10 +692,10 @@ Make the cram file name
 
 =cut 
 
-has '_cram_file_name_mk'  => (isa   => 'Str',
-                              is            => 'ro',
-                              required      => 0,
-                              lazy_build    => 1,
+has '_cram_file_name_mk'  => (isa         => 'Str',
+                              is          => 'ro',
+                              required    => 0,
+                              lazy_build  => 1,
                               );
 
 sub _build__cram_file_name_mk {
@@ -701,10 +713,10 @@ Make the cram fifo name
 
 =cut 
 
-has '_cram_fifo_name_mk'  => (isa   => 'Str',
-                              is            => 'ro',
-                              required      => 0,
-                              lazy_build    => 1,
+has '_cram_fifo_name_mk'  => (isa         => 'Str',
+                              is          => 'ro',
+                              required    => 0,
+                              lazy_build  => 1,
                               );
 
 sub _build__cram_fifo_name_mk {
@@ -722,11 +734,11 @@ Make the cram_seqchksum fifo name
 
 =cut 
 
-has '_cram_seqchksum_fifo_name_mk'  => (isa   => 'Str',
-                              is            => 'ro',
-                              required      => 0,
-                              lazy_build    => 1,
-                              );
+has '_cram_seqchksum_fifo_name_mk'  => (isa           => 'Str',
+                                        is            => 'ro',
+                                        required      => 0,
+                                        lazy_build    => 1,
+                                        );
 
 sub _build__cram_seqchksum_fifo_name_mk {
     my $self = shift;
@@ -743,11 +755,11 @@ Make the cram_seqchksum file name
 
 =cut 
 
-has '_cram_seqchksum_file_name_mk'  => (isa   => 'Str',
-                              is            => 'ro',
-                              required      => 0,
-                              lazy_build    => 1,
-                              );
+has '_cram_seqchksum_file_name_mk'  => (isa         => 'Str',
+                                        is          => 'ro',
+                                        required    => 0,
+                                        lazy_build  => 1,
+                                        );
 
 sub _build__cram_seqchksum_file_name_mk {
     my $self = shift;
@@ -764,11 +776,11 @@ Make the bam_seqchksum file name
 
 =cut 
 
-has '_bam_seqchksum_file_name_mk'  => (isa   => 'Str',
-                              is            => 'ro',
-                              required      => 0,
-                              lazy_build    => 1,
-                              );
+has '_bam_seqchksum_file_name_mk'  => ( isa         => 'Str',
+                                        is          => 'ro',
+                                        required    => 0,
+                                        lazy_build  => 1,
+                                        );
 
 sub _build__bam_seqchksum_file_name_mk {
     my $self = shift;
@@ -779,16 +791,37 @@ sub _build__bam_seqchksum_file_name_mk {
     return $bam_seqchksum_file_name_mk;
 }
 
+=head2 _bam_seqchksum_fifo_name_mk
+
+Make the bam_seqchksum fifo name
+
+=cut 
+
+has '_bam_seqchksum_fifo_name_mk'  => ( isa         => 'Str',
+                                        is          => 'ro',
+                                        required    => 0,
+                                        lazy_build  => 1,
+                                      );
+
+sub _build__bam_seqchksum_fifo_name_mk {
+    my $self = shift;
+
+    my $bam_seqchksum_fifo_name_mk = $self->output_bam;
+    $bam_seqchksum_fifo_name_mk .= q{.seqchksum.fifo};
+
+    return $bam_seqchksum_fifo_name_mk;
+}
+
 =head2 _index_file_name_mk
 
 Make the index file name
 
 =cut 
 
-has '_index_file_name_mk'  => (isa   => 'Str',
-                               is            => 'ro',
-                               required      => 0,
-                               lazy_build    => 1,
+has '_index_file_name_mk'  => (isa        => 'Str',
+                               is         => 'ro',
+                               required   => 0,
+                               lazy_build => 1,
                               );
 
 sub _build__index_file_name_mk {
@@ -806,10 +839,10 @@ Make the flagstat file name
 
 =cut 
 
-has '_flagstat_file_name_mk'  => (isa   => 'Str',
-                                  is            => 'ro',
-                                  required      => 0,
-                                  lazy_build    => 1,
+has '_flagstat_file_name_mk'  => (isa         => 'Str',
+                                  is          => 'ro',
+                                  required    => 0,
+                                  lazy_build  => 1,
                                   );
 
 sub _build__flagstat_file_name_mk {
@@ -827,10 +860,10 @@ Make the bamcheck file name
 
 =cut 
 
-has '_bamcheck_file_name_mk'  => (isa   => 'Str',
-                                  is            => 'ro',
-                                  required      => 0,
-                                  lazy_build    => 1,
+has '_bamcheck_file_name_mk'  => (isa         => 'Str',
+                                  is          => 'ro',
+                                  required    => 0,
+                                  lazy_build  => 1,
                                    );
 
 sub _build__bamcheck_file_name_mk {
@@ -848,10 +881,10 @@ Make the md5 file name
 
 =cut 
 
-has '_md5_file_name_mk'  => (isa   => 'Str',
-                             is            => 'ro',
-                             required      => 0,
-                             lazy_build    => 1,
+has '_md5_file_name_mk'  => (isa        => 'Str',
+                             is         => 'ro',
+                             required   => 0,
+                             lazy_build => 1,
                              );
 
 sub _build__md5_file_name_mk {
@@ -996,7 +1029,7 @@ sub _build_bam_tag_stripper_cmd {
 
 =head2 bamseqchksum_cmd
 
-a command to execute bamseqchksum for every final bam or cram file to create file_name.[b|cr]am.seqchksum 
+a command to execute bamseqchksum for a bam or cram file to create file_name.[b|cr]am.seqchksum 
 
 =cut
 
@@ -1012,14 +1045,10 @@ sub bamseqchksum_cmd {
       my $reference = $self->reference();
       $chk_command .= qq{ reference=$reference};
     }
-  } else {
-    $output = $self->_bam_seqchksum_file_name_mk();
-    $chk_command .= qq( > $output);
   }
 
   return $chk_command;
 }
-
 
 =head2 bamsort_cmd
 
@@ -1154,6 +1183,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   my $cram_file_name_mk = $self->_cram_file_name_mk;
   my $cram_fifo_name_mk = $self->_cram_fifo_name_mk;
   my $bam_seqchksum_file_name_mk = $self->_bam_seqchksum_file_name_mk;
+  my $bam_seqchksum_fifo_name_mk = $self->_bam_seqchksum_fifo_name_mk;
   my $cram_seqchksum_file_name_mk = $self->_cram_seqchksum_file_name_mk;
   my $cram_seqchksum_fifo_name_mk = $self->_cram_seqchksum_fifo_name_mk();
 
@@ -1161,14 +1191,18 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   push @fifos,  $self->_bam_md5_fifo_name_mk;
   push @fifos,  $self->_bam_flagstat_fifo_name_mk;
   push @fifos,  $self->_bam_bamcheck_fifo_name_mk;
-  push @fifos,  $self->_bam_index_fifo_name_mk;
-  push @fifos,  $self->_bam_pb_cal_fifo_name_mk;
-  push @fifos,  $self->_bam_scramble_fifo_name_mk;
   push @fifos,  $self->_bam_bschk_fifo_name_mk;
 
   if (! $self->no_alignment()) {
-    push @fifos, $cram_seqchksum_fifo_name_mk;
-    push @fifos, $cram_fifo_name_mk;
+    push @fifos,  $self->_bam_pb_cal_fifo_name_mk;
+    push @fifos,  $self->_bam_index_fifo_name_mk;
+
+    if ($self->human_split() ne q{phix}) {
+      push @fifos,  $bam_seqchksum_fifo_name_mk;
+      push @fifos,  $self->_bam_scramble_fifo_name_mk;
+      push @fifos,  $cram_seqchksum_fifo_name_mk;
+      push @fifos,  $cram_fifo_name_mk;
+    }
   }
 
   foreach my $fifo (@fifos) {
@@ -1183,7 +1217,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
 
   my $bam_to_stats = $self->input_bam();
 
-  $self->log("Setting up fork commands");
+  $self->log('Setting up fork commands');
 
   my $fork_cmds = $self->fork_cmds();
 

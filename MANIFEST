@@ -150,6 +150,8 @@ t/data/sequence/5390/5390_1_2#0.fastq
 t/data/sequence/5431_6#3.bam
 t/data/sequence/5431_6#3.sam
 t/data/sequence/6062_1#0.bam
+t/data/sequence/plasmodium.bam
+t/data/sequence/phix.bam
 t/data/sequence/npg/run/1937.xml
 t/data/sequence/npg/run/2549.xml
 t/data/sequence/npg/run/3612.xml
@@ -167,7 +169,6 @@ t/data/sequence/npg/run/6993.xml
 t/data/sequence/npg/run/7753.xml
 t/data/sequence/npg/run/7754.xml
 t/data/sequence/npg/run/10371.xml
-t/data/sequence/plasmodium.bam
 t/data/sequence/references/Bordetella_bronchiseptica/RB50/all/bwa/ref.fa.amb
 t/data/sequence/references/Bordetella_bronchiseptica/RB50/all/bwa/ref.fa.options
 t/data/sequence/references/Bordetella_bronchiseptica/RB50/all/fasta/ref.fa
