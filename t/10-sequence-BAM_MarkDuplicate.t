@@ -100,9 +100,15 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       ok ($samtools_version_str, 'samtools version is defined');
       my ($samtools_version, $samtools_revison) = split / /, $samtools_version_str;
 
-      my $expected_tee_cmd = qq{set -o pipefail;/software/hpag/biobambam/0.0.147/bin/bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt level='0' | $bam_tag_stripper_cmd | tee  >(md5sum -b | tr -d }.q{"\n *-"};
-      $expected_tee_cmd .= qq{ > $temp_dir/output_mk.bam.md5) >(/software/solexa/pkg/samtools/samtools-$samtools_version/samtools flagstat -  > $temp_dir/output_mk.flagstat) >($bam_bamcheck_cmd > $temp_dir/output_mk.bamcheck) >(/software/solexa/pkg/samtools/samtools-$samtools_version/samtools index /dev/stdin /dev/stdout > $temp_dir/output_mk.bai) };
-      $expected_tee_cmd .= qq{>($bam_pb_cal_cmd -p t/data/sequence/plasmodium -filter-bad-tiles 2 -)  > $temp_dir/output_mk.bam};
+      my $expected_tee_cmd = qq{set -o pipefail;/software/hpag/biobambam/0.0.147/bin/bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt level='0' | $bam_tag_stripper_cmd | tee};
+      $expected_tee_cmd .= qq{ > $temp_dir/output_mk.bam.md5.fifo};
+      $expected_tee_cmd .= qq{ > $temp_dir/output_mk.bam.flagstat.fifo};
+      $expected_tee_cmd .= qq{ > $temp_dir/output_mk.bam.bamcheck.fifo};
+      $expected_tee_cmd .= qq{ > $temp_dir/output_mk.bam.index.fifo};
+      $expected_tee_cmd .= qq{ > $temp_dir/output_mk.bam.pb_cal.fifo};
+      $expected_tee_cmd .= qq{ > $temp_dir/output_mk.bam.scramble.fifo};
+      $expected_tee_cmd .= qq{ > $temp_dir/output_mk.bam.bschk.fifo};
+      $expected_tee_cmd .= qq{ > $temp_dir/output_mk.bam};
 
       is($bam->_tee_cmd, $expected_tee_cmd, 'entire tee command generated correctly');
 
@@ -113,26 +119,47 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       my $bam_file_name_mk = qq{$temp_dir/output_mk.bam};
       my $bam_seqchksum_file_name_mk = qq{$temp_dir/output_mk.bam.seqchksum};
 
-      my @expected_seqchksum_cmds = ();
+      my @expected_fork_cmds = ();
 
-      my $expected_cmd0 = qq{bamseqchksum verbose=1 inputformat=bam > $bam_seqchksum_file_name_mk < $bam_file_name_mk};
+      my $expected_md5_cmd = qq{md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_mk.bam.md5};
+      $expected_md5_cmd .= qq{ < $temp_dir/output_mk_bam.md5.fifo};
+
+      my $expected_flagstat_cmd = qq{/software/solexa/pkg/samtools/samtools-$samtools_version/samtools flagstat -  > $temp_dir/output_mk.flagstat};
+      $expected_flagstat_cmd .= qq{ < $temp_dir/output_mk_bam.flagstat.fifo};
+
+      my $expected_bamcheck_cmd = qq{$bam_bamcheck_cmd > $temp_dir/output_mk.bamcheck};
+      $expected_bamcheck_cmd .= qq{ < $temp_dir/output_mk_bam.bamcheck.fifo};
+
+      my $expected_index_cmd = qq{/software/solexa/pkg/samtools/samtools-$samtools_version/samtools index /dev/stdout > $temp_dir/output_mk.bai};
+      $expected_index_cmd .= qq{ < $temp_dir/output_mk_bam.index.fifo};
+
+      my $expected_pb_cal_cmd = qq{$bam_pb_cal_cmd -p t/data/sequence/plasmodium -filter-bad-tiles 2 -};
+      $expected_pb_cal_cmd .= qq{ < $temp_dir/output_mk_bam.pb_cal.fifo};
+
+      my $expected_bamchksum_cmd = qq{bamseqchksum verbose=1 inputformat=bam > $bam_seqchksum_file_name_mk < $bam_file_name_mk};
   
-      my $expected_cmd1 = qq{/software/badger/bin/scramble -I bam -O cram < $bam_file_name_mk -r t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta };
-      $expected_cmd1 .= qq{> $cram_file_name_mk; cat $cram_file_name_mk > $cram_fifo_name_mk};
+      my $expected_scramble_cmd = qq{/software/badger/bin/scramble -I bam -O cram < $bam_file_name_mk -r t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta };
+      $expected_scramble_cmd .= qq{> $cram_file_name_mk; cat $cram_file_name_mk > $cram_fifo_name_mk};
 
-      my $expected_cmd2 =  qq{cat $cram_fifo_name_mk | bamseqchksum verbose=1 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta };
-      $expected_cmd2 .= qq{> $cram_seqchksum_file_name_mk; cat $cram_seqchksum_file_name_mk > $cram_seqchksum_fifo_name_mk};
+      my $expected_cramchksum_cmd =  qq{cat $cram_fifo_name_mk | bamseqchksum verbose=1 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta };
+      $expected_cramchksum_cmd .= qq{> $cram_seqchksum_file_name_mk; cat $cram_seqchksum_file_name_mk > $cram_seqchksum_fifo_name_mk};
 
-      my $expected_cmd3 = qq{diff $bam_seqchksum_file_name_mk $cram_seqchksum_fifo_name_mk};
+      my $expected_diff_cmd = qq{diff $bam_seqchksum_file_name_mk $cram_seqchksum_fifo_name_mk};
 
-      push  @expected_seqchksum_cmds, $expected_cmd0;
-      push  @expected_seqchksum_cmds, $expected_cmd1;
-      push  @expected_seqchksum_cmds, $expected_cmd2;
-      push  @expected_seqchksum_cmds, $expected_cmd3;
+      push  @expected_fork_cmds, $expected_tee_cmd;
+      push  @expected_fork_cmds, $expected_bamchksum_cmd;
+      push  @expected_fork_cmds, $expected_scramble_cmd;
+      push  @expected_fork_cmds, $expected_cramchksum_cmd;
+      push  @expected_fork_cmds, $expected_diff_cmd;
+      push  @expected_fork_cmds, $expected_md5_cmd;
+      push  @expected_fork_cmds, $expected_flagstat_cmd;
+      push  @expected_fork_cmds, $expected_bamcheck_cmd;
+      push  @expected_fork_cmds, $expected_index_cmd;
+      push  @expected_fork_cmds, $expected_pb_cal_cmd;
 
-      my $expected_seqchksum_cmds = \@expected_seqchksum_cmds;
-      cmp_deeply($bam->seqchksum_cmds(), $expected_seqchksum_cmds, 'commands for bamseqchksum generated correctly');
-
+      my $expected_fork_cmds = \@expected_fork_cmds;
+      cmp_deeply($bam->fork_cmds(), $expected_fork_cmds, 'commands for fork generated correctly');
+exit;
       lives_ok{$bam->process()} q{Processed OK};
 
       is (-e "$temp_dir/output_mk.bam", 1, 'BAM file created');      
@@ -146,7 +173,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       is (-e "$temp_dir/output_mk.cram.seqchksum", 1, 'CRAM seqchksum file created');
   }    
 }
-
+exit;
 {
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
@@ -190,11 +217,11 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       my $expected_tee_cmd = qq{set -o pipefail;$bam_tag_stripper_cmd | tee  >(md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_no_align.bam.md5) >(/software/solexa/pkg/samtools/samtools-$samtools_version/samtools flagstat -  > $temp_dir/output_no_align.flagstat) >($bam_bamcheck_cmd > $temp_dir/output_no_align.bamcheck)  > $temp_dir/output_no_align.bam};
       is($bam->_tee_cmd, $expected_tee_cmd, 'entire tee command generated correctly if no_alignment flag used');
 
-      my @expected_seqchksum_cmds = ();
+      my @expected_fork_cmds = ();
       my $expected_cmd0 = qq{bamseqchksum verbose=1 inputformat=bam > $temp_dir/output_no_align.bam.seqchksum < $temp_dir/output_no_align.bam};
-      push  @expected_seqchksum_cmds, $expected_cmd0;
-      my $expected_seqchksum_cmds = \@expected_seqchksum_cmds;
-      cmp_deeply($bam->seqchksum_cmds(), $expected_seqchksum_cmds, 'commands for bamseqchksum generated correctly');
+      push  @expected_fork_cmds, $expected_cmd0;
+      my $expected_fork_cmds = \@expected_fork_cmds;
+      cmp_deeply($bam->fork_cmds(), $expected_fork_cmds, 'commands for bamseqchksum generated correctly');
 
       lives_ok{$bam->process()} q{Processed OK};
 

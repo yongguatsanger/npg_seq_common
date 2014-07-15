@@ -435,53 +435,36 @@ sub _build_tee_cmd {
 
   $mark_duplicate_cmd ||= 'cat ' . $self->bam_input;
   $mark_duplicate_cmd = qq{set -o pipefail;$mark_duplicate_cmd};
-
-  my $flagstat_file_name_mk = $self->_flagstat_file_name_mk();
-  my $index_file_name_mk = $self->_index_file_name_mk();
-  my $bamcheck_file_name_mk = $self->_bamcheck_file_name_mk();
-  my $md5_file_name_mk = $self->_md5_file_name_mk();
-  my $cram_file_name_mk = $self->_cram_file_name_mk();
-
-  $mark_duplicate_cmd .= ' | tee ' . ' >(' . $self->create_md5_cmd() .
-                         ' | tr -d "\\n *-" > ' . #note \\ squashes down to \ even in this 'unevaluated' string
-                         $md5_file_name_mk . ') ' .
-                         '>(' . $self->samtools_cmd() . ' flagstat -  > ' . $flagstat_file_name_mk . ')';
-  if ($self->bamcheck_cmd()) {
-    $mark_duplicate_cmd .= ' >(' . $self->bamcheck_cmd;
-    if($self->bamcheck_flags) {
-        $mark_duplicate_cmd .= q{ } . $self->bamcheck_flags;
-    }
-    $mark_duplicate_cmd .= " > $bamcheck_file_name_mk) ";
-  }
-
-  # we only create an index if we are doing alignment
-  if (! $self->no_alignment()) {
-    $mark_duplicate_cmd .= '>(' . $self->create_index_cmd() . ' > ' . $index_file_name_mk . ') ';
-    if ($self->pb_cal_cmd()) {
-      my $prefix = $self->input_bam;
-      $prefix =~ s/[.]bam$//msx;
-      $mark_duplicate_cmd .= '>(' . $self->pb_cal_cmd() . " -p $prefix -filter-bad-tiles 2 -) ";
-    }
-  }
+  $mark_duplicate_cmd .= ' | tee' ;
+  $mark_duplicate_cmd .= ' > ' . $self->_bam_md5_fifo_name_mk;
+  $mark_duplicate_cmd .= ' > ' . $self->_bam_flagstat_fifo_name_mk;
+  $mark_duplicate_cmd .= ' > ' . $self->_bam_bamcheck_fifo_name_mk;
+  $mark_duplicate_cmd .= ' > ' . $self->_bam_index_fifo_name_mk;
+  $mark_duplicate_cmd .= ' > ' . $self->_bam_pb_cal_fifo_name_mk;
+  $mark_duplicate_cmd .= ' > ' . $self->_bam_scramble_fifo_name_mk;
+  $mark_duplicate_cmd .= ' > ' . $self->_bam_bschk_fifo_name_mk;
   $mark_duplicate_cmd .= ' > ' . $self->output_bam;
 
   return $mark_duplicate_cmd;
 }
 
-=head2 seqchksum_cmds
+=head2 fork_cmds
 
 construct the scramble, seqchksum and diff cmds
 
 =cut
 
-sub seqchksum_cmds {
+sub fork_cmds {
   my $self = shift;
 
   my @cmds = ();
   my $cmd = q{};
 
+  $cmd = $self->_tee_cmd();
+  push @cmds, $cmd;
+
   my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
-  $cmd = $bamseqchksum_cmd . ' < ' .  $self->output_bam();
+  $cmd = $bamseqchksum_cmd . ' < ' .  $self->_bam_bschk_fifo_name_mk;
   push @cmds, $cmd;
 
   if (! $self->no_alignment()) {
@@ -490,7 +473,7 @@ sub seqchksum_cmds {
       my $refname = $self->reference();
       $refname =~ s{/bwa/}{/fasta/}msx;
       $cmd = $self->scramble_cmd() . ' -I bam -O cram';
-      $cmd .= ' < ' . $self->output_bam();
+      $cmd .= ' < ' . $self->_bam_scramble_fifo_name_mk();
       $cmd .= " -r $refname" ;
       $cmd .= ' > ' . $self->_cram_file_name_mk();
       $cmd .= '; cat ' .  $self->_cram_file_name_mk() . ' > ' . $self->_cram_fifo_name_mk();
@@ -505,7 +488,190 @@ sub seqchksum_cmds {
     }
   }
 
+  $cmd = $self->create_md5_cmd();
+  $cmd .= ' | tr -d "\\n *-" > '; #note \\ squashes down to \ even in this 'unevaluated' string
+  $cmd .= $self->_md5_file_name_mk;
+  $cmd .= ' < ' . $self->_bam_md5_fifo_name_mk;
+  push @cmds, $cmd;
+
+  $cmd = $self->samtools_cmd() . ' flagstat -  > ' . $self->_flagstat_file_name_mk;
+  $cmd .= '< ' . $self->_bam_flagstat_fifo_name_mk;
+  push @cmds, $cmd;
+
+  if ($self->bamcheck_cmd()) {
+    $cmd = $self->bamcheck_cmd;
+    $cmd .= ' < ' . $self->_bam_bamcheck_fifo_name_mk;
+    if($self->bamcheck_flags) {
+        $cmd .= q{ } . $self->bamcheck_flags;
+    }
+    $cmd .= ' > ' . $self->_bamcheck_file_name_mk;
+    push @cmds, $cmd;
+  }
+
+  # we only create an index if we are doing alignment
+  if (! $self->no_alignment()) {
+    $cmd  = $self->create_index_cmd() . ' > ' . $self->_index_file_name_mk;
+    $cmd .= ' < ' . $self->_bam_index_fifo_name_mk;
+    push @cmds, $cmd;
+
+    if ($self->pb_cal_cmd()) {
+      my $prefix = $self->input_bam;
+      $prefix =~ s/[.]bam$//msx;
+      $cmd = $self->pb_cal_cmd() . " -p $prefix -filter-bad-tiles 2 - ";
+      $cmd .= ' < ' . $self->_bam_pb_cal_fifo_name_mk;
+      push @cmds, $cmd;
+    }
+  }
+ 
   return \@cmds;
+}
+
+
+=head2 _bam_bschk_fifo_name_mk
+
+Make the bam bschk_fifo name
+
+=cut 
+
+has '_bam_bschk_fifo_name_mk'  => (isa   => 'Str',
+                              is            => 'ro',
+                              required      => 0,
+                              lazy_build    => 1,
+                              );
+
+sub _build__bam_bschk_fifo_name_mk {
+    my $self = shift;
+
+    my $bam_bschk_fifo_name_mk = $self->output_bam;
+    $bam_bschk_fifo_name_mk .= q{.bschk.fifo};
+
+    return $bam_bschk_fifo_name_mk;
+}
+
+=head2 _bam_md5_fifo_name_mk
+
+Make the bam md5_fifo name
+
+=cut 
+
+has '_bam_md5_fifo_name_mk'  => (isa   => 'Str',
+                              is            => 'ro',
+                              required      => 0,
+                              lazy_build    => 1,
+                              );
+
+sub _build__bam_md5_fifo_name_mk {
+    my $self = shift;
+
+    my $bam_md5_fifo_name_mk = $self->output_bam;
+    $bam_md5_fifo_name_mk .= q{.md5.fifo};
+
+    return $bam_md5_fifo_name_mk;
+}
+
+=head2 _bam_flagstat_fifo_name_mk
+
+Make the bam flagstat_fifo name
+
+=cut 
+
+has '_bam_flagstat_fifo_name_mk'  => (isa   => 'Str',
+                                      is            => 'ro',
+                                      required      => 0,
+                                      lazy_build    => 1,
+                                      );
+
+sub _build__bam_flagstat_fifo_name_mk {
+    my $self = shift;
+
+    my $bam_flagstat_fifo_name_mk = $self->output_bam;
+    $bam_flagstat_fifo_name_mk .= q{.flagstat.fifo};
+
+    return $bam_flagstat_fifo_name_mk;
+}
+
+=head2 _bam_index_fifo_name_mk
+
+Make the bam index_fifo name
+
+=cut 
+
+has '_bam_index_fifo_name_mk'  => (isa   => 'Str',
+                              is            => 'ro',
+                              required      => 0,
+                              lazy_build    => 1,
+                              );
+
+sub _build__bam_index_fifo_name_mk {
+    my $self = shift;
+
+    my $bam_index_fifo_name_mk = $self->output_bam;
+    $bam_index_fifo_name_mk .= q{.index.fifo};
+
+    return $bam_index_fifo_name_mk;
+}
+
+=head2 _bam_bamcheck_fifo_name_mk
+
+Make the bam bamcheck_fifo name
+
+=cut 
+
+has '_bam_bamcheck_fifo_name_mk'  => (isa   => 'Str',
+                                      is            => 'ro',
+                                      required      => 0,
+                                      lazy_build    => 1,
+                                      );
+
+sub _build__bam_bamcheck_fifo_name_mk {
+    my $self = shift;
+
+    my $bam_bamcheck_fifo_name_mk = $self->output_bam;
+    $bam_bamcheck_fifo_name_mk .= q{.bamcheck.fifo};
+
+    return $bam_bamcheck_fifo_name_mk;
+}
+
+=head2 _bam_pb_cal_fifo_name_mk
+
+Make the bam pb_cal_fifo name
+
+=cut 
+
+has '_bam_pb_cal_fifo_name_mk'  => (isa   => 'Str',
+                                      is            => 'ro',
+                                      required      => 0,
+                                      lazy_build    => 1,
+                                      );
+
+sub _build__bam_pb_cal_fifo_name_mk {
+    my $self = shift;
+
+    my $bam_pb_cal_fifo_name_mk = $self->output_bam;
+    $bam_pb_cal_fifo_name_mk .= q{.pb_cal.fifo};
+
+    return $bam_pb_cal_fifo_name_mk;
+}
+
+=head2 _bam_scramble_fifo_name_mk
+
+Make the bam scramble_fifo name
+
+=cut 
+
+has '_bam_scramble_fifo_name_mk'  => (isa   => 'Str',
+                              is            => 'ro',
+                              required      => 0,
+                              lazy_build    => 1,
+                              );
+
+sub _build__bam_scramble_fifo_name_mk {
+    my $self = shift;
+
+    my $bam_scramble_fifo_name_mk = $self->output_bam;
+    $bam_scramble_fifo_name_mk .= q{.scramble.fifo};
+
+    return $bam_scramble_fifo_name_mk;
 }
 
 =head2 _cram_file_name_mk
@@ -989,43 +1155,39 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   my $cram_fifo_name_mk = $self->_cram_fifo_name_mk;
   my $bam_seqchksum_file_name_mk = $self->_bam_seqchksum_file_name_mk;
   my $cram_seqchksum_file_name_mk = $self->_cram_seqchksum_file_name_mk;
-
-  my $mark_duplicate_cmd = $self->_tee_cmd();
-
-  my $bam_to_stats = $self->input_bam();
-  if($mark_duplicate_cmd){
-
-     $self->log("mark_duplicates_cmd: $mark_duplicate_cmd");
-     my $mark_duplicate_rs = system 'bash', '-c', $mark_duplicate_cmd;
-     if( $mark_duplicate_rs != 0){
-       croak 'Biobambam MarkDuplicates failed!';
-     }
-     $bam_to_stats = $self->output_bam();
-  }
-
-  $self->log("Setting up commands to make files $bam_seqchksum_file_name_mk and $cram_seqchksum_file_name_mk");
-
   my $cram_seqchksum_fifo_name_mk = $self->_cram_seqchksum_fifo_name_mk();
 
+  my @fifos = ();
+  push @fifos,  $self->_bam_md5_fifo_name_mk;
+  push @fifos,  $self->_bam_flagstat_fifo_name_mk;
+  push @fifos,  $self->_bam_bamcheck_fifo_name_mk;
+  push @fifos,  $self->_bam_index_fifo_name_mk;
+  push @fifos,  $self->_bam_pb_cal_fifo_name_mk;
+  push @fifos,  $self->_bam_scramble_fifo_name_mk;
+  push @fifos,  $self->_bam_bschk_fifo_name_mk;
+
   if (! $self->no_alignment()) {
-    my @fifos = ();
     push @fifos, $cram_seqchksum_fifo_name_mk;
     push @fifos, $cram_fifo_name_mk;
+  }
 
-    foreach my $fifo (@fifos) {
-      my $fifo_cmd = join q[ ] , 'mkfifo', $fifo;
-      $self->log("Setting up fifo: $fifo_cmd");
+  foreach my $fifo (@fifos) {
+    my $fifo_cmd = join q[ ] , 'mkfifo', $fifo;
+    $self->log("Setting up fifo: $fifo_cmd");
 
-      my $fifo_rs = system $fifo_cmd;
-      if ($fifo_rs != 0 ) {
-         croak "Failed to make fifo: $fifo_cmd";
-      }
+    my $fifo_rs = system $fifo_cmd;
+    if ($fifo_rs != 0 ) {
+       croak "Failed to make fifo: $fifo_cmd";
     }
   }
 
-  my $seqchksum_cmds = $self->seqchksum_cmds();
+  my $bam_to_stats = $self->input_bam();
 
-  my $pm = Parallel::ForkManager->new(scalar @{$seqchksum_cmds});
+  $self->log("Setting up fork commands");
+
+  my $fork_cmds = $self->fork_cmds();
+
+  my $pm = Parallel::ForkManager->new(scalar @{$fork_cmds});
 
   $pm->run_on_finish(
     sub { my ($pid, $exit_code, $ident) = @_;
@@ -1044,7 +1206,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     }
   );
 
-  foreach my $command (@{$seqchksum_cmds}) {
+  foreach my $command (@{$fork_cmds}) {
       $pm->start($command) and next;
       system $command;
       $pm->finish;
@@ -1060,6 +1222,9 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   $self->_flagstats($flagstat_file_name_mk);
   $self->_result->store($self->metrics_json);
 
+
+  my $mark_duplicate_cmd = $self->_tee_cmd();
+  $bam_to_stats = $self->output_bam();
 
   if ($self->replace_file && $mark_duplicate_cmd) {
     $self->log('Replacing input files with duplicates marked file');
