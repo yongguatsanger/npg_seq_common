@@ -1,10 +1,6 @@
 #########
 # Author:        John O'Brien
-# Maintainer:    $Author$
 # Created:       12/01/2011
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 package test_bam_align;
 
@@ -900,7 +896,7 @@ SKIP: {
     $test->out_bam($out_bam);
     my $temp_bam = $test->temp_bam();
     is( $temp_bam, $scratch.q{/duplicates_unmarked.bam}, 'correct temp bam file');
-    like ( $test->picard_markduplicates_command(), qr/bammarkduplicates I=t\/data\/scratch\/duplicates_unmarked\.bam O=t\/data\/scratch\/out\.bam M=t\/data\/scratch\/out\.bam\.metrics/, 'correct picard markduplicates command');
+    like ( $test->picard_markduplicates_command(), qr/bammarkduplicates I=t\/data\/scratch\/duplicates_unmarked\.bam O=\/dev\/stdout tmpfile=t\/data\/scratch\/ M=t\/data\/scratch\/out\.bam\.metrics/, 'correct picard markduplicates command');
     wipe_test_scratch($scratch);
   }
 } # end skip

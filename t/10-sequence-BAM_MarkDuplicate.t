@@ -1,10 +1,6 @@
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2009-06-21
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 use strict;
@@ -39,8 +35,8 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
   is($bam->default_java_xmx_elc, $elc_memory_for_production, q{No elc memory supplied so default used});
   is($bam->default_java_xmx_bts, $bts_memory_for_production, q{no bts memory supplied so default used});
   $bam->metrics_file('metrics.txt');
-  #$bam->temp_dir($temp_dir);
-  like($bam->mark_duplicate_cmd(), qr/bammarkduplicates I=input\.bam O=output\.bam M=metrics\.txt/, 'correct picard command with absolute path to jar');
+  $bam->temp_dir($temp_dir);
+  like($bam->mark_duplicate_cmd(), qr/bammarkduplicates I=input\.bam O=\/dev\/stdout tmpfile=$temp_dir\/ M=metrics\.txt/, 'correct picard command with absolute path to jar');
        };
 }
 
@@ -61,7 +57,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
                  default_java_xmx_elc => $elc_memory_for_deployment,
                  default_java_xmx_bts => $bts_memory_for_deployment,
                });
-      my $expected_mark_duplicate_cmd = qq{bammarkduplicates I=$temp_dir/sorted.bam O=$temp_dir/output_mk.bam M=$temp_dir/metrics.txt};
+      my $expected_mark_duplicate_cmd = qq{bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt};
       like($bam->mark_duplicate_cmd(), qr/$expected_mark_duplicate_cmd/, 'correct biobambam command');
       ok( $bam->no_alignment(), 'input bam with alignment');
       $bam->no_alignment(1);

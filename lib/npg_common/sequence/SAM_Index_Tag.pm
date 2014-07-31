@@ -1,10 +1,6 @@
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2010-08-03
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::sequence::SAM_Index_Tag;
@@ -17,7 +13,8 @@ use English qw(-no_match_vars);
 
 with 'MooseX::Getopt';
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/smx; $r; };
+our $VERSION = '0';
+
 ## no critic (Documentation::RequirePodAtEnd)
 
 =head1 NAME
@@ -25,8 +22,6 @@ use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\
 npg_common::sequence::SAM_Index_Tag
 
 =head1 VERSION
-
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 
@@ -211,8 +206,6 @@ __END__
 =item Carp
 
 =item English -no_match_vars
-
-=item Readonly
 
 =back
 

@@ -7,6 +7,8 @@ use File::Slurp;
 use Digest::MD5;
 use JSON;
 
+use npg_tracking::util::build qw/git_tag/;
+
 # test the Ref_Maker script by building references for E coli
 # confirm md5 checksum of expected output files
 
@@ -25,7 +27,7 @@ system("cp $fastaMaster $tmpFasta");
 local $ENV{'PATH'} = join q[:], join(q[/], $startDir, 'scripts'), $ENV{'PATH'};
 chdir($tmp);
 
-is(system('Ref_Maker &> Ref_Maker.log'), 0, 'Ref_Maker exit status');
+is(system("$startDir/bin/Ref_Maker &> Ref_Maker.log"), 0, 'Ref_Maker exit status');
 
 # can't use checksum on Picard .dict, as it contains full path to fasta file
 my $picard = "picard/E-coli-K12.fa.dict";
@@ -67,9 +69,10 @@ my %expectedMD5 = (
     );
 
 ok (-e 'npgqc/E-coli-K12.fa.json', 'json file exists');
-my $json_hash = {'__CLASS__'=>'npg_common::sequence::reference::base_count-7844','reference_path'=>'fasta/E-coli-K12.fa','_summary'=>{'ref_length'=>4639675,'counts'=>{'A'=>1142228,'T'=>1140970,'C'=>1179554,'G'=>1176923}}};
-my $json = from_json(read_file('npgqc/E-coli-K12.fa.json'));
 
+my $json_hash = {'reference_path'=>'fasta/E-coli-K12.fa','_summary'=>{'ref_length'=>4639675,'counts'=>{'A'=>1142228,'T'=>1140970,'C'=>1179554,'G'=>1176923}}};
+my $json = from_json(read_file('npgqc/E-coli-K12.fa.json'));
+delete $json->{__CLASS__};
 is_deeply($json,$json_hash,'Compare the JSON file');
 
 chdir($startDir);

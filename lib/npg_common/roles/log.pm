@@ -1,10 +1,6 @@
 #############
-# $Id$
 # Created By: ajb
-# Mast Maintained By: $Author$
 # Created On: 2009-10-29
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::roles::log;
 use strict;   # here to satisfy
@@ -15,7 +11,7 @@ use Carp;
 use Cwd;
 use English qw{-no_match_vars};
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevision$ =~ /(\d+)/mxs; $r; };
+our $VERSION = '0';
 
 ## no critic (Documentation::RequirePodAtEnd)
 
@@ -24,8 +20,6 @@ use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$LastChangedRevis
 npg_common::roles::log
 
 =head1 VERSION
-
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 
@@ -167,8 +161,6 @@ __END__
 
 =item Carp
 
-=item Readonly
-
 =item POSIX
 
 =item Cwd
@@ -181,11 +173,11 @@ __END__
 
 =head1 AUTHOR
 
-$Author$
+Andy Brown
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2009 Andy Brown (ajb@sanger.ac.uk)
+Copyright (C) 2009 GRL by Andy Brown (ajb@sanger.ac.uk)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

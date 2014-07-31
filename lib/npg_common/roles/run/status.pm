@@ -1,10 +1,6 @@
 #############
-# $Id$
 # Created By: ajb
-# Last Maintained By: $Author$
 # Created On: 2010-12-06
-# Last Changed On: $Date$
-# $HeadURL$
 
 package npg_common::roles::run::status;
 use Moose::Role;
@@ -14,10 +10,9 @@ use npg::api::run;
 use npg::api::request;
 use npg::api::run_status_dict;
 
-
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
-
 with qw{npg_common::roles::log};
+
+our $VERSION = '0';
 
 ## no critic (Documentation::RequirePodAtEnd)
 =head1 NAME
@@ -25,8 +20,6 @@ with qw{npg_common::roles::log};
 npg_common::roles::run::status
 
 =head1 VERSION
-
-$Revision$
 
 =head1 SYNOPSIS
 
@@ -47,7 +40,6 @@ and npg::api::run_status_dict modules
 Takes a run id and a status, and updates this run to this status.
 
   $oClass->update_run_status( {
-    id_run => $iIdRun,
     status_desc => $sStatus
   } );
 
@@ -229,8 +221,6 @@ __END__
 
 =item English -no_match_vars
 
-=item Readonly
-
 =back
 
 =head1 INCOMPATIBILITIES
@@ -239,7 +229,7 @@ __END__
 
 =head1 AUTHOR
 
-$Author$
+Andy Brown
 
 =head1 LICENSE AND COPYRIGHT
 

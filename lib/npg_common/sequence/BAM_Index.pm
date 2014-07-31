@@ -1,10 +1,6 @@
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2010-10-05
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::sequence::BAM_Index;
@@ -24,7 +20,9 @@ with qw /
          npg_common::roles::software_location
         /;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
+use Readonly;
+
+our $VERSION = '0';
 
 Readonly::Scalar our $DEFAULT_COMMAND_OPTIONS => {
                                VALIDATION_STRINGENCY => 'SILENT',
@@ -40,8 +38,6 @@ Readonly::Scalar our $BUILD_BAM_INDEX_JAR => qw[BuildBamIndex.jar];
 npg_common::sequence::BAM_Index
 
 =head1 VERSION
-
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 

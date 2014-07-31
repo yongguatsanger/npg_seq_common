@@ -1,10 +1,6 @@
 #!/usr/bin/env perl
 #########
 # Author:        Marina Gourtovaia
-# Maintainer:    $Author$
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 use strict;
@@ -14,7 +10,7 @@ use MIME::Lite;
 use Getopt::Long;
 use Carp;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/smx; $r; };
+our $VERSION = '0';
 
 my $subject = q[];
 my $to = [];
@@ -75,8 +71,6 @@ npg_mail_cron_output
 
 =head1 VERSION
 
-$LastChangedRevision$
-
 =head1 USAGE
 
 =head1 CONFIGURATION
@@ -113,8 +107,6 @@ $LastChangedRevision$
 
 =item MIME::Lite
 
-=item Readonly
-
 =back
 
 =head1 INCOMPATIBILITIES
@@ -123,7 +115,7 @@ $LastChangedRevision$
 
 =head1 AUTHOR
 
- Marina Gourtovaia
+Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 

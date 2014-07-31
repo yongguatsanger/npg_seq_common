@@ -1,7 +1,30 @@
 LIST OF CHANGES
 
-- remove duplicate of bam_align_irods: README enhancements; move scripts to bin
-- don't strip tags from Biobambam's bamadapterfind
+release 49.4
+  - remove gitver script to use tracking module
+  - remove unused bam/sam/fastq and modify used data
+  - RefMaker script uses local lib if available
+  - RefMaker script test:
+      uses the local version of the RefMaker script;
+      for base_count script, does no enforce module version
+  - copyright for all modules and script belongs to GRL - the copyright
+    notice edited where it was incorrect
+
+release 49.3
+  - Build.PL scripts uses npg_tracking::util::bild as a builder parent, therefore,
+    the current git tag and SHA are used to set the version of modules and scripts
+  - scripts, modules and tests - RSC keywords removed
+  - the distribution test does not perform pod tests (separate tests available),
+    checks that module version matches distribution version
+
+release 49.2
+  - fix to not call AlignmentFilter QC wrapping for y and ax_human split
+  - fix to ensure flagstats, cram, bamcheck etc are run with y split but no phiX
+
+release 49.1
+  - first release from git
+  - remove duplicate of bam_align_irods: README enhancements; move scripts to bin
+  - don't strip tags from Biobambam's bamadapterfind
 
 release 49.0
   - remove irods modules, tests and test data (moved to data-handling package)
@@ -19,7 +42,8 @@ release 48.17
 
 release 48.16
   - BAM_MarkDuplicates test modifications to use TOOL_INSTALLED flag and extended mock environment
-  - sequence_BAM_Alignment, irods_run_Bam, irods_BamDeletion, extractor_fastq, bam_align and ref_maker test modifications to use TOOL_INSTALLED flag
+  - sequence_BAM_Alignment, irods_run_Bam, irods_BamDeletion, extractor_fastq, bam_align and ref_maker 
+    test modifications to use TOOL_INSTALLED flag
   - extractor_fastq sleeps to avoid pipe issues
 
 release 48.15

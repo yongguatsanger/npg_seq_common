@@ -1,10 +1,6 @@
 #########
 # Author:        gq1
-# Maintainer:    $Author$
 # Created:       2010 06 21
-# Last Modified: $Date$
-# Id:            $Id$
-# $HeadURL$
 #
 
 package npg_common::sequence::BAM_MarkDuplicate;
@@ -30,7 +26,9 @@ with qw/
         npg_common::roles::software_location
        /;
 
-use Readonly; Readonly::Scalar our $VERSION => do { my ($r) = q$Revision$ =~ /(\d+)/mxs; $r; };
+use Readonly;
+
+our $VERSION = '0';
 
 Readonly::Scalar our $DEFAULT_ESTIMATE_LIBRARY_COMPLEXITY_JAR => q{EstimateLibraryComplexity.jar};
 Readonly::Scalar our $DEFAULT_BAM_TAG_STRIPPER_JAR   => q[BamTagStripper.jar];
@@ -61,8 +59,6 @@ Readonly::Scalar our $BAM_TAGS_TO_KEEP               => [qw(tr tq a3 ah as af aa
 npg_common::sequence::BAM_MarkDuplicate
 
 =head1 VERSION
-
-$LastChangedRevision$
 
 =head1 SYNOPSIS
 
@@ -455,13 +451,11 @@ sub mark_duplicate_cmd {
    }else {
       $cmd .= q{ I=}.$self->input_bam();
    }
+   $cmd .= q{ O=/dev/stdout};
+   $cmd .= q{ tmpfile=}.$self->temp_dir().q{/};
    my %options = ();
    if( !$self->not_strip_bam_tag() ){
-      $cmd .= q{ O=/dev/stdout};
-      $cmd .= q{ tmpfile=}.$self->temp_dir().q{/};
       $options{level} = 0;
-   }else{
-      $cmd .= q{ O=}.$self->output_bam();
    }
 
    $cmd .= q{ M=}.$self->metrics_file();

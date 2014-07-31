@@ -29,5 +29,5 @@ perl Build.PL --install_base your_dir
 ./Build test
 ./Build install
 
-Where real bioinformatics tools are used in tests, an attempt to dynamically assert presence of tools is made and those tests are skipped. If TOOLS_INSTALLED environment variable is true, the tests that require presence of tools are run.
+Tests where real bioinformatics tools are used are skipped by default. Set TOOLS_INSTALLED environment variable to true to run these tests. It is expected that third party executables are found on the path. Java jar files are expected to be found in a directory pointed by the CLASSPATH envronment variable.
 
