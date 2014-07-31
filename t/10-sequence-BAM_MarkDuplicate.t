@@ -5,7 +5,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 111;
+use Test::More tests => 114;
 use Test::Exception;
 use Test::Deep;
 
@@ -124,28 +124,28 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 
       my @expected_fork_cmds = ();
 
-      my $expected_md5_cmd = qq{cat $temp_dir/output_mk.bam.md5.fifo | };
+      my $expected_md5_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.md5.fifo | };
       $expected_md5_cmd .= qq{md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_mk.bam.md5};
 
-      my $expected_flagstat_cmd = qq{cat $temp_dir/output_mk.bam.flagstat.fifo | };
+      my $expected_flagstat_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.flagstat.fifo | };
       $expected_flagstat_cmd .= qq{/software/solexa/pkg/samtools/samtools-$samtools_version/samtools flagstat -  > $temp_dir/output_mk.flagstat};
 
-      my $expected_bamcheck_cmd = qq{cat $temp_dir/output_mk.bam.bamcheck.fifo | };
+      my $expected_bamcheck_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.bamcheck.fifo | };
       $expected_bamcheck_cmd .= qq{$bam_bamcheck_cmd > $temp_dir/output_mk.bamcheck};
 
-      my $expected_index_cmd = qq{cat $temp_dir/output_mk.bam.index.fifo | /software/solexa/pkg/samtools/samtools-$samtools_version/samtools index /dev/stdin /dev/stdout > $temp_dir/output_mk.bai};
+      my $expected_index_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.index.fifo | /software/solexa/pkg/samtools/samtools-$samtools_version/samtools index /dev/stdin /dev/stdout > $temp_dir/output_mk.bai};
 
-      my $expected_pb_cal_cmd = qq{cat $temp_dir/output_mk.bam.pb_cal.fifo | };
+      my $expected_pb_cal_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.pb_cal.fifo | };
       $expected_pb_cal_cmd .= qq{$bam_pb_cal_cmd -p t/data/sequence/plasmodium -filter-bad-tiles 2 -};
 
-      my $expected_bamchksum_cmd = qq{cat $temp_dir/output_mk.bam.bschk.fifo | };
+      my $expected_bamchksum_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.bschk.fifo | };
       $expected_bamchksum_cmd .= qq{bamseqchksum verbose=1 inputformat=bam};
       $expected_bamchksum_cmd .= qq{ | tee $temp_dir/output_mk.bam.seqchksum.fifo > $temp_dir/output_mk.bam.seqchksum};
   
       my $expected_scramble_cmd = qq{/software/badger/bin/scramble -I bam -O cram < $temp_dir/output_mk.bam.scramble.fifo -r t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta };
       $expected_scramble_cmd .= qq{| tee $temp_dir/output_mk.cram.fifo > $temp_dir/output_mk.cram};
 
-      my $expected_cramchksum_cmd =  qq{cat $cram_fifo_name_mk | bamseqchksum verbose=1 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta };
+      my $expected_cramchksum_cmd =  qq{set -o pipefail; cat $cram_fifo_name_mk | bamseqchksum verbose=1 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta };
       $expected_cramchksum_cmd .= qq{| tee $cram_seqchksum_fifo_name_mk > $cram_seqchksum_file_name_mk};
 
       my $expected_diff_cmd = qq{diff $bam_seqchksum_fifo_name_mk $cram_seqchksum_fifo_name_mk};
@@ -239,16 +239,16 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 
       my @expected_fork_cmds = ();
 
-      my $expected_md5_cmd = qq{cat $temp_dir/output_no_align.bam.md5.fifo | };
+      my $expected_md5_cmd = qq{set -o pipefail; cat $temp_dir/output_no_align.bam.md5.fifo | };
       $expected_md5_cmd .= qq{md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_no_align.bam.md5};
 
-      my $expected_flagstat_cmd = qq{cat $temp_dir/output_no_align.bam.flagstat.fifo | };
+      my $expected_flagstat_cmd = qq{set -o pipefail; cat $temp_dir/output_no_align.bam.flagstat.fifo | };
       $expected_flagstat_cmd .= qq{/software/solexa/pkg/samtools/samtools-$samtools_version/samtools flagstat -  > $temp_dir/output_no_align.flagstat};
 
-      my $expected_bamcheck_cmd = qq{cat $temp_dir/output_no_align.bam.bamcheck.fifo | };
+      my $expected_bamcheck_cmd = qq{set -o pipefail; cat $temp_dir/output_no_align.bam.bamcheck.fifo | };
       $expected_bamcheck_cmd .= qq{$bam_bamcheck_cmd > $temp_dir/output_no_align.bamcheck};
 
-      my $expected_bamchksum_cmd = qq{cat $temp_dir/output_no_align.bam.bschk.fifo | };
+      my $expected_bamchksum_cmd = qq{set -o pipefail; cat $temp_dir/output_no_align.bam.bschk.fifo | };
       $expected_bamchksum_cmd .= qq{bamseqchksum verbose=1 inputformat=bam};
       $expected_bamchksum_cmd .= qq{ > $temp_dir/output_no_align.bam.seqchksum};
   
@@ -327,22 +327,22 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 
       my @expected_fork_cmds = ();
 
-      my $expected_md5_cmd = qq{cat $temp_dir/output_phix.bam.md5.fifo | };
+      my $expected_md5_cmd = qq{set -o pipefail; cat $temp_dir/output_phix.bam.md5.fifo | };
       $expected_md5_cmd .= qq{md5sum -b | tr -d }.q{"\n *-"}. qq{ > $temp_dir/output_phix.bam.md5};
 
-      my $expected_flagstat_cmd = qq{cat $temp_dir/output_phix.bam.flagstat.fifo | };
+      my $expected_flagstat_cmd = qq{set -o pipefail; cat $temp_dir/output_phix.bam.flagstat.fifo | };
       $expected_flagstat_cmd .= qq{/software/solexa/pkg/samtools/samtools-$samtools_version/samtools flagstat -  > $temp_dir/output_phix.flagstat};
 
-      my $expected_bamcheck_cmd = qq{cat $temp_dir/output_phix.bam.bamcheck.fifo | };
+      my $expected_bamcheck_cmd = qq{set -o pipefail; cat $temp_dir/output_phix.bam.bamcheck.fifo | };
       $expected_bamcheck_cmd .= qq{$bam_bamcheck_cmd > $temp_dir/output_phix.bamcheck};
 
-      my $expected_index_cmd = qq{cat $temp_dir/output_phix.bam.index.fifo | /software/solexa/pkg/samtools/samtools-$samtools_version/samtools index /dev/stdin /dev/stdout > $temp_dir/output_phix.bai};
+      my $expected_index_cmd = qq{set -o pipefail; cat $temp_dir/output_phix.bam.index.fifo | /software/solexa/pkg/samtools/samtools-$samtools_version/samtools index /dev/stdin /dev/stdout > $temp_dir/output_phix.bai};
 
       my $bam_pb_cal_cmd = $bam->pb_cal_cmd();
-      my $expected_pb_cal_cmd = qq{cat $temp_dir/output_phix.bam.pb_cal.fifo | };
+      my $expected_pb_cal_cmd = qq{set -o pipefail; cat $temp_dir/output_phix.bam.pb_cal.fifo | };
       $expected_pb_cal_cmd .= qq{$bam_pb_cal_cmd -p t/data/sequence/phix -filter-bad-tiles 2 -};
 
-      my $expected_bamchksum_cmd = qq{cat $temp_dir/output_phix.bam.bschk.fifo | };
+      my $expected_bamchksum_cmd = qq{set -o pipefail; cat $temp_dir/output_phix.bam.bschk.fifo | };
       $expected_bamchksum_cmd .= qq{bamseqchksum verbose=1 inputformat=bam};
       $expected_bamchksum_cmd .= qq{ > $temp_dir/output_phix.bam.seqchksum};
  
@@ -357,7 +357,6 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       my $expected_fork_cmds = \@expected_fork_cmds;
       cmp_deeply($bam->fork_cmds(), $expected_fork_cmds, 'commands for ForkManager generated correctly');
 
-      lives_ok{$bam->process()} q{Processed OK};
       is (-e "$temp_dir/output_phix.bam.md5.fifo", 1, 'md5 FIFO created for PhiX');
       is (-e "$temp_dir/output_phix.bam.flagstat.fifo", 1, 'flagstat FIFO created for PhiX');
       is (-e "$temp_dir/output_phix.bam.bamcheck.fifo", 1, 'bamcheck FIFO created for PhiX');
@@ -368,6 +367,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       is (!-e "$temp_dir/output_phix.bam.seqchksum.fifo", 1, 'bamseqchksum output FIFO NOT created for PhiX');
       is (!-e "$temp_dir/output_phix.cram.seqchksum.fifo", 1, 'bamseqchksum output FIFO NOT created for PhiX');
 
+      lives_ok{$bam->process()} q{Processed OK};
       is (!-z "$temp_dir/output_phix.bam", 1, 'BAM file created with contents for PhiX');      
       is (!-z "$temp_dir/output_phix.bai", 1, 'BAM index created with contents for PhiX');      
       is (!-z "$temp_dir/metrics_phix.bam.json", 1, 'metrics json created with contents for PhiX');      
@@ -384,4 +384,28 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
   }
 }
 
+{
+  SKIP: {
+      skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
+         3 unless ($ENV{'TOOLS_INSTALLED'});
+    my $wrong_cmd = 'not_md5sum -b';
+    my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
+               {
+                 input_bam     => 't/data/sequence/plasmodium.bam',
+                 output_bam    => "$temp_dir/output_plasmodium.bam",
+                 metrics_json  => "$temp_dir/metrics_plasmodium.json",
+                 sort_input    => 1,
+                 temp_dir      => $temp_dir,
+                 metrics_file  => $temp_dir . '/metrics_plasmodium.txt',
+                 not_strip_bam_tag => 0,
+                 default_java_xmx_elc => $elc_memory_for_deployment,
+                 default_java_xmx_bts => $bts_memory_for_deployment,
+                 create_md5_cmd => $wrong_cmd, 
+               });
+            lives_ok{$bam} q{Object created with incorrect md5 command};
+            is($bam->create_md5_cmd(), $wrong_cmd, 'Wrong command created OK');
+            throws_ok{$bam->process()} qr/exit/, q{Processing exits when one child process exits};
+     }
+}
+ 
 1;

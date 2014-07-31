@@ -7,6 +7,7 @@ package npg_common::sequence::BAM_MarkDuplicate;
 
 use strict;
 use warnings;
+#use autodie qw(:all);
 use Moose;
 use Moose::Util::TypeConstraints;
 use Carp;
@@ -52,6 +53,8 @@ Readonly::Scalar our $DEFAULT_BTS_OPTIONS            => {
                                                  };
 Readonly::Scalar our $BAM_TAGS_TO_STRIP              => [qw(OQ)];
 Readonly::Scalar our $BAM_TAGS_TO_KEEP               => [qw(tr tq a3 ah as af aa br qr)]; #transposon read, transpsoson quality, adapter detection tag * 5, random base sequence and qualities (for 3' RNAseq pulldown - distinguishing PCR dups)
+
+Readonly::Scalar our $EXIT_CODE_SHIFT          => 8;
 
 ## no critic (Documentation::RequirePodAtEnd)
 
@@ -470,7 +473,7 @@ sub fork_cmds {
   push @cmds, $cmd;
 
   my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
-  $cmd =  'cat ' . $self->_bam_bschk_fifo_name_mk . ' | ' . $bamseqchksum_cmd;
+  $cmd =  'set -o pipefail; cat ' . $self->_bam_bschk_fifo_name_mk . ' | ' . $bamseqchksum_cmd;
   if ((! $self->no_alignment())  && ($self->human_split() ne q{phix})){
     $cmd .=  ' | tee ' . $self->_bam_seqchksum_fifo_name_mk . ' > ' . $self->_bam_seqchksum_file_name_mk;
   } else {
@@ -490,7 +493,7 @@ sub fork_cmds {
         push @cmds, $cmd;
 
         $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{cram});
-        $cmd =  'cat ' . $self->_cram_fifo_name_mk . ' | ' . $self->bamseqchksum_cmd(q{cram});
+        $cmd =  'set -o pipefail; cat ' . $self->_cram_fifo_name_mk . ' | ' . $self->bamseqchksum_cmd(q{cram});
         $cmd .=  ' | tee ' . $self->_cram_seqchksum_fifo_name_mk . ' > ' . $self->_cram_seqchksum_file_name_mk;
         push @cmds, $cmd;
 
@@ -500,18 +503,18 @@ sub fork_cmds {
     }
   }
 
-  $cmd = 'cat ' . $self->_bam_md5_fifo_name_mk . ' | ';
+  $cmd = 'set -o pipefail; cate ' . $self->_bam_md5_fifo_name_mk . ' | ';
   $cmd .= $self->create_md5_cmd();
   $cmd .= ' | tr -d "\\n *-" > '; #note \\ squashes down to \ even in this 'unevaluated' string
   $cmd .= $self->_md5_file_name_mk;
   push @cmds, $cmd;
 
-  $cmd = 'cat ' . $self->_bam_flagstat_fifo_name_mk . ' | ';
+  $cmd = 'set -o pipefail; cat ' . $self->_bam_flagstat_fifo_name_mk . ' | ';
   $cmd .= $self->samtools_cmd() . ' flagstat -  > ' . $self->_flagstat_file_name_mk;
   push @cmds, $cmd;
 
   if ($self->bamcheck_cmd()) {
-    $cmd = 'cat ' . $self->_bam_bamcheck_fifo_name_mk . ' | ';
+    $cmd = 'set -o pipefail; cat ' . $self->_bam_bamcheck_fifo_name_mk . ' | ';
     $cmd .= $self->bamcheck_cmd;
     if($self->bamcheck_flags) {
         $cmd .= q{ } . $self->bamcheck_flags;
@@ -522,14 +525,14 @@ sub fork_cmds {
 
   # we only create an index if we are doing alignment
   if (! $self->no_alignment()) {
-    $cmd = 'cat ' . $self->_bam_index_fifo_name_mk . ' | ';
+    $cmd = 'set -o pipefail; cat ' . $self->_bam_index_fifo_name_mk . ' | ';
     $cmd .= $self->create_index_cmd() . ' > ' . $self->_index_file_name_mk;
     push @cmds, $cmd;
 
     if ($self->pb_cal_cmd()) {
       my $prefix = $self->input_bam;
       $prefix =~ s/[.]bam$//msx;
-      $cmd = 'cat ' . $self->_bam_pb_cal_fifo_name_mk . ' | ';
+      $cmd = 'set -o pipefail; cat ' . $self->_bam_pb_cal_fifo_name_mk . ' | ';
       $cmd .= $self->pb_cal_cmd() . " -p $prefix -filter-bad-tiles 2 -";
       push @cmds, $cmd;
     }
@@ -1227,8 +1230,10 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     sub { my ($pid, $exit_code, $ident) = @_;
        #exit code shift 8?
        if($exit_code){
-          croak "PID $pid and exit code: $exit_code. Fail: $ident";
-       }else{
+          $self->log("PID $pid has FAILED: sending KILL to child processes before croaking...");
+          carp "PID $pid and exit code: $exit_code. Fail: $ident";
+          kill -9, getpgrp; 
+       } else {
           $self->log( "PID $pid and exit code: $exit_code. Success: $ident") ;
        }
     }
@@ -1237,13 +1242,14 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   $pm->run_on_start(
     sub { my ($pid,$ident)=@_;
       $self->log( "Job $pid started: $ident" );
+      setpgrp($pid, 0);
     }
   );
 
   foreach my $command (@{$fork_cmds}) {
       $pm->start($command) and next;
-      system $command;
-      $pm->finish;
+      my $exit_code = exec $command;
+            $pm->finish($CHILD_ERROR >> $EXIT_CODE_SHIFT);
    };
 
   $pm->wait_all_children;
