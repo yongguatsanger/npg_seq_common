@@ -447,7 +447,7 @@ sub _build_tee_cmd {
   if (!$self->no_alignment) {
     $mark_duplicate_cmd .= q{ } . $self->_bam_index_fifo_name_mk;
     $mark_duplicate_cmd .= q{ } . $self->_bam_pb_cal_fifo_name_mk;
-    if ($self->human_split() ne q{phix}) {
+    if ($self->human_split() && $self->human_split() ne q{phix}) {
       $mark_duplicate_cmd .= q{ } . $self->_bam_scramble_fifo_name_mk;
     }
   }
@@ -474,7 +474,7 @@ sub fork_cmds {
 
   my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
   $cmd =  'set -o pipefail; cat ' . $self->_bam_bschk_fifo_name_mk . ' | ' . $bamseqchksum_cmd;
-  if ((! $self->no_alignment())  && ($self->human_split() ne q{phix})){
+  if ((! $self->no_alignment())  && ($self->human_split() && $self->human_split() ne q{phix})){
     $cmd .=  ' | tee ' . $self->_bam_seqchksum_fifo_name_mk . ' > ' . $self->_bam_seqchksum_file_name_mk;
   } else {
     $cmd .= ' > ' . $self->_bam_seqchksum_file_name_mk;
@@ -503,7 +503,7 @@ sub fork_cmds {
     }
   }
 
-  $cmd = 'set -o pipefail; cate ' . $self->_bam_md5_fifo_name_mk . ' | ';
+  $cmd = 'set -o pipefail; cat ' . $self->_bam_md5_fifo_name_mk . ' | ';
   $cmd .= $self->create_md5_cmd();
   $cmd .= ' | tr -d "\\n *-" > '; #note \\ squashes down to \ even in this 'unevaluated' string
   $cmd .= $self->_md5_file_name_mk;
@@ -541,6 +541,19 @@ sub fork_cmds {
   return \@cmds;
 }
 
+=head2 _children
+
+Keep track of the child processes created by ForkManager
+
+=cut
+
+has '_children' => (  isa => 'ArrayRef',
+                      is => 'rw',
+                      required => 0,
+                      default => sub { [] },
+                      reader => 'get_children',
+                      writer => 'set_children',
+                  );
 
 =head2 _bam_bschk_fifo_name_mk
 
@@ -1162,6 +1175,8 @@ main method to call
 sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   my $self = shift;
 
+  $self->set_children([]);
+
   if( ! -e $self->input_bam() ){
      croak 'Input bam file does not exist to mark duplicate: '.$self->input_bam();
   }
@@ -1200,7 +1215,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     push @fifos,  $self->_bam_pb_cal_fifo_name_mk;
     push @fifos,  $self->_bam_index_fifo_name_mk;
 
-    if ($self->human_split() ne q{phix}) {
+    if ($self->human_split() && $self->human_split() ne q{phix}) {
       push @fifos,  $bam_seqchksum_fifo_name_mk;
       push @fifos,  $self->_bam_scramble_fifo_name_mk;
       push @fifos,  $cram_seqchksum_fifo_name_mk;
@@ -1228,28 +1243,40 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
 
   $pm->run_on_finish(
     sub { my ($pid, $exit_code, $ident) = @_;
-       #exit code shift 8?
-       if($exit_code){
-          $self->log("PID $pid has FAILED: sending KILL to child processes before croaking...");
-          carp "PID $pid and exit code: $exit_code. Fail: $ident";
-          kill -9, getpgrp; 
-       } else {
-          $self->log( "PID $pid and exit code: $exit_code. Success: $ident") ;
-       }
+      if ($exit_code){
+        carp "PID $pid returned exit code: $exit_code. Fail: $ident";
+        my $children = $self->get_children();
+        foreach my $child (@{$children}) {
+          $child = $child + 0;
+          if ($child ne $pid) {
+            $self->log("Killing sibling process $child...");
+            my $ret = system "kill $child";
+            if ($ret > 0) {carp "Unable to kill PID $pid";}
+          }
+        }
+        croak "PID $pid returned exit code: $exit_code. Fail: $ident";
+      } else {
+        $self->log( "PID $pid and exit code: $exit_code. Success: $ident") ;
+      }
+
+      $self->set_children([]);
     }
   );
 
   $pm->run_on_start(
     sub { my ($pid,$ident)=@_;
       $self->log( "Job $pid started: $ident" );
-      setpgrp($pid, 0);
+      my $children_ref = $self->get_children();
+      push @{$children_ref}, $pid;
+      $self->set_children($children_ref);
     }
   );
 
   foreach my $command (@{$fork_cmds}) {
       $pm->start($command) and next;
-      my $exit_code = exec $command;
-            $pm->finish($CHILD_ERROR >> $EXIT_CODE_SHIFT);
+      exec $command or
+        $self->log("$command does not exist"); # only checks the first command in the pipe
+      $pm->finish($CHILD_ERROR >> $EXIT_CODE_SHIFT);
    };
 
   $pm->wait_all_children;
@@ -1261,7 +1288,6 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   }
   $self->_flagstats($flagstat_file_name_mk);
   $self->_result->store($self->metrics_json);
-
 
   my $mark_duplicate_cmd = $self->_tee_cmd();
   $bam_to_stats = $self->output_bam();

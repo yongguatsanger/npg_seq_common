@@ -357,6 +357,8 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       my $expected_fork_cmds = \@expected_fork_cmds;
       cmp_deeply($bam->fork_cmds(), $expected_fork_cmds, 'commands for ForkManager generated correctly');
 
+      lives_ok{$bam->process()} q{Processed OK};
+
       is (-e "$temp_dir/output_phix.bam.md5.fifo", 1, 'md5 FIFO created for PhiX');
       is (-e "$temp_dir/output_phix.bam.flagstat.fifo", 1, 'flagstat FIFO created for PhiX');
       is (-e "$temp_dir/output_phix.bam.bamcheck.fifo", 1, 'bamcheck FIFO created for PhiX');
@@ -367,7 +369,6 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       is (!-e "$temp_dir/output_phix.bam.seqchksum.fifo", 1, 'bamseqchksum output FIFO NOT created for PhiX');
       is (!-e "$temp_dir/output_phix.cram.seqchksum.fifo", 1, 'bamseqchksum output FIFO NOT created for PhiX');
 
-      lives_ok{$bam->process()} q{Processed OK};
       is (!-z "$temp_dir/output_phix.bam", 1, 'BAM file created with contents for PhiX');      
       is (!-z "$temp_dir/output_phix.bai", 1, 'BAM index created with contents for PhiX');      
       is (!-z "$temp_dir/metrics_phix.bam.json", 1, 'metrics json created with contents for PhiX');      
@@ -388,7 +389,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
          3 unless ($ENV{'TOOLS_INSTALLED'});
-    my $wrong_cmd = 'not_md5sum -b';
+    my $incorrect_cmd = 'not_md5sum -b';
     my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                {
                  input_bam     => 't/data/sequence/plasmodium.bam',
@@ -400,11 +401,11 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
                  not_strip_bam_tag => 0,
                  default_java_xmx_elc => $elc_memory_for_deployment,
                  default_java_xmx_bts => $bts_memory_for_deployment,
-                 create_md5_cmd => $wrong_cmd, 
+                 create_md5_cmd => $incorrect_cmd, 
                });
             lives_ok{$bam} q{Object created with incorrect md5 command};
-            is($bam->create_md5_cmd(), $wrong_cmd, 'Wrong command created OK');
-            throws_ok{$bam->process()} qr/exit/, q{Processing exits when one child process exits};
+            is($bam->create_md5_cmd(), $incorrect_cmd, 'Incorrect command created OK');
+            throws_ok{$bam->process()} qr/exit/, q{Processing exits when one child process exits because a command inside the pipe is incorrect};
      }
 }
  
