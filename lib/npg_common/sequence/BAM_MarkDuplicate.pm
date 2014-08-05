@@ -1,4 +1,4 @@
-#########
+########
 # Author:        gq1
 # Created:       2010 06 21
 #
@@ -446,7 +446,7 @@ sub _build_tee_cmd {
   if (!$self->no_alignment) {
     $mark_duplicate_cmd .= q{ } . $self->_bam_index_fifo_name_mk;
     $mark_duplicate_cmd .= q{ } . $self->_bam_pb_cal_fifo_name_mk;
-    if ($self->human_split() && $self->human_split() ne q{phix}) {
+    if ($self->human_split() ne q{phix}) {
       $mark_duplicate_cmd .= q{ } . $self->_bam_scramble_fifo_name_mk;
     }
   }
@@ -473,7 +473,7 @@ sub fork_cmds {
 
   my $bamseqchksum_cmd = $self->bamseqchksum_cmd(q{bam});
   $cmd =  'set -o pipefail; cat ' . $self->_bam_bschk_fifo_name_mk . ' | ' . $bamseqchksum_cmd;
-  if ((! $self->no_alignment())  && ($self->human_split() && $self->human_split() ne q{phix})){
+  if ((! $self->no_alignment())  && ($self->human_split() ne q{phix})){
     $cmd .=  ' | tee ' . $self->_bam_seqchksum_fifo_name_mk . ' > ' . $self->_bam_seqchksum_file_name_mk;
   } else {
     $cmd .= ' > ' . $self->_bam_seqchksum_file_name_mk;
@@ -1198,7 +1198,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     push @fifos,  $self->_bam_pb_cal_fifo_name_mk;
     push @fifos,  $self->_bam_index_fifo_name_mk;
 
-    if ($self->human_split() && $self->human_split() ne q{phix}) {
+    if ($self->human_split() ne q{phix}) {
       push @fifos,  $bam_seqchksum_fifo_name_mk;
       push @fifos,  $self->_bam_scramble_fifo_name_mk;
       push @fifos,  $cram_seqchksum_fifo_name_mk;
@@ -1301,10 +1301,13 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
 
     if (-e $bam_seqchksum_file_name_mk) {
       my $bam_seqchksum_file_name = $self->input_bam;
-      $bam_seqchksum_file_name .= q{.seqchksum};
+      $bam_seqchksum_file_name =~ s/bam$/seqchksum/mxs;
       $self->_move_file($bam_seqchksum_file_name_mk, $bam_seqchksum_file_name);
     }
 
+    if (-e $cram_seqchksum_file_name_mk) {
+      $self->_remove_file($cram_seqchksum_file_name_mk);
+    }
   } else {
     $self->log('Renaming files NOT done');
     if (!$self->replace_file) { $self->log('WEIRDNESS WARNING: --replace_file flag is NOT set'); }
@@ -1314,6 +1317,18 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   $self->log('Finished in BAM_Markduplicate!');
 
   return 1;
+}
+
+sub _remove_file {
+   my ($self, $source) = @_;
+
+   my $rm_cmd = q{rm }.$source;
+   $self->log("$rm_cmd");
+   my $rm_cmd_rs = system $rm_cmd;
+   if ( $rm_cmd_rs != 0 ){
+      croak "Failed: $rm_cmd";
+   }
+   return;
 }
 
 sub _move_file {

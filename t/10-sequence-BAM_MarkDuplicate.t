@@ -5,9 +5,10 @@
 
 use strict;
 use warnings;
-use Test::More tests => 114;
+use Test::More tests => 109;
 use Test::Exception;
 use Test::Deep;
+use Cwd;
 
 use File::Temp qw(tempdir);
 my $temp_dir = tempdir( CLEANUP => 1 );
@@ -49,7 +50,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 {
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-         36 unless ($ENV{'TOOLS_INSTALLED'});
+         34 unless ($ENV{'TOOLS_INSTALLED'});
     my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                {
                  input_bam     => 't/data/sequence/SecondCall/4392_1.bam',
@@ -63,6 +64,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
                  default_java_xmx_elc => $elc_memory_for_deployment,
                  default_java_xmx_bts => $bts_memory_for_deployment,
                  human_split => 'all', 
+                 replace_file => 1,
                });
       my $expected_mark_duplicate_cmd = qq{bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt};
       like($bam->mark_duplicate_cmd(), qr/$expected_mark_duplicate_cmd/, 'correct biobambam command');
@@ -73,7 +75,10 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 
       $bam->clear_bam_tag_stripper_cmd();  
       $bam->clear_no_alignment();
-      $bam->input_bam('t/data/sequence/plasmodium.bam');
+
+      my $current_dir = getcwd();
+      system "cp -pv $current_dir/t/data/sequence/plasmodium.bam $temp_dir";
+      $bam->input_bam("$temp_dir/plasmodium.bam");
       
       $bam->not_strip_bam_tag(0);
       $bam->no_alignment(0);
@@ -82,11 +87,13 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       like($bam_tag_stripper_cmd, qr/$expected_bam_tag_stripper_cmd/, 'correct bam_tag_stripper command');
       
       # stop qr// in like interpolating READ_NAME_REGEX by enclosing value in \Q..\E
-      my $expected_elc_cmd = qq{INPUT=t/data/sequence/plasmodium.bam OUTPUT=$temp_dir/metrics.txt TMP_DIR=$temp_dir READ_NAME_REGEX='\Q[a-zA-Z0-9_]+:[0-9]:([0-9]+):([0-9]+):([0-9]+).*\E' VALIDATION_STRINGENCY='SILENT' VERBOSITY='ERROR'};
+      my $expected_elc_cmd = qq{INPUT=$temp_dir/plasmodium.bam OUTPUT=$temp_dir/metrics.txt TMP_DIR=$temp_dir READ_NAME_REGEX='\Q[a-zA-Z0-9_]+:[0-9]:([0-9]+):([0-9]+):([0-9]+).*\E' VALIDATION_STRINGENCY='SILENT' VERBOSITY='ERROR'};
       like($bam->estimate_library_complexity_cmd(), qr/$expected_elc_cmd/, 'correct elc command');
 
       my $bam_pb_cal_cmd = $bam->pb_cal_cmd();
-      is($bam_pb_cal_cmd, q{/software/solexa/pkg/pb_calibration/v10.15/bin/calibration_pu}, 'correct pb_cal comand');
+      my $pb_cal_current = `ls -l /software/solexa/pkg/pb_calibration/current`;
+      my ($pb_cal_version) = $pb_cal_current =~ /(v\d+\.\d+\.\d+)/;
+      is($bam_pb_cal_cmd, qq{/software/solexa/pkg/pb_calibration/$pb_cal_version/bin/calibration_pu}, 'correct pb_cal comand');
 
       my $bam_bamcheck_cmd = $bam->bamcheck_cmd();
       is($bam_bamcheck_cmd, q{/software/solexa/pkg/samtools/samtools-0.1.19/misc/bamcheck}, 'correct bamcheck command for bam file, using newer samtools than current');
@@ -136,7 +143,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       my $expected_index_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.index.fifo | /software/solexa/pkg/samtools/samtools-$samtools_version/samtools index /dev/stdin /dev/stdout > $temp_dir/output_mk.bai};
 
       my $expected_pb_cal_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.pb_cal.fifo | };
-      $expected_pb_cal_cmd .= qq{$bam_pb_cal_cmd -p t/data/sequence/plasmodium -filter-bad-tiles 2 -};
+      $expected_pb_cal_cmd .= qq{$bam_pb_cal_cmd -p $temp_dir/plasmodium -filter-bad-tiles 2 -};
 
       my $expected_bamchksum_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.bschk.fifo | };
       $expected_bamchksum_cmd .= qq{bamseqchksum verbose=1 inputformat=bam};
@@ -177,20 +184,19 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       is (-e "$temp_dir/output_mk.bam.seqchksum.fifo", 1, 'bamseqchksum output FIFO created');
       is (-e "$temp_dir/output_mk.cram.seqchksum.fifo", 1, 'bamseqchksum output FIFO created');
 
-      is (!-z "$temp_dir/output_mk.bam", 1, 'BAM file created with contents');      
-      is (!-z "$temp_dir/output_mk.bai", 1, 'BAM index created with contents');      
-      is (!-z "$temp_dir/output_mk.bam.md5", 1, 'BAM md5 created with contents');      
-      is (!-z "$temp_dir/output_mk.flagstat", 1, 'BAM flagstat created with contents');      
-      is (!-z "$temp_dir/output_mk_quality_cycle_caltable.txt", 1, 'Quality caltable created with contents');
-      is (!-z "$temp_dir/output_mk_quality_cycle_surv.txt", 1, 'Quality surv created with contents');
-      is (!-z "$temp_dir/output_mk_quality_error.txt", 1, 'Quality error table created with contents');
-      is (!-z "$temp_dir/output_mk.cram", 1, 'CRAM file created with contents');
-      is (-e "$temp_dir/output_mk.cram.fifo", 1, 'CRAM fifo created');
-      is (-e "$temp_dir/output_mk.cram.seqchksum.fifo", 1, 'CRAM seqchksum fifo created');
-      is (!-z "$temp_dir/output_mk.bam.seqchksum", 1, 'BAM seqchksum file created with contents');
-      is (!-z "$temp_dir/output_mk.cram.seqchksum", 1, 'CRAM seqchksum file created with contents');
+      is (!-z "$temp_dir/output.bam", 1, 'BAM file created with contents');      
+      is (!-z "$temp_dir/output.bai", 1, 'BAM index created with contents');      
+      is (!-z "$temp_dir/output.bam.md5", 1, 'BAM md5 created with contents');      
+      is (!-z "$temp_dir/output.flagstat", 1, 'BAM flagstat created with contents');      
+      is (!-z "$temp_dir/output_quality_cycle_caltable.txt", 1, 'Quality caltable created with contents');
+      is (!-z "$temp_dir/output_quality_cycle_surv.txt", 1, 'Quality surv created with contents');
+      is (!-z "$temp_dir/output_quality_error.txt", 1, 'Quality error table created with contents');
+      is (!-z "$temp_dir/output.cram", 1, 'CRAM file created with contents');
+      is (!-z "$temp_dir/output.seqchksum", 1, 'BAM seqchksum file created with contents');
+      is (!-e "$temp_dir/output_mk.cram.seqchksum", 1, 'CRAM seqchksum file created with contents has been removed');
   }    
 }
+
 {
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
@@ -300,6 +306,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
                  default_java_xmx_elc => $elc_memory_for_deployment,
                  default_java_xmx_bts => $bts_memory_for_deployment,
                  human_split => 'phix', 
+                 replace_file => 0,
                });
       my $expected_mark_duplicate_cmd = qq{bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics_phix.txt};
       like($bam->mark_duplicate_cmd(), qr/$expected_mark_duplicate_cmd/, 'correct biobambam command');
@@ -384,28 +391,4 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
   }
 }
 
-{
-  SKIP: {
-      skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-         3 unless ($ENV{'TOOLS_INSTALLED'});
-    my $incorrect_cmd = 'not_md5sum -b';
-    my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
-               {
-                 input_bam     => 't/data/sequence/plasmodium.bam',
-                 output_bam    => "$temp_dir/output_plasmodium.bam",
-                 metrics_json  => "$temp_dir/metrics_plasmodium.json",
-                 sort_input    => 1,
-                 temp_dir      => $temp_dir,
-                 metrics_file  => $temp_dir . '/metrics_plasmodium.txt',
-                 not_strip_bam_tag => 0,
-                 default_java_xmx_elc => $elc_memory_for_deployment,
-                 default_java_xmx_bts => $bts_memory_for_deployment,
-                 create_md5_cmd => $incorrect_cmd, 
-               });
-            lives_ok{$bam} q{Object created with incorrect md5 command};
-            is($bam->create_md5_cmd(), $incorrect_cmd, 'Incorrect command created OK');
-            throws_ok{$bam->process()} qr/Killed all sibling processes/, q{Processing exits when one child process exits because a command inside the pipe is incorrect};
-     }
-}
- 
 1;
