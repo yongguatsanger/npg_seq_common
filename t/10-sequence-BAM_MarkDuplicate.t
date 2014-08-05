@@ -191,7 +191,6 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       is (!-z "$temp_dir/output_mk.cram.seqchksum", 1, 'CRAM seqchksum file created with contents');
   }    
 }
-
 {
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
@@ -405,7 +404,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
                });
             lives_ok{$bam} q{Object created with incorrect md5 command};
             is($bam->create_md5_cmd(), $incorrect_cmd, 'Incorrect command created OK');
-            throws_ok{$bam->process()} qr/exit/, q{Processing exits when one child process exits because a command inside the pipe is incorrect};
+            throws_ok{$bam->process()} qr/Killed all sibling processes/, q{Processing exits when one child process exits because a command inside the pipe is incorrect};
      }
 }
  

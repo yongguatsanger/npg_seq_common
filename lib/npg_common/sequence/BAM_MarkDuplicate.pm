@@ -7,7 +7,6 @@ package npg_common::sequence::BAM_MarkDuplicate;
 
 use strict;
 use warnings;
-#use autodie qw(:all);
 use Moose;
 use Moose::Util::TypeConstraints;
 use Carp;
@@ -540,20 +539,6 @@ sub fork_cmds {
 
   return \@cmds;
 }
-
-=head2 _children
-
-Keep track of the child processes created by ForkManager
-
-=cut
-
-has '_children' => (  isa => 'ArrayRef',
-                      is => 'rw',
-                      required => 0,
-                      default => sub { [] },
-                      reader => 'get_children',
-                      writer => 'set_children',
-                  );
 
 =head2 _bam_bschk_fifo_name_mk
 
@@ -1175,8 +1160,6 @@ main method to call
 sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   my $self = shift;
 
-  $self->set_children([]);
-
   if( ! -e $self->input_bam() ){
      croak 'Input bam file does not exist to mark duplicate: '.$self->input_bam();
   }
@@ -1240,35 +1223,25 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   my $fork_cmds = $self->fork_cmds();
 
   my $pm = Parallel::ForkManager->new(scalar @{$fork_cmds});
+  setpgrp;
 
   $pm->run_on_finish(
     sub { my ($pid, $exit_code, $ident) = @_;
       if ($exit_code){
         carp "PID $pid returned exit code: $exit_code. Fail: $ident";
-        my $children = $self->get_children();
-        foreach my $child (@{$children}) {
-          $child = $child + 0;
-          if ($child ne $pid) {
-            $self->log("Killing sibling process $child...");
-            my $ret = system "kill $child";
-            if ($ret > 0) {carp "Unable to kill PID $pid";}
-          }
-        }
-        croak "PID $pid returned exit code: $exit_code. Fail: $ident";
+        carp 'Killing all sibling processes';
+        local $SIG{TERM} = 'IGNORE';
+        kill TERM => 0;
+        croak 'Killed all sibling processes';
       } else {
         $self->log( "PID $pid and exit code: $exit_code. Success: $ident") ;
       }
-
-      $self->set_children([]);
     }
   );
 
   $pm->run_on_start(
     sub { my ($pid,$ident)=@_;
       $self->log( "Job $pid started: $ident" );
-      my $children_ref = $self->get_children();
-      push @{$children_ref}, $pid;
-      $self->set_children($children_ref);
     }
   );
 
