@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 63;
+use Test::More tests => 73;
 use Cwd qw/abs_path getcwd/;
 use File::Temp qw/tempdir/;
 use File::Slurp;
@@ -9,11 +9,12 @@ use JSON;
 
 use npg_tracking::util::build qw/git_tag/;
 
+
 # test the Ref_Maker script by building references for E coli
 # confirm md5 checksum of expected output files
 
 SKIP: {
-  skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.', 63 unless ($ENV{'TOOLS_INSTALLED'});
+  skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.', 73 unless ($ENV{'TOOLS_INSTALLED'});
 my $startDir = getcwd();
 my $fastaMaster = abs_path('t/data/references/E_coli/K12/fasta/E-coli-K12.fa');
 unless (-e $fastaMaster) {
@@ -25,6 +26,7 @@ my $tmpFasta = $tmp."/fasta";
 mkdir($tmpFasta);
 system("cp $fastaMaster $tmpFasta");
 local $ENV{'PATH'} = join q[:], join(q[/], $startDir, 'scripts'), $ENV{'PATH'};
+
 chdir($tmp);
 
 is(system("$startDir/bin/Ref_Maker &> Ref_Maker.log"), 0, 'Ref_Maker exit status');
@@ -57,6 +59,11 @@ my %expectedMD5 = (
     'bwa/E-coli-K12.fa.rpac' => '19897ea393ad8f7439ad3242dc0ce480',
     'bwa/E-coli-K12.fa.rsa' => '70128b51beecb212e442d758bb005db7',
     'bwa/E-coli-K12.fa.sa' => 'f4a3e35b8e2567dc4f6d90df42c1739b',
+    'bwa0_6/E-coli-K12.fa.amb' => 'fd2be0b3b8f7e2702450a3c9dc1a5d93',
+    'bwa0_6/E-coli-K12.fa.ann' => '84365967cebedbee51467604ae27a1f9',
+    'bwa0_6/E-coli-K12.fa.bwt' => '09f551b8f730df82221bcb6ed8eea724',
+    'bwa0_6/E-coli-K12.fa.pac' => 'ca740caf5ee4feff8a77d456ad349c23',
+    'bwa0_6/E-coli-K12.fa.sa' => '6e5b71027ce8766ce5e2eea08d1da0ec',
     'fasta/E-coli-K12.fa' => '7285062348a4cb07a23fcd3b44ffcf5d',
     'fasta/E-coli-K12.fa.fai' => '3bfb02378761ec6fe2b57e7dc99bd2b5',
     'npgqc/E-coli-K12.fa.gcn100' => '4a4a44b33a522e7d0a5bf0815437c2b6',

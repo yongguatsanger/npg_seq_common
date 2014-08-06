@@ -46,7 +46,7 @@ use Readonly;
 
 our $VERSION = '0';
 
-Readonly::Array  my @ALIGNERS             => qw{ bowtie bowtie2 bwa samtools };
+Readonly::Array  my @ALIGNERS             => qw{ bowtie bowtie2 bwa bwa0_6 samtools };
 Readonly::Scalar my $DIR_PERM             => oct 755;
 Readonly::Scalar my $BWA_ALGORITHM_CUTOFF => 1_800_000_000;
 
@@ -88,6 +88,7 @@ my %build = (
     bowtie    => 0,
     bowtie2   => 0,
     bwa       => 0,
+    bwa0_6    => 0,
     npgqc     => 0,
     picard    => 0,
     samtools  => 0,
@@ -109,6 +110,7 @@ my $bwa_algorithm = ( $ref_size > $BWA_ALGORITHM_CUTOFF ) ? 'bwtsw' : 'is';
 $arguments{bowtie}   = "-build -f -q $files[0] $files[0]";
 $arguments{bowtie2}  = "-build $files[0] $files[0]";
 $arguments{bwa}      = " index -p $files[0] -a $bwa_algorithm $files[0]";
+$arguments{bwa0_6}   = " index -p $files[0] -a $bwa_algorithm $files[0]";
 $arguments{maq}      = " fasta2bfa $files[0] $files[0].bfa";
 $arguments{samtools} = " faidx $files[0]";
 
