@@ -1,5 +1,6 @@
 LIST OF CHANGES
 
+  - use Biobambam bammarkduplicates2 in place of bammarkduplicates
   - Ref_Maker additionally generates indices for bwa >= 0.6
 
 release 49.4

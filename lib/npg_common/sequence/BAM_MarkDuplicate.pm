@@ -116,7 +116,7 @@ has 'bammarkduplicates_path'  => (
                               );
 sub _build_bammarkduplicates_path {
   my $self = shift;
-  return catfile($self->biobambam_bin,'bammarkduplicates');
+  return catfile($self->biobambam_bin,'bammarkduplicates2');
 }
 
 =head2 biobambam_bin
