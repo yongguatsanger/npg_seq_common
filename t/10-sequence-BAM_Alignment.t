@@ -1,12 +1,7 @@
-########
-# Author:        gq1
-# Created:       2011-08-26
-#
-
 use strict;
 use warnings;
 use English qw{-no_match_vars};
-use Test::More tests => 108;
+use Test::More tests => 107;
 use Test::Deep;
 use Test::Exception;
 use File::Temp qw(tempfile tempdir);
@@ -22,11 +17,12 @@ my $REP_ROOT = $npg_tracking::data::reference::list::REP_ROOT;
 my $temp_dir = tempdir( CLEANUP => 1 );
 my $current_dir = getcwd();
 my $java_memory = q[-Xmx100m];
-
 my $JAVA_CMD = q[java];
+my $human = q[/my/ref/repos/Homo_sapiens/strain];
+my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current];
 
 {
-  local $ENV{CLASSPATH} = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current];
+  local $ENV{CLASSPATH} = $test_classpath;
   my $bam = npg_common::sequence::BAM_Alignment->new(
                { input             => 'input.bam',
                  is_paired_read    => 1,
@@ -129,7 +125,7 @@ my $JAVA_CMD = q[java];
 }
 
 {
-  local $ENV{CLASSPATH} = 't/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current';
+  local $ENV{CLASSPATH} = $test_classpath;
   local $ENV{LSB_MCPU_HOSTS} = q(sf-3-3-12 6);
   my $bam = npg_common::sequence::BAM_Alignment->new(
                { input             => 'input.bam',
@@ -154,7 +150,7 @@ my $JAVA_CMD = q[java];
 }
 
 {
-  local $ENV{CLASSPATH} = 't/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current';
+  local $ENV{CLASSPATH} = $test_classpath;
   my $bam = npg_common::sequence::BAM_Alignment->new(
                { input             => 'input.bam',
                  is_paired_read    => 0,
@@ -195,7 +191,7 @@ my $JAVA_CMD = q[java];
 }
 
 { 
-  local $ENV{CLASSPATH} = 't/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current';
+  local $ENV{CLASSPATH} = $test_classpath;
   my $bam = npg_common::sequence::BAM_Alignment->new(
                { input             => 'input.bam',
                  is_paired_read    => 0,
@@ -277,10 +273,10 @@ SKIP: {
       lives_ok{ $bam->_bwa_sam_out_to_bam($command, $bwa_aln_pg_lines, $output_bam)} 'covert sam stream from a command to a bam with steps: samtools fixmate and merge input with bam out put';
       ok(-e $output_bam, 'bam generated');
   }
-} # end skip no TOOOLS_INSTALLED
+} # end skip no TOOLS_INSTALLED
 
 {
-  local $ENV{CLASSPATH} = 't/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current';
+  local $ENV{CLASSPATH} = $test_classpath;
   my $bam = npg_common::sequence::BAM_Alignment->new(
                { input             => 't/data/sequence/6062_1#0.bam',  
                  output_prefix     => 'output',
@@ -303,7 +299,7 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
    SKIP: {
      skip "reference repository root $REP_ROOT is not accessible", 14 if !-d $REP_ROOT;
 
-     local $ENV{CLASSPATH} = 't/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current';
+     local $ENV{CLASSPATH} = $test_classpath;
    
      my $bam = npg_common::sequence::BAM_Alignment->new(
                { input             => 't/data/sequence/6062_1#0.bam',     
@@ -343,7 +339,7 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
   SKIP: {
     skip "reference repository root $REP_ROOT is not available", 2 if !-d $REP_ROOT;
 
-    local $ENV{CLASSPATH} = 't/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current';
+    local $ENV{CLASSPATH} = $test_classpath;
     my $bam = npg_common::sequence::BAM_Alignment->new(
                { input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 'output',
@@ -372,8 +368,8 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
 }
 
 {
-  local $ENV{CLASSPATH} = 't/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current';
-  my $human = q[/my/ref/repos/Homo_sapiens/strain];
+  local $ENV{CLASSPATH} = $test_classpath;
+
   my $bam = npg_common::sequence::BAM_Alignment->new(
                { input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 't/data/output/6062_1#',
@@ -412,9 +408,8 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
 }
 
 {
-  local $ENV{CLASSPATH} = 't/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current';
+  local $ENV{CLASSPATH} = $test_classpath;
 
-  my $human = q[/my/ref/repos/Homo_sapiens/strain];
   my $bam = npg_common::sequence::BAM_Alignment->new(
                  input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 't/data/output/6062_1#',
@@ -491,8 +486,8 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
 }
 
 {
-  local $ENV{CLASSPATH} = q[t/data:t/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current];
-  my $human = q[/my/ref/repos/Homo_sapiens/strain];
+  local $ENV{CLASSPATH} = $test_classpath;
+
   my $bam = npg_common::sequence::BAM_Alignment->new(
                  input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 't/data/output/6062_1#',
@@ -506,13 +501,14 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
                  reference       => $human,
                  java_xmx_flag     => $java_memory,
                );
-  my $expected_split_command = qq[$JAVA_CMD $java_memory -jar ] . $current_dir . q[/t/data/SplitBamByChromosomes.jar];
+  my $expected_split_command = qq[$JAVA_CMD $java_memory -jar ] . $current_dir .
+           q[/t/bin/aligners/illumina2bam/Illumina2bam-tools-1.00/SplitBamByChromosomes.jar];
   like ($bam->split_by_chr_cmd, qr[$expected_split_command],
       'correct split_by_chromosome command with jar in non-standard location');
 }
 
 {
-  local $ENV{CLASSPATH} = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current];
+  local $ENV{CLASSPATH} = $test_classpath;
   my $bam = npg_common::sequence::BAM_Alignment->new(
                { input             => 'input.bam',
                  is_paired_read    => 1,
@@ -534,9 +530,8 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
 }
 
 {
-  local $ENV{CLASSPATH} = 't/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current';
+  local $ENV{CLASSPATH} = $test_classpath;
 
-  my $human = q[/my/ref/repos/Homo_sapiens/strain];
   throws_ok {npg_common::sequence::BAM_Alignment->new(
                  input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 't/data/output/6062_1#',
@@ -599,8 +594,8 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
 }
 
 {
-  local $ENV{CLASSPATH} = q[t/data:t/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current];
-  my $human = q[/my/ref/repos/Homo_sapiens/strain];
+  local $ENV{CLASSPATH} = $test_classpath;
+
   throws_ok { npg_common::sequence::BAM_Alignment->new(
                  input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 't/data/output/6062_1#',
@@ -618,8 +613,7 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
 }
 
 {
-  local $ENV{CLASSPATH} = q[t/data:t/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current];
-  my $human = q[/my/ref/repos/Homo_sapiens/strain];
+  local $ENV{CLASSPATH} = $test_classpath;
   my $bam = npg_common::sequence::BAM_Alignment->new(
                  input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 't/data/output/6062_1#',
@@ -633,15 +627,11 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
                  reference       => $human,
                );
 
-  my $expected_split_command = qq[$JAVA_CMD -Xmx1000m -jar ] . $current_dir . qq[/t/data/SplitBamByChromosomes.jar S=Y V=true];
+  my $expected_split_command = qq[$JAVA_CMD -Xmx1000m -jar ] . $current_dir . qq[/t/bin/aligners/illumina2bam/Illumina2bam-tools-1.00/SplitBamByChromosomes.jar S=Y V=true];
   like ($bam->split_by_chr_cmd, qr[$expected_split_command], 'correct split_by_chromosome command with no non-consented data for tag 33 in lane 1');
   is ($bam->separate_y_chromosome_data, 1, 'split by Y chromosome is set for tag 33 in lane 1');
-}
 
-{
-  local $ENV{CLASSPATH} = q[t/data:t/bin/aligners/picard/current:t/bin/aligners/illumina2bam/current];
-  my $human = q[/my/ref/repos/Homo_sapiens/strain];
-  my $bam = npg_common::sequence::BAM_Alignment->new(
+  $bam = npg_common::sequence::BAM_Alignment->new(
                  input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 't/data/output/6062_1#',
                  id_run          => 10371,
@@ -653,10 +643,9 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
                  no_alignment    => 0,
                  reference       => $human,
                );
-  my $expected_split_command = qq[$JAVA_CMD -Xmx1000m -jar ] . $current_dir . q[/t/data/SplitBamByChromosomes.jar];
-  like ($bam->split_by_chr_cmd, qr[$expected_split_command], 'correct split_by_chromosome command with no non-consented data for tag 0 in lane 1');
-  is ($bam->separate_y_chromosome_data, undef, 'split by Y chromosome is UNDEFINED for tag 0 in lane 1');
-  my $lane_bam = npg_common::sequence::BAM_Alignment->new(
+  ok ($bam->separate_y_chromosome_data, 'split by Y chromosome is true for tag 0 in lane 1');
+
+  $bam = npg_common::sequence::BAM_Alignment->new(
                  input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 't/data/output/6062_1#',
                  id_run          => 10371,
@@ -667,7 +656,7 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
                  no_alignment    => 0,
                  reference       => $human,
                );
-  is ($lane_bam->separate_y_chromosome_data, undef, 'split by Y chromosome is UNDEFINED for lane 1 with no tag specified');
+  ok ($bam->separate_y_chromosome_data, 'split by Y chromosome is true for lane 1 with no tag specified');
 }
 
 1;

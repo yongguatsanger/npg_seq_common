@@ -262,7 +262,6 @@ t/data/sequence/st/studies/397.xml
 t/data/sequence/st/studies/401.xml
 t/data/sequence/st/studies/438.xml
 t/data/sequence/st/studies/2617.xml
-t/data/SplitBamByChromosomes.jar
 t/data/ss1.fastq
 t/data/ss1.fastqcheck
 t/data/ss1_split3.fastq
