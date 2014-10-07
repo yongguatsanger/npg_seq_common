@@ -10,7 +10,6 @@ lib/npg_common/Hit_Sequence_SAM.pm
 lib/npg_common/roles/log.pm
 lib/npg_common/roles/run/lane/file_names.pm
 lib/npg_common/roles/run/lane/tag_info.pm
-lib/npg_common/roles/run/status.pm
 lib/npg_common/roles/SequenceInfo.pm
 lib/npg_common/roles/software_location.pm
 lib/npg_common/run/file_finder.pm
@@ -56,7 +55,6 @@ t/10-sequence-SAM_Index_Tag.t
 t/20-bam_align.t
 t/40-roles-log.t
 t/40-roles_run_lane_tag_info.t
-t/40-roles_run_status.t
 t/40-roles-SequenceInfo.t
 t/40-roles-software_location.t
 t/bin/aligners/illumina2bam/Illumina2bam-tools-1.00/AlignmentFilter.jar
@@ -319,8 +317,6 @@ t/data/wrong.fastqcheck
 t/data/zero.fastqcheck
 t/lib/npg_common/role_tests/log.pm
 t/lib/npg_common/role_tests/run_lane_tag_info.pm
-t/lib/npg_common/role_tests/run_status_has_run_method.pm
-t/lib/npg_common/role_tests/run_status_no_extra_methods.pm
 t/perlcriticrc
 
 
