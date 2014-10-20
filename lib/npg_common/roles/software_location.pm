@@ -17,7 +17,7 @@ use Readonly;
 
 our $VERSION = '0';
 
-Readonly::Array  my @TOOLS => qw/bwa samtools samtools_irods bowtie java/;
+Readonly::Array  my @TOOLS => qw/bwa bwa0_6 samtools samtools_irods bowtie java/;
 
 subtype 'NpgCommonResolvedPathExecutable'
       => where { (abs_path($_) eq $_) && ( -x $_) },
@@ -159,6 +159,12 @@ defaults to "samtools_irods" found on the path
 
 bwa command resolved to an absolute path to an executable;
 defaults to "bwa" found on the path
+
+=head2 bwa0_6_cmd
+
+bwa0_6 resolved to an absolute path to an executable;
+defaults to "bwa0_6" found on the path
+Represents bwa version 0.6 or above.
 
 =head2 bowtie_cmd
 

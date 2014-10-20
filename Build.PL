@@ -51,10 +51,6 @@ my $requires = {
                 'warnings'                        => '1.05',
                 'YAML'                            => '0.68',
 
-                'npg::api::request'                       => 0,
-                'npg::api::run'                           => 0,
-                'npg::api::run_status_dict'               => 0,
-
                 'npg_qc::autoqc::results::bam_flagstats'  => 0,
                 'npg_qc::Schema'                          => 0,
 
