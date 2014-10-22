@@ -13,7 +13,7 @@ my $temp_dir = tempdir( CLEANUP => 1 );
 
 my $elc_memory_for_deployment = 300;
 my $bts_memory_for_deployment = 200;
-my $elc_memory_for_production = 3000;
+my $elc_memory_for_production = 16000;
 my $bts_memory_for_production = 2000;
 
 use_ok('npg_common::sequence::BAM_MarkDuplicate');

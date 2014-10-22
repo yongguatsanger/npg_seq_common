@@ -35,7 +35,7 @@ Readonly::Scalar our $DEFAULT_BAM_TAG_STRIPPER_JAR   => q[BamTagStripper.jar];
 
 Readonly::Scalar our $READ_NAME_REGEX                => '[a-zA-Z0-9_]+:[0-9]:([0-9]+):([0-9]+):([0-9]+).*';
 
-Readonly::Scalar our $DEFAULT_JAVA_XMX_ELC           => 3000;
+Readonly::Scalar our $DEFAULT_JAVA_XMX_ELC           => 16_000;
 Readonly::Scalar our $DEFAULT_ELC_COMMAND_OPTIONS    => {
                                VALIDATION_STRINGENCY => 'SILENT',
                                VERBOSITY             => 'ERROR',
