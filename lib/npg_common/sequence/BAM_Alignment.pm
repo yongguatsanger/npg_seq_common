@@ -1212,8 +1212,14 @@ sub generate {
 
      push @markduplicates_commands, $self->_generate_markduplicates_cmd( $self->output(), undef, $self->reference() );
 
-     if( $self->non_consent_split() || $self->contains_nonconsented_xahuman() || $self->separate_y_chromosome_data() ) {
+     if( $self->non_consent_split() ) {
+        # the sample reference is not human, non consented output aligned to the default human reference
         push @markduplicates_commands, $self->_generate_markduplicates_cmd($self->non_consented_output(), $self->nonconsented_file_name_suffix, $self->human_reference());
+     }
+
+     if( $self->contains_nonconsented_xahuman() || $self->separate_y_chromosome_data() ) {
+        # the sample reference is human, non consented output aligned to the sample reference
+        push @markduplicates_commands, $self->_generate_markduplicates_cmd($self->non_consented_output(), $self->nonconsented_file_name_suffix, $self->reference());
      }
 
      if( $self->spiked_phix_split() ) {
