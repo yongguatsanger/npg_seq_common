@@ -1,5 +1,7 @@
 LIST OF CHANGES
 
+  - ensure correct reference is passed to markduplicates command
+
 release 49.5
   - use Biobambam bammarkduplicates2 in place of bammarkduplicates
   - Ref_Maker additionally generates indices for bwa >= 0.6
