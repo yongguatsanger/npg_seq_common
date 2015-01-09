@@ -1,6 +1,10 @@
 LIST OF CHANGES
 
+release 49.7
   - ensure correct reference is passed to markduplicates command
+
+release 49.6
+  - increased memory for EstmateLibraryComplexity to 16G
 
 release 49.5
   - use Biobambam bammarkduplicates2 in place of bammarkduplicates
