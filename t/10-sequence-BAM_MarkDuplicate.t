@@ -2,14 +2,14 @@
 # Author:        gq1
 # Created:       2009-06-21
 #
-
 use strict;
 use warnings;
-use Test::More tests => 22;
+use Test::More tests => 29;
 use Test::Exception;
 
 use File::Temp qw(tempdir);
-my $temp_dir = tempdir( CLEANUP => 1 );
+#my $temp_dir = tempdir( CLEANUP => 1 );
+my $temp_dir = tempdir( CLEANUP => 0 );
 
 my $elc_memory_for_deployment = 300;
 my $bts_memory_for_deployment = 200;
@@ -82,12 +82,39 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       ok ($bam->_result->info->{'Picard-tools'}, 'test picard version is defined');
 
       lives_ok{$bam->process()} q{Processed OK};
+
       is (-e "$temp_dir/output_mk.bam", 1, 'BAM file created');      
       is (-e "$temp_dir/output_mk.bai", 1, 'BAM index created');      
       is (-e "$temp_dir/output_mk.bam.md5", 1, 'BAM md5 created');      
       is (-e "$temp_dir/output_mk.flagstat", 1, 'BAM flagstat created');      
       is (-e "$temp_dir/output_mk.cram", 1, 'CRAM file created');
   }    
+}
+
+{
+### 15156_1#54.bam, is a subset using DownsampleSam.jar PROBABILITY=0.01, from study 3123 (current_studies.alignments_in_bam=0)
+  SKIP: {
+      skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
+            7 unless ($ENV{'TOOLS_INSTALLED'});
+      my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
+                {
+                  input_bam     => 't/data/sequence/15156_1#54.bam',
+                  output_bam    => "$temp_dir/non_aligned_output.bam",
+                  metrics_json  => "$temp_dir/non_aligned_metrics.json",
+                  temp_dir      => $temp_dir,
+                  metrics_file  =>  $temp_dir . '/non_aligned_metrics.txt',
+                });
+      #/software/hpag/biobambam/0.0.180/bin/bammarkduplicates2
+      my $expected_mark_duplicate_cmd = qq{bammarkduplicates2 I=t/data/sequence/15156_1#54.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/non_aligned_metrics.txt level='0'};
+      like($bam->mark_duplicate_cmd(), qr/$expected_mark_duplicate_cmd/, 'correct biobambam command');
+      is ( $bam->no_alignment(), 1, 'input bam with no alignment');
+      lives_ok{$bam->process()} q{Processed OK};                   
+      is (-e "$temp_dir/non_aligned_output.cram", 1, 'non-aligned CRAM file created');
+      is (-e "$temp_dir/non_aligned_output.cram.md5", 1, 'non-aligned CRAM md5 file created');
+      is (-e "$temp_dir/non_aligned_output.cram.seqchksum", 1, 'non-aligned CRAM seqchksum file created');
+      is (-e "$temp_dir/non_aligned_output.cram.sha512primesums512.chksum", 1, 'non-aligned CRAM sha512primesums512 checksum file created');
+                            
+  };
 }
 
 1;

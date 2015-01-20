@@ -1,5 +1,8 @@
 LIST OF CHANGES
 
+  - BAM_MarkDuplicate.pm and test modified to create cram files for un-aligned data
+  - un-aligned subset bam added to test data
+
 release 49.7
   - ensure correct reference is passed to markduplicates command
 
