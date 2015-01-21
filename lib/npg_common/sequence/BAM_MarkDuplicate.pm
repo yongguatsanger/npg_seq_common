@@ -587,7 +587,7 @@ has 'pb_cal_cmd'   => ( is      => 'ro',
 =head2 bamseqchksum command
 
 biobambam bamseqchksum command. Default checksum uses hash=crc32prod. Other checksum to use is sha512primesums512
-Used with non-aligned cram files.
+
  
 =cut
 has 'bamseqchksum_cmd' => ( is  => 'ro',
@@ -598,7 +598,7 @@ has 'bamseqchksum_cmd' => ( is  => 'ro',
 
 =head2 teepot command
 
-teepot command used with non-aligned cram files
+teepot command used with scramble
 
 =cut
 has 'teepot_cmd' => ( is  => 'ro',

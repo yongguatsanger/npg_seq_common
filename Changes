@@ -1,6 +1,7 @@
 LIST OF CHANGES
 
-  - BAM_MarkDuplicate.pm and test modified to create cram files for un-aligned data
+  - BAM_MarkDuplicate.pm and test modified to create cram files for un-aligned data,
+    md5sum and bamseqchksums generated with all crams
   - un-aligned subset bam added to test data
 
 release 49.7
