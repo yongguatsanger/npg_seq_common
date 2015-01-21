@@ -716,14 +716,12 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   $md5_file_name_mk =~ s/[.]bam$/.bam.md5/mxs;
   my $cram_file_name_mk = $self->output_bam;
   $cram_file_name_mk =~ s/[.]bam$/.cram/mxs;
-
-  #un-aligned cram
   my $cram_md5_file_name_mk = $self->output_bam;
   $cram_md5_file_name_mk =~ s/[.]bam$/.cram.md5/mxs;
   my $cram_bamseqchksum_mk = $self->output_bam;
-  $cram_bamseqchksum_mk =~ s/[.]bam$/.cram.seqchksum/mxs;
+  $cram_bamseqchksum_mk =~ s/[.]bam$/.seqchksum/mxs;
   my $cram_alt_bamseqchksum_mk = $self->output_bam;
-  $cram_alt_bamseqchksum_mk =~ s/[.]bam$/.cram.sha512primesums512.chksum/mxs;
+  $cram_alt_bamseqchksum_mk =~ s/[.]bam$/.sha512primesums512.seqchksum/mxs;
 
   $mark_duplicate_cmd .= ' | tee ' . ' >(' . $self->create_md5_cmd() .
                          ' | tr -d "\\n *-" > ' . #note \\ squashes down to \ even in this 'unevaluated' string
@@ -740,19 +738,21 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   # Bams with no_alignment still need to have a cram generated (+ md5 + bamseqchksum)
   # teepot options as in p4 final_output_prep.json
 
+  my $teepot_to_md5_cmd = ' | ' . $self->teepot_cmd() . ' -vv -w 30000 >(' . $self->create_md5_cmd() .
+                          ' | tr -d "\\n *-" > ' .
+                          $cram_md5_file_name_mk  . ') ' ;
+  my $bamseqchksum_cmds = ' >(' . $self->bamseqchksum_cmd() . ' inputformat=cram ' .
+                          " > $cram_bamseqchksum_mk " . ') ' .
+                          ' >(' . $self->bamseqchksum_cmd() . ' inputformat=cram hash=sha512primesums512 ' .
+                          " > $cram_alt_bamseqchksum_mk " . ') ';
   if ( $self->no_alignment()) {
      if ($self->scramble_cmd()) {
         $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
-        $mark_duplicate_cmd .= ' | ' . $self->teepot_cmd() . ' -vv -w 30000 >(' . $self->create_md5_cmd() .
-                               ' | tr -d "\\n *-" > ' .
-                               $cram_md5_file_name_mk  . ') ' ;
+        $mark_duplicate_cmd .= $teepot_to_md5_cmd;
      if ($self->bamseqchksum_cmd()){
-	       $mark_duplicate_cmd .= ' >(' . $self->bamseqchksum_cmd() . ' inputformat=cram ' .
-                               " > $cram_bamseqchksum_mk " . ') ';
-         $mark_duplicate_cmd .= ' >(' . $self->bamseqchksum_cmd() . ' inputformat=cram hash=sha512primesums512 ' .
-	                       " > $cram_alt_bamseqchksum_mk " . ') ';
+	       $mark_duplicate_cmd .= $bamseqchksum_cmds;
      }
-          $mark_duplicate_cmd .= $cram_file_name_mk . ') ';
+               $mark_duplicate_cmd .= $cram_file_name_mk . ') ';
     }
   }
   # we only create an index if we are doing alignment
@@ -763,7 +763,12 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
         my $refname = $self->reference();
         $refname =~ s{/bwa/}{/fasta/}msx;
         $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
-        $mark_duplicate_cmd .= "-r $refname > $cram_file_name_mk) ";
+        $mark_duplicate_cmd .= "-r $refname ";
+        $mark_duplicate_cmd .= $teepot_to_md5_cmd;
+        if ($self->bamseqchksum_cmd()){
+           $mark_duplicate_cmd .= $bamseqchksum_cmds;
+        }
+        $mark_duplicate_cmd .= $cram_file_name_mk . ') ';
       }
     }
     if ($self->pb_cal_cmd()) {
@@ -830,7 +835,6 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
       $self->_move_file($cram_file_name_mk, $cram_file_name);
     }
 
-##### NO ALIGN
     if (-e $cram_md5_file_name_mk) {
       my $cram_md5_file_name = $self->input_bam;
       $cram_md5_file_name =~ s/bam$/cram.md5/mxs;
@@ -839,13 +843,13 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
 
     if (-e $cram_bamseqchksum_mk){
       my $cram_bamseqchksum = $self->input_bam;
-      $cram_bamseqchksum =~ s/bam$/cram.seqchksum/mxs;
+      $cram_bamseqchksum =~ s/bam$/seqchksum/mxs;
       $self->_move_file($cram_bamseqchksum_mk,$cram_bamseqchksum);
     }
 
     if (-e $cram_alt_bamseqchksum_mk){
       my $cram_alt_bamseqchksum = $self->input_bam;
-      $cram_alt_bamseqchksum =~ s/bam$/cram.sha512primesums512.chksum/mxs;
+      $cram_alt_bamseqchksum =~ s/bam$/sha512primesums512.seqchksum/mxs;
       $self->_move_file($cram_alt_bamseqchksum_mk,$cram_alt_bamseqchksum);
     }
 

@@ -4,7 +4,7 @@
 #
 use strict;
 use warnings;
-use Test::More tests => 29;
+use Test::More tests => 30;
 use Test::Exception;
 
 use File::Temp qw(tempdir);
@@ -87,6 +87,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       is (-e "$temp_dir/output_mk.bam.md5", 1, 'BAM md5 created');      
       is (-e "$temp_dir/output_mk.flagstat", 1, 'BAM flagstat created');      
       is (-e "$temp_dir/output_mk.cram", 1, 'CRAM file created');
+      is (-e "$temp_dir/output_mk.sha512primesums512.seqchksum", 1, 'CRAM sha512primesums512 seqchksum file created');
   }    
 }
 
@@ -110,8 +111,8 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       lives_ok{$bam->process()} q{Processed OK};                   
       is (-e "$temp_dir/non_aligned_output.cram", 1, 'non-aligned CRAM file created');
       is (-e "$temp_dir/non_aligned_output.cram.md5", 1, 'non-aligned CRAM md5 file created');
-      is (-e "$temp_dir/non_aligned_output.cram.seqchksum", 1, 'non-aligned CRAM seqchksum file created');
-      is (-e "$temp_dir/non_aligned_output.cram.sha512primesums512.chksum", 1, 'non-aligned CRAM sha512primesums512 checksum file created');
+      is (-e "$temp_dir/non_aligned_output.seqchksum", 1, 'non-aligned CRAM seqchksum file created');
+      is (-e "$temp_dir/non_aligned_output.sha512primesums512.seqchksum", 1, 'non-aligned CRAM sha512primesums512 seqchksum file created');
                             
   };
 }
