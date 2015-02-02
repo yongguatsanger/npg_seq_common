@@ -1,5 +1,11 @@
 LIST OF CHANGES
 
+  - $BWA_ALGORITHM_CUTOFF changed to 1_200_000_000 as smaller genomes than size 1.8Gb
+    have been found to need to use the bwtsw algorithm to index successfully 
+  - BAM_MarkDuplicate.pm and test modified to create cram files for un-aligned data,
+    md5sum and bamseqchksums generated with all crams
+  - un-aligned subset bam added to test data
+
 release 49.7
   - ensure correct reference is passed to markduplicates command
 

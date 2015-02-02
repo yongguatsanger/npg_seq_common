@@ -50,7 +50,7 @@ Readonly::Scalar our $DEFAULT_BTS_OPTIONS            => {
                                CREATE_INDEX          => 'FALSE',
                                                  };
 Readonly::Scalar our $BAM_TAGS_TO_STRIP              => [qw(OQ)];
-Readonly::Scalar our $BAM_TAGS_TO_KEEP               => [qw(tr tq a3 ah as af aa br qr)]; #transposon read, transpsoson quality, adapter detection tag * 5, random base sequence and qualities (for 3' RNAseq pulldown - distinguishing PCR dups)
+Readonly::Scalar our $BAM_TAGS_TO_KEEP               => [qw(tr tq a3 ah as af aa br qr)]; #transposon read, transposon quality, adapter detection tag * 5, random base sequence and qualities (for 3' RNAseq pulldown - distinguishing PCR dups)
 
 ## no critic (Documentation::RequirePodAtEnd)
 
@@ -584,6 +584,30 @@ has 'pb_cal_cmd'   => ( is      => 'ro',
                        );
 
 
+=head2 bamseqchksum command
+
+biobambam bamseqchksum command. Default checksum uses hash=crc32prod. Other checksum to use is sha512primesums512
+
+ 
+=cut
+has 'bamseqchksum_cmd' => ( is  => 'ro',
+                            isa     => 'NpgCommonResolvedPathExecutable',
+                            coerce  => 1,
+                            default => 'bamseqchksum',
+                          );
+
+=head2 teepot command
+
+teepot command used with scramble
+
+=cut
+has 'teepot_cmd' => ( is  => 'ro',
+                      isa     => 'NpgCommonResolvedPathExecutable',
+                      coerce  => 1,
+                      default => 'teepot',
+                     );
+
+
 
 =head2 no_alignment
 
@@ -668,6 +692,8 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
          $mark_duplicate_cmd = $self->bam_tag_stripper_cmd();
 	 }
 
+
+
   }else{
      $mark_duplicate_cmd = $self->mark_duplicate_cmd();
      my $using_pipe;
@@ -690,6 +716,12 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   $md5_file_name_mk =~ s/[.]bam$/.bam.md5/mxs;
   my $cram_file_name_mk = $self->output_bam;
   $cram_file_name_mk =~ s/[.]bam$/.cram/mxs;
+  my $cram_md5_file_name_mk = $self->output_bam;
+  $cram_md5_file_name_mk =~ s/[.]bam$/.cram.md5/mxs;
+  my $cram_bamseqchksum_mk = $self->output_bam;
+  $cram_bamseqchksum_mk =~ s/[.]bam$/.seqchksum/mxs;
+  my $cram_alt_bamseqchksum_mk = $self->output_bam;
+  $cram_alt_bamseqchksum_mk =~ s/[.]bam$/.sha512primesums512.seqchksum/mxs;
 
   $mark_duplicate_cmd .= ' | tee ' . ' >(' . $self->create_md5_cmd() .
                          ' | tr -d "\\n *-" > ' . #note \\ squashes down to \ even in this 'unevaluated' string
@@ -703,15 +735,40 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     $mark_duplicate_cmd .= " > $bamcheck_file_name_mk) ";
   }
 
+  # Bams with no_alignment still need to have a cram generated (+ md5 + bamseqchksum)
+  # teepot options as in p4 final_output_prep.json
+
+  my $teepot_to_md5_cmd = ' | ' . $self->teepot_cmd() . ' -vv -w 30000 >(' . $self->create_md5_cmd() .
+                          ' | tr -d "\\n *-" > ' .
+                          $cram_md5_file_name_mk  . ') ' ;
+  my $bamseqchksum_cmds = ' >(' . $self->bamseqchksum_cmd() . ' inputformat=cram ' .
+                          " > $cram_bamseqchksum_mk " . ') ' .
+                          ' >(' . $self->bamseqchksum_cmd() . ' inputformat=cram hash=sha512primesums512 ' .
+                          " > $cram_alt_bamseqchksum_mk " . ') ';
+  if ( $self->no_alignment()) {
+     if ($self->scramble_cmd()) {
+        $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
+        $mark_duplicate_cmd .= $teepot_to_md5_cmd;
+     if ($self->bamseqchksum_cmd()){
+	       $mark_duplicate_cmd .= $bamseqchksum_cmds;
+     }
+               $mark_duplicate_cmd .= $cram_file_name_mk . ') ';
+    }
+  }
   # we only create an index if we are doing alignment
-  if (! $self->no_alignment()) {
+  else {
     $mark_duplicate_cmd .= '>(' . $self->create_index_cmd() . ' > ' . $index_file_name_mk . ') ';
     if ($self->scramble_cmd()) {
       if ($self->reference()) {
         my $refname = $self->reference();
         $refname =~ s{/bwa/}{/fasta/}msx;
         $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
-        $mark_duplicate_cmd .= "-r $refname > $cram_file_name_mk) ";
+        $mark_duplicate_cmd .= "-r $refname ";
+        $mark_duplicate_cmd .= $teepot_to_md5_cmd;
+        if ($self->bamseqchksum_cmd()){
+           $mark_duplicate_cmd .= $bamseqchksum_cmds;
+        }
+        $mark_duplicate_cmd .= $cram_file_name_mk . ') ';
       }
     }
     if ($self->pb_cal_cmd()) {
@@ -720,6 +777,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
       $mark_duplicate_cmd .= '>(' . $self->pb_cal_cmd() . " -p $prefix -filter-bad-tiles 2 -) ";
     }
   }
+
 
   $mark_duplicate_cmd .= ' > ' . $self->output_bam;
 
@@ -775,6 +833,24 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
       my $cram_file_name = $self->input_bam;
       $cram_file_name =~ s/bam$/cram/mxs;
       $self->_move_file($cram_file_name_mk, $cram_file_name);
+    }
+
+    if (-e $cram_md5_file_name_mk) {
+      my $cram_md5_file_name = $self->input_bam;
+      $cram_md5_file_name =~ s/bam$/cram.md5/mxs;
+      $self->_move_file($cram_md5_file_name_mk, $cram_md5_file_name);
+    }
+
+    if (-e $cram_bamseqchksum_mk){
+      my $cram_bamseqchksum = $self->input_bam;
+      $cram_bamseqchksum =~ s/bam$/seqchksum/mxs;
+      $self->_move_file($cram_bamseqchksum_mk,$cram_bamseqchksum);
+    }
+
+    if (-e $cram_alt_bamseqchksum_mk){
+      my $cram_alt_bamseqchksum = $self->input_bam;
+      $cram_alt_bamseqchksum =~ s/bam$/sha512primesums512.seqchksum/mxs;
+      $self->_move_file($cram_alt_bamseqchksum_mk,$cram_alt_bamseqchksum);
     }
 
   } else {
