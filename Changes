@@ -1,5 +1,6 @@
 LIST OF CHANGES
 
+release 49.9
   - reference added to bamseqchecksum in BAM_MarkDuplicate for aligned data
   - new test bam added for aligned data for correct CRAM file generation
 
