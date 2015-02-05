@@ -1,5 +1,9 @@
 LIST OF CHANGES
 
+release 49.9
+  - reference added to bamseqchecksum in BAM_MarkDuplicate for aligned data
+  - new test bam added for aligned data for correct CRAM file generation
+
 release 49.8
   - $BWA_ALGORITHM_CUTOFF changed to 1_200_000_000 as smaller genomes than size 1.8Gb
     have been found to need to use the bwtsw algorithm to index successfully 

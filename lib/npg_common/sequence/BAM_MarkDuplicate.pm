@@ -735,16 +735,35 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     $mark_duplicate_cmd .= " > $bamcheck_file_name_mk) ";
   }
 
+  # reference fasta file
+  my $refname;
+  if ($self->reference()) {
+      $refname = $self->reference();
+      $refname =~ s{/bwa/}{/fasta/}msx;
+  }
+
   # Bams with no_alignment still need to have a cram generated (+ md5 + bamseqchksum)
   # teepot options as in p4 final_output_prep.json
 
   my $teepot_to_md5_cmd = ' | ' . $self->teepot_cmd() . ' -vv -w 30000 >(' . $self->create_md5_cmd() .
                           ' | tr -d "\\n *-" > ' .
                           $cram_md5_file_name_mk  . ') ' ;
-  my $bamseqchksum_cmds = ' >(' . $self->bamseqchksum_cmd() . ' inputformat=cram ' .
-                          " > $cram_bamseqchksum_mk " . ') ' .
-                          ' >(' . $self->bamseqchksum_cmd() . ' inputformat=cram hash=sha512primesums512 ' .
-                          " > $cram_alt_bamseqchksum_mk " . ') ';
+
+
+  ## bamseqchksum given reference fasta file when data is aligned
+  my $bamseqchksum_cmds = ' >(' . $self->bamseqchksum_cmd() . ' inputformat=cram ';
+  if(! $self->no_alignment() && $self->reference()){
+      $bamseqchksum_cmds .= " reference=$refname ";
+  }
+  $bamseqchksum_cmds .= " > $cram_bamseqchksum_mk " . ') ' ;
+  $bamseqchksum_cmds .= ' >(' . $self->bamseqchksum_cmd() . ' inputformat=cram hash=sha512primesums512 ';
+  if(! $self->no_alignment() && $self->reference()){
+      $bamseqchksum_cmds .= " reference=$refname ";
+  }
+  $bamseqchksum_cmds .= " > $cram_alt_bamseqchksum_mk " . ') ';
+
+
+
   if ( $self->no_alignment()) {
      if ($self->scramble_cmd()) {
         $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
@@ -760,8 +779,6 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     $mark_duplicate_cmd .= '>(' . $self->create_index_cmd() . ' > ' . $index_file_name_mk . ') ';
     if ($self->scramble_cmd()) {
       if ($self->reference()) {
-        my $refname = $self->reference();
-        $refname =~ s{/bwa/}{/fasta/}msx;
         $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
         $mark_duplicate_cmd .= "-r $refname ";
         $mark_duplicate_cmd .= $teepot_to_md5_cmd;
