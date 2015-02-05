@@ -10,6 +10,7 @@ use Test::Exception;
 use File::Temp qw(tempdir);
 my $temp_dir = tempdir( CLEANUP => 1 );
 
+
 my $elc_memory_for_deployment = 300;
 my $bts_memory_for_deployment = 200;
 my $elc_memory_for_production = 16000;
@@ -65,15 +66,15 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 
       $bam->clear_bam_tag_stripper_cmd();  
       $bam->clear_no_alignment();
-      $bam->input_bam('t/data/sequence/6062_1#0.bam');
+      $bam->input_bam('t/data/sequence/5551_3#6.bam'); 
       
       $bam->not_strip_bam_tag(0);
-      $bam->no_alignment(0);
-       $expected_bam_tag_stripper_cmd = qq{INPUT=/dev/stdin OUTPUT=/dev/stdout TMP_DIR=$temp_dir CREATE_INDEX='FALSE' CREATE_MD5_FILE='FALSE' VALIDATION_STRINGENCY='SILENT' VERBOSITY='INFO' STRIP='OQ' KEEP='a3' KEEP='aa' KEEP='af' KEEP='ah' KEEP='as' KEEP='br' KEEP='qr' KEEP='tq' KEEP='tr'};
+      $bam->no_alignment(0); ## has alignments
+      $expected_bam_tag_stripper_cmd = qq{INPUT=/dev/stdin OUTPUT=/dev/stdout TMP_DIR=$temp_dir CREATE_INDEX='FALSE' CREATE_MD5_FILE='FALSE' VALIDATION_STRINGENCY='SILENT' VERBOSITY='INFO' STRIP='OQ' KEEP='a3' KEEP='aa' KEEP='af' KEEP='ah' KEEP='as' KEEP='br' KEEP='qr' KEEP='tq' KEEP='tr'};
       like($bam->bam_tag_stripper_cmd(), qr/$expected_bam_tag_stripper_cmd/, 'correct bam_tag_stripper command');
       
       # stop qr// in like interpolating READ_NAME_REGEX by enclosing value in \Q..\E
-      my $expected_elc_cmd = qq{INPUT=t/data/sequence/6062_1#0.bam OUTPUT=$temp_dir/metrics.txt TMP_DIR=$temp_dir READ_NAME_REGEX='\Q[a-zA-Z0-9_]+:[0-9]:([0-9]+):([0-9]+):([0-9]+).*\E' VALIDATION_STRINGENCY='SILENT' VERBOSITY='ERROR'};
+      my $expected_elc_cmd = qq{INPUT=t/data/sequence/5551_3#6.bam OUTPUT=$temp_dir/metrics.txt TMP_DIR=$temp_dir READ_NAME_REGEX='\Q[a-zA-Z0-9_]+:[0-9]:([0-9]+):([0-9]+):([0-9]+).*\E' VALIDATION_STRINGENCY='SILENT' VERBOSITY='ERROR'};
       like($bam->estimate_library_complexity_cmd(), qr/$expected_elc_cmd/, 'correct elc command');
 
       lives_ok {$bam->_version_info} 'getting tools version info lives';
@@ -103,6 +104,8 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
                   metrics_json  => "$temp_dir/non_aligned_metrics.json",
                   temp_dir      => $temp_dir,
                   metrics_file  =>  $temp_dir . '/non_aligned_metrics.txt',
+                  default_java_xmx_elc => $elc_memory_for_deployment,
+                  default_java_xmx_bts => $bts_memory_for_deployment,
                 });
       #/software/hpag/biobambam/0.0.180/bin/bammarkduplicates2
       my $expected_mark_duplicate_cmd = qq{bammarkduplicates2 I=t/data/sequence/15156_1#54.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/non_aligned_metrics.txt level='0'};

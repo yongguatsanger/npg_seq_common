@@ -117,6 +117,7 @@ t/data/references/Homo_sapiens/1000Genomes_hs37d5/all/fasta/hs37d5.fa
 t/data/references/Homo_sapiens/NCBI36/all/bwa/ncbi36.fa.amb
 t/data/references/Homo_sapiens/NCBI36/all/fasta/ncbi36.fa
 t/data/references/E_coli/K12/fasta/E-coli-K12.fa
+t/data/references/E_coli/K12/fasta/E-coli-K12.fa.fai
 t/data/request/npg/run/1234.xml
 t/data/request/npg/run_status_dict.xml
 t/data/request/npg/run_status.xml
@@ -147,6 +148,7 @@ t/data/sequence/5390/5390_1_2#0.fastq
 t/data/sequence/5431_6#3.bam
 t/data/sequence/5431_6#3.sam
 t/data/sequence/6062_1#0.bam
+t/data/sequence/5551_3#6.bam
 t/data/sequence/npg/run/1937.xml
 t/data/sequence/npg/run/2549.xml
 t/data/sequence/npg/run/3612.xml
