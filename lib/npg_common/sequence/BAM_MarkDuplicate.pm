@@ -778,15 +778,15 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   else {
     $mark_duplicate_cmd .= '>(' . $self->create_index_cmd() . ' > ' . $index_file_name_mk . ') ';
     if ($self->scramble_cmd()) {
+      $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
       if ($self->reference()) {
-        $mark_duplicate_cmd .= '>(' . $self->scramble_cmd() . ' -I bam -O cram ';
         $mark_duplicate_cmd .= "-r $refname ";
-        $mark_duplicate_cmd .= $teepot_to_md5_cmd;
-        if ($self->bamseqchksum_cmd()){
-           $mark_duplicate_cmd .= $bamseqchksum_cmds;
-        }
-        $mark_duplicate_cmd .= $cram_file_name_mk . ') ';
       }
+      $mark_duplicate_cmd .= $teepot_to_md5_cmd;
+      if ($self->bamseqchksum_cmd()){
+         $mark_duplicate_cmd .= $bamseqchksum_cmds;
+      }
+      $mark_duplicate_cmd .= $cram_file_name_mk . ') ';
     }
     if ($self->pb_cal_cmd()) {
       my $prefix = $self->input_bam;

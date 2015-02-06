@@ -1,5 +1,10 @@
 LIST OF CHANGES
 
+  - BAM_Alignment.pm pass a reference to the phix markduplicates command
+  - BAM_MarkDuplicate.pm did not create cram files if the bam file was aligned
+    but no reference was defined. For phix no reference was passed to the
+    markduplicates command so no cram files were created.
+
 release 49.9
   - reference added to bamseqchecksum in BAM_MarkDuplicate for aligned data
   - new test bam added for aligned data for correct CRAM file generation

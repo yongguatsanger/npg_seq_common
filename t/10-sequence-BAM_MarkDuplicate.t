@@ -43,7 +43,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 {
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-         14 unless ($ENV{'TOOLS_INSTALLED'});
+         15 unless ($ENV{'TOOLS_INSTALLED'});
     my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                {
                  input_bam     => 't/data/sequence/SecondCall/4392_1.bam',

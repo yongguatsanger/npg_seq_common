@@ -275,6 +275,35 @@ sub _build_human_reference {
    return $human_ref;
 }
 
+=head2 phix_reference
+
+A path to phix reference
+
+=cut
+has 'phix_reference'   => (isa           => 'Str',
+                            is            => 'rw',
+                            required      => 0,
+                            lazy_build    => 1,
+                            documentation => 'A path to phix reference',
+                           );
+sub _build_phix_reference {
+   my $self = shift;
+
+   my $ruser = Moose::Meta::Class->create_anon_class(
+          roles => [qw/npg_tracking::data::reference::find/])
+          ->new_object({species => q{PhiX}});
+
+   my $phix_ref;
+   eval {
+      $phix_ref = $ruser->refs->[0];
+      1;
+   } or do{
+      carp $EVAL_ERROR;
+   };
+
+   return $phix_ref;
+}
+
 =head2 human_ref_dict
 
 A path to human reference picard dictionary file for non-consented bam output
@@ -1223,7 +1252,7 @@ sub generate {
      }
 
      if( $self->spiked_phix_split() ) {
-        push @markduplicates_commands, $self->_generate_markduplicates_cmd($self->spiked_phix_output(), q{phix});
+        push @markduplicates_commands, $self->_generate_markduplicates_cmd($self->spiked_phix_output(), q{phix}, $self->phix_reference());
      }
 
      foreach my $mk_cmd ( @markduplicates_commands ){
