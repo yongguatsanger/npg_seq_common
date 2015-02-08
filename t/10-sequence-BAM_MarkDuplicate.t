@@ -4,7 +4,7 @@
 #
 use strict;
 use warnings;
-use Test::More tests => 30;
+use Test::More tests => 31;
 use Test::Exception;
 
 use File::Temp qw(tempdir);
@@ -43,7 +43,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 {
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-         15 unless ($ENV{'TOOLS_INSTALLED'});
+         16 unless ($ENV{'TOOLS_INSTALLED'});
     my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                {
                  input_bam     => 't/data/sequence/SecondCall/4392_1.bam',
@@ -88,6 +88,7 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
       is (-e "$temp_dir/output_mk.bam.md5", 1, 'BAM md5 created');      
       is (-e "$temp_dir/output_mk.flagstat", 1, 'BAM flagstat created');      
       is (-e "$temp_dir/output_mk.cram", 1, 'CRAM file created');
+      is (-e "$temp_dir/output_mk.cram.crai", 1, 'CRAM index file created');
       is (-e "$temp_dir/output_mk.sha512primesums512.seqchksum", 1, 'CRAM sha512primesums512 seqchksum file created');
   }    
 }
