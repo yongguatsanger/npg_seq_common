@@ -571,6 +571,17 @@ has 'scramble_cmd'   => ( is      => 'ro',
                        );
 
 
+=head2 cram_index_cmd
+
+cram_index command for the input bam
+
+=cut
+has 'cram_index_cmd'   => ( is      => 'ro',
+                         isa     => 'NpgCommonResolvedPathExecutable',
+                         coerce  => 1,
+                         default => 'cram_index',
+                       );
+
 
 =head2 calibration command
 
@@ -716,6 +727,8 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   $md5_file_name_mk =~ s/[.]bam$/.bam.md5/mxs;
   my $cram_file_name_mk = $self->output_bam;
   $cram_file_name_mk =~ s/[.]bam$/.cram/mxs;
+  my $cram_index_file_name_mk = $self->output_bam;
+  $cram_index_file_name_mk =~ s/[.]bam$/.cram.crai/mxs;
   my $cram_md5_file_name_mk = $self->output_bam;
   $cram_md5_file_name_mk =~ s/[.]bam$/.cram.md5/mxs;
   my $cram_bamseqchksum_mk = $self->output_bam;
@@ -756,6 +769,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
       $bamseqchksum_cmds .= " reference=$refname ";
   }
   $bamseqchksum_cmds .= " > $cram_bamseqchksum_mk " . ') ' ;
+
   $bamseqchksum_cmds .= ' >(' . $self->bamseqchksum_cmd() . ' inputformat=cram hash=sha512primesums512 ';
   if(! $self->no_alignment() && $self->reference()){
       $bamseqchksum_cmds .= " reference=$refname ";
@@ -785,6 +799,9 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
       $mark_duplicate_cmd .= $teepot_to_md5_cmd;
       if ($self->bamseqchksum_cmd()){
          $mark_duplicate_cmd .= $bamseqchksum_cmds;
+      }
+      if ($self->cram_index_cmd()){
+         $mark_duplicate_cmd .= ' >(' . $self->cram_index_cmd() ." - $cram_index_file_name_mk " . ') ';
       }
       $mark_duplicate_cmd .= $cram_file_name_mk . ') ';
     }
@@ -850,6 +867,12 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
       my $cram_file_name = $self->input_bam;
       $cram_file_name =~ s/bam$/cram/mxs;
       $self->_move_file($cram_file_name_mk, $cram_file_name);
+    }
+
+    if (-e $cram_index_file_name_mk) {
+      my $cram_index_file_name = $self->input_bam;
+      $cram_index_file_name =~ s/bam$/cram.crai/mxs;
+      $self->_move_file($cram_index_file_name_mk, $cram_index_file_name);
     }
 
     if (-e $cram_md5_file_name_mk) {

@@ -1,5 +1,9 @@
 LIST OF CHANGES
 
+
+release 49.11
+  - BAM_MarkDuplicate.pm - add cram index generation for aligned data
+
 release 49.10
   - BAM_Alignment.pm pass a reference to the phix markduplicates command
   - BAM_MarkDuplicate.pm did not create cram files if the bam file was aligned
