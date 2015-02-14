@@ -1463,6 +1463,8 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
         $self->_move_file($file_name_mk,$file_name);
       }
     }
+    $self->log('Removing fifos');
+    foreach my$fifo (@fifos) { $self->_remove_file($fifo); }
   } else {
     $self->log('Renaming files NOT done');
     if (!$self->replace_file) { $self->log('WEIRDNESS WARNING: --replace_file flag is NOT set'); }

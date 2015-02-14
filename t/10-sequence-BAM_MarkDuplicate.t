@@ -207,16 +207,16 @@ chomp $cram_index;
 
       lives_ok{$bam->process()} q{Processed OK};
 
-      is (-e "$temp_dir/output_mk.bam.md5.fifo", 1, 'md5 FIFO created');
-      is (-e "$temp_dir/output_mk.bam.flagstat.fifo", 1, 'flagstat FIFO created');
-      is (-e "$temp_dir/output_mk.bam.bamcheck.fifo", 1, 'bamcheck FIFO created');
-      is (-e "$temp_dir/output_mk.bam.index.fifo", 1, 'index FIFO created');
-      is (-e "$temp_dir/output_mk.bam.pb_cal.fifo", 1, 'pb_cal FIFO created');
-      is (-e "$temp_dir/output_mk.bam.scramble.fifo", 1, 'scramble FIFO created');
-      is (-e "$temp_dir/output_mk.cram.fifo", 1, 'cram FIFO created');
-      is (-e "$temp_dir/output_mk.bam.bschk.fifo", 1, 'bamseqchksum input FIFO created');
-      is (-e "$temp_dir/output_mk.bam.seqchksum.fifo", 1, 'bamseqchksum output FIFO created');
-      is (-e "$temp_dir/output_mk.cram.seqchksum.fifo", 1, 'bamseqchksum output FIFO created');
+      is (!-e "$temp_dir/output_mk.bam.md5.fifo", 1, 'md5 FIFO removed');
+      is (!-e "$temp_dir/output_mk.bam.flagstat.fifo", 1, 'flagstat FIFO removed');
+      is (!-e "$temp_dir/output_mk.bam.bamcheck.fifo", 1, 'bamcheck FIFO removed');
+      is (!-e "$temp_dir/output_mk.bam.index.fifo", 1, 'index FIFO removed');
+      is (!-e "$temp_dir/output_mk.bam.pb_cal.fifo", 1, 'pb_cal FIFO removed');
+      is (!-e "$temp_dir/output_mk.bam.scramble.fifo", 1, 'scramble FIFO removed');
+      is (!-e "$temp_dir/output_mk.cram.fifo", 1, 'cram FIFO removed');
+      is (!-e "$temp_dir/output_mk.bam.bschk.fifo", 1, 'bamseqchksum input FIFO removed');
+      is (!-e "$temp_dir/output_mk.bam.seqchksum.fifo", 1, 'bamseqchksum output FIFO removed');
+      is (!-e "$temp_dir/output_mk.cram.seqchksum.fifo", 1, 'bamseqchksum output FIFO removed');
 
       is (!-z "$temp_dir/output.bam", 1, 'BAM file created with contents');      
       is (!-z "$temp_dir/output.bai", 1, 'BAM index created with contents');      
