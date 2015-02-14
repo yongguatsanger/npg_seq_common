@@ -13,8 +13,10 @@ use Carp;
 use English qw(-no_match_vars);
 use File::Temp qw/ tempfile tempdir /;
 use File::Spec::Functions qw(catfile);
+use File::Copy qw(move);
 use Perl6::Slurp;
 use Parallel::ForkManager;
+use POSIX qw(mkfifo);
 use IPC::Open3;
 use npg_qc::autoqc::results::bam_flagstats;
 use Cwd qw(abs_path);
@@ -31,6 +33,7 @@ use Readonly;
 
 our $VERSION = '0';
 
+Readonly::Scalar our $FIFO_MODE => oct '600';
 Readonly::Scalar our $DEFAULT_ESTIMATE_LIBRARY_COMPLEXITY_JAR => q{EstimateLibraryComplexity.jar};
 Readonly::Scalar our $DEFAULT_BAM_TAG_STRIPPER_JAR   => q[BamTagStripper.jar];
 
@@ -1332,13 +1335,8 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   push @fifos,  $cram_fifo_name_mk;
 
   foreach my $fifo (@fifos) {
-    my $fifo_cmd = join q[ ] , 'mkfifo', $fifo;
-    $self->log("Setting up fifo: $fifo_cmd");
-
-    my $fifo_rs = system $fifo_cmd;
-    if ($fifo_rs != 0 ) {
-       croak "Failed to make fifo: $fifo_cmd";
-    }
+    $self->log("Making fifo $fifo");
+    mkfifo $fifo, $FIFO_MODE or croak "Failed to make fifo $fifo ($ERRNO)";
   }
 
   my $bam_to_stats = $self->input_bam();
@@ -1477,24 +1475,16 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
 sub _remove_file {
    my ($self, $source) = @_;
 
-   my $rm_cmd = q{rm }.$source;
-   $self->log("$rm_cmd");
-   my $rm_cmd_rs = system $rm_cmd;
-   if ( $rm_cmd_rs != 0 ){
-      croak "Failed: $rm_cmd";
-   }
+   $self->log("Deleting $source");
+   unlink $source or croak "Failed to delete $source ($ERRNO)";
    return;
 }
 
 sub _move_file {
    my ($self, $source, $des) = @_;
 
-   my $mv_cmd = q{mv }.$source.q{ }.$des;
-   $self->log("$mv_cmd");
-   my $mv_cmd_rs = system $mv_cmd;
-   if ( $mv_cmd_rs != 0 ){
-      croak "Failed: $mv_cmd";
-   }
+   $self->log("Moving $source to $des");
+   move $source, $des or croak "Failed to move $source to $des ($ERRNO)";
    return;
 }
 
