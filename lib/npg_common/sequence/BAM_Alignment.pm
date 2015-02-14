@@ -1274,7 +1274,7 @@ sub generate {
 sub _soft_link_output{
     my $self = shift;
 
-    $self->log('The input file no need alignment and filtering, create a soft link now');
+    $self->log('The input file does not need alignment and filtering, create a soft link now');
 
     my $cwd = cwd();
 
@@ -1315,7 +1315,7 @@ sub _run_bwa_alns {
   }
 
   if( scalar @aln_commands == 0 ){
-     $self->log('No any alignment needed');
+     $self->log('No alignment needed');
      return 0;
   }
 

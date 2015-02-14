@@ -118,6 +118,8 @@ t/data/references/Homo_sapiens/NCBI36/all/bwa/ncbi36.fa.amb
 t/data/references/Homo_sapiens/NCBI36/all/fasta/ncbi36.fa
 t/data/references/E_coli/K12/fasta/E-coli-K12.fa
 t/data/references/E_coli/K12/fasta/E-coli-K12.fa.fai
+t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta
+t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta.fai
 t/data/request/npg/run/1234.xml
 t/data/request/npg/run_status_dict.xml
 t/data/request/npg/run_status.xml
@@ -149,6 +151,8 @@ t/data/sequence/5431_6#3.bam
 t/data/sequence/5431_6#3.sam
 t/data/sequence/6062_1#0.bam
 t/data/sequence/5551_3#6.bam
+t/data/sequence/plasmodium.bam
+t/data/sequence/phix.bam
 t/data/sequence/npg/run/1937.xml
 t/data/sequence/npg/run/2549.xml
 t/data/sequence/npg/run/3612.xml
@@ -263,6 +267,7 @@ t/data/sequence/st/studies/397.xml
 t/data/sequence/st/studies/401.xml
 t/data/sequence/st/studies/438.xml
 t/data/sequence/st/studies/2617.xml
+t/data/sequence/unaligned.bam
 t/data/ss1.fastq
 t/data/ss1.fastqcheck
 t/data/ss1_split3.fastq
