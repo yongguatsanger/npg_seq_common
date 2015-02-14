@@ -428,10 +428,8 @@ sub _build_tee_cmd {
 
   }else{
      $mark_duplicate_cmd = $self->mark_duplicate_cmd();
-     my $using_pipe;
      if( ! $self->not_strip_bam_tag() ){
          $mark_duplicate_cmd .= q{ | } . $self->bam_tag_stripper_cmd();
-         $using_pipe++;
      }
   }
 
