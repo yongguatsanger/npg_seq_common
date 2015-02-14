@@ -2,6 +2,8 @@ LIST OF CHANGES
 
 
   - BAM_MarkDuplicate.pm - add cram index generation for aligned data
+  - use ForkManager
+  - compare seqhcksum from generated bam and cram
 
 release 49.10
   - BAM_Alignment.pm pass a reference to the phix markduplicates command
