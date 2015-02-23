@@ -1,16 +1,16 @@
 #!/usr/bin/env perl
 
-##########################################################################################################
+###########################################################################################################
 # seqchksum_merge.pl:
 #  combines the output of bamseqchksum (crc32prod) files. When used with a set of bam/cram/sam files
-#  split from from a common source, the result should be identical with a seqchksum of the original.
+#  split from a common source, the result should be identical with a seqchksum of the original.
 #  Combination methods can be specified by column using the command line flags:
 #    -a : accumulate (add values)
-#    -c : chksum (apply crc32prod check sum, i.e. combine by multiplication modulo the prime number 2^31-1
+#    -c : chksum (apply crc32prod check sum, i.e. combine by multiplication modulo the prime number 2^31-1)
 #    -m : match (value for a given row/col position across input files is constant)
 #    -n : no check, value in the initial input file for the column is copied to the output; comment
-#               rows (where the row in the initial input file begins with #) will also behave this way
-##########################################################################################################
+#               rows (where the row in the initial input file begins with '#') will also behave this way
+###########################################################################################################
 
 use strict;
 use warnings;
