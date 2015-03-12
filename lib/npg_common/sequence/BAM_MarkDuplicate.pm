@@ -1144,6 +1144,7 @@ sub bamseqchksum_cmd {
   if ($file_type eq q(cram) ) {
     if ($self->reference()) {
       my $reference = $self->reference();
+      $reference =~ s{/bwa/}{/fasta/}msx;
       $chk_command .= qq{ reference=$reference};
     }
   }
