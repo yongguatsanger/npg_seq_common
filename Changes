@@ -1,5 +1,7 @@
 LIST OF CHANGES
 
+  - BAM_MarkDuplicate.pm: fixed reference for bamseqchksum command
+
 release 50.1
   - added bin/seqchksum_merge.pl script - merges output files produced by bamseqchksum
 
