@@ -24,6 +24,7 @@ if($EVAL_ERROR) {
 			 -severity => 1,
 			 -exclude  => [
                             'tidy',
+                            'Miscellanea::RequireRcsKeywords',
                             'ValuesAndExpressions::ProhibitImplicitNewlines',
                             'ValuesAndExpressions::RequireConstantVersion',
                             'Documentation::PodSpelling',
