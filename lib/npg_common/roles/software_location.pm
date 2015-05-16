@@ -20,14 +20,14 @@ our $VERSION = '0';
 Readonly::Array  my @TOOLS => qw/bwa bwa0_6 samtools samtools_irods bowtie java/;
 
 subtype 'NpgCommonResolvedPathExecutable'
-      => where { (abs_path($_) eq $_) && ( -x $_) },
+      => where { (_abs_path($_) eq $_) && ( -x ) },
       => as 'Str',
       => message { ($_ || q[]). ' is not an executable' };
 coerce 'NpgCommonResolvedPathExecutable',
       from 'Str',
-      via { /\//sxm ? (abs_path($_) || croak "'$_' is an invalid path")
+      via { /\//sxm ? (_abs_path($_) || croak "'$_' is an invalid path")
                     : ! $_ ? croak 'missing name of executable'
-                    : which($_) ? abs_path( (which($_))[0] )
+                    : which($_) ? _abs_path( (which($_))[0] )
                     : croak "no '$_' executable is on the path" };
 
 foreach my $tool ( @TOOLS ) {
@@ -47,11 +47,11 @@ foreach my $tool ( @TOOLS ) {
 }
 
 subtype 'NpgCommonResolvedPathJarFile'
-      => where { ( -r $_) && (abs_path($_) eq $_) },
+      => where { ( -r ) && (_abs_path($_) eq $_) },
       => as 'Str';
 coerce 'NpgCommonResolvedPathJarFile',
       from 'Str',
-      via {/\//sxm ? ( abs_path($_) || croak "'$_' is an invalid path" )
+      via {/\//sxm ? ( _abs_path($_) || croak "'$_' is an invalid path" )
                    : _find_jar($_)  || croak "no such file on CLASSPATH: $_"};
 
 sub _find_jar {
@@ -60,7 +60,7 @@ sub _find_jar {
     my @search_path = split /\:/smx, $jar_path;
     foreach my $directory (@search_path) {
         my $jar = catfile($directory, $name);
-        return abs_path($jar) if (-e $jar);
+        return _abs_path($jar) if (-e $jar);
     }
     return;
 }
@@ -119,6 +119,12 @@ sub _get_jar_version {
         $version =~ s/\s$//gsmx;
     }
     return $version;
+}
+
+sub _abs_path { # Cope with providing network path when running on server, TODO: make configurable
+  my$p= abs_path shift;
+  if($p){ $p=~s{\A/export/}{/nfs/}smx;}
+  return $p;
 }
 
 no Moose::Util::TypeConstraints;
