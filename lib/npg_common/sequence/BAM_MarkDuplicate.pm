@@ -19,7 +19,6 @@ use Parallel::ForkManager;
 use POSIX qw(mkfifo);
 use IPC::Open3;
 use npg_qc::autoqc::results::bam_flagstats;
-use Cwd qw(abs_path);
 use File::Basename;
 use autodie qw(:all);
 
@@ -1535,8 +1534,6 @@ __END__
 =item File::Temp
 
 =item IPC::Open3
-
-=item Cwd qw(abs_path)
 
 =item File::Basename
 

@@ -8,7 +8,6 @@ use File::Temp qw(tempfile tempdir);
 use File::Which qw[which];
 use Perl6::Slurp;
 use Cwd qw(getcwd abs_path);
-
 use_ok('npg_common::sequence::BAM_Alignment');
 
 use npg_tracking::data::reference::list;
