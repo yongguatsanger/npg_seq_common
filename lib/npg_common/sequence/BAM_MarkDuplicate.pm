@@ -330,8 +330,7 @@ sub _build__result {
       $result->{'human_split'} = $self->human_split;
    }
 
-   my $package = 'npg_qc::autoqc::results::bam_flagstats';
-   return (scalar keys %{$result}) ? $package->new($result) : $package->new();
+   return npg_qc::autoqc::results::bam_flagstats->new($result);
 }
 
 =head2 metrics_json
