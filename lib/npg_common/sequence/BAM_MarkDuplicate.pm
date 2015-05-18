@@ -309,27 +309,29 @@ sub _build_sorted_input_bam_prefix {
 autoqc result object
 
 =cut
-has '_result'              => ( isa            => 'npg_qc::autoqc::results::bam_flagstats',
+has '_result'             => ( isa            => 'npg_qc::autoqc::results::bam_flagstats',
                                is              => 'rw',
                                lazy_build      => 1,
-                               documentation   => 'autoqc result object',
                              );
 sub _build__result {
    my $self = shift;
-   my $result= npg_qc::autoqc::results::bam_flagstats->new();
+
+   my $result = {};
    if($self->id_run()){
-      $result->id_run($self->id_run);
+      $result->{'id_run'} = $self->id_run;
    }
    if($self->position()){
-      $result->position($self->position);
+      $result->{'position'} = $self->position;
    }
    if(defined $self->tag_index){
-      $result->tag_index($self->tag_index);
+      $result->{'tag_index'} = $self->tag_index;
    }
    if($self->human_split){
-      $result->human_split($self->human_split);
+      $result->{'human_split'} = $self->human_split;
    }
-   return $result;
+
+   my $package = 'npg_qc::autoqc::results::bam_flagstats';
+   return (scalar keys %{$result}) ? $package->new($result) : $package->new();
 }
 
 =head2 metrics_json
