@@ -1,5 +1,11 @@
 LIST OF CHANGES
 
+release 50.2
+  - BAM_MarkDuplicate.pm: fixed reference for bamseqchksum command
+  - BAM_MarkDuplicate.pm: forward compatibility with extended bam_flagstats
+      autoqc objects
+  - remove unused code
+
 release 50.1
   - added bin/seqchksum_merge.pl script - merges output files produced by bamseqchksum
 

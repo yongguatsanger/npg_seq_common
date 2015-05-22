@@ -12,7 +12,6 @@ use Carp;
 use English qw(-no_match_vars);
 use File::Basename;
 use File::Spec::Functions qw(catfile);
-use Cwd qw(abs_path);
 
 with qw /
          MooseX::Getopt

@@ -9,11 +9,12 @@ use Moose::Role;
 use Moose::Util::TypeConstraints;
 use Carp;
 use File::Spec::Functions qw(catfile);
-use Cwd qw(abs_path);
 use File::Which qw(which);
 use IPC::Open3;
 use Perl6::Slurp;
 use Readonly;
+
+use npg_tracking::util::abs_path qw(abs_path);
 
 our $VERSION = '0';
 
@@ -209,13 +210,13 @@ returns undefined if cannot get the version
 
 =item File::Spec::Functions
 
-=item Cwd
-
 =item File::Which
 
 =item IPC::Open3
 
 =item Perl6::Slurp
+
+=item npg_tracking::util::abs_path
 
 =back
 
