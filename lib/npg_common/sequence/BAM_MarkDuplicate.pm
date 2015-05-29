@@ -436,7 +436,7 @@ sub _build_tee_cmd {
      }
   }
 
-  $mark_duplicate_cmd ||= 'cat ' . $self->bam_input;
+  $mark_duplicate_cmd ||= 'cat ' . $self->input_bam;
   $mark_duplicate_cmd = qq{set -o pipefail;$mark_duplicate_cmd};
   $mark_duplicate_cmd .= ' | tee' ;
   $mark_duplicate_cmd .= q{ } . $self->_bam_md5_fifo_name_mk;

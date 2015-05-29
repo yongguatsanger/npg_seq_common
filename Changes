@@ -1,5 +1,7 @@
 LIST OF CHANGES
 
+  - call to bam_input replaced by correct call to input_bam
+
 release 50.2
   - BAM_MarkDuplicate.pm: fixed reference for bamseqchksum command
   - BAM_MarkDuplicate.pm: forward compatibility with extended bam_flagstats
