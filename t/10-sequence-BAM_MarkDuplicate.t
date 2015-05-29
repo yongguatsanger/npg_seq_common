@@ -4,7 +4,7 @@
 #
 use strict;
 use warnings;
-use Test::More tests => 122;
+use Test::More tests => 126;
 use Test::Exception;
 use Test::Deep;
 use Cwd;
@@ -23,8 +23,26 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
 {
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-            9 unless ($ENV{'TOOLS_INSTALLED'});
+            13 unless ($ENV{'TOOLS_INSTALLED'});
+
+  my $bfs_class = 'npg_qc::autoqc::results::bam_flagstats';
   my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
+                 input_bam     => 'input.bam',
+                 output_bam    => 'output.bam',
+                 metrics_json  => 'metrics.json',
+                 id_run => 35);
+  isa_ok($bam, 'npg_common::sequence::BAM_MarkDuplicate');
+  isa_ok($bam->_result, $bfs_class, 'bamglagstats autoqc result object created');
+  is($bam->_result->id_run, 35, 'id_run is set correctly');
+
+  $bam = npg_common::sequence::BAM_MarkDuplicate->new(
+                 input_bam     => 'input.bam',
+                 output_bam    => 'output.bam',
+                 metrics_json  => 'metrics.json');
+  isa_ok($bam->_result, $bfs_class, 'bamglagstats autoqc result object created');
+  is($bam->_result->id_run, undef, 'id_run is undefined');
+
+  $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                  input_bam     => 'input.bam',
                  output_bam    => 'output.bam',
                  metrics_json  => 'metrics.json',
@@ -32,7 +50,6 @@ use_ok('npg_common::sequence::BAM_MarkDuplicate');
                  no_alignment => 0,
                  human_split => 'all', 
                );
-  isa_ok($bam, 'npg_common::sequence::BAM_MarkDuplicate');
   lives_ok {$bam->temp_dir} 'temp dir generated';
   lives_ok {$bam->metrics_file()} 'temp metrics file';
   lives_ok {$bam->_result} 'result object';

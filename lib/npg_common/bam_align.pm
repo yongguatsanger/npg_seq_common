@@ -16,7 +16,7 @@ use List::Util qw(max);
 use File::Slurp;
 use autodie qw(:all);
 use Parallel::ForkManager;
-use Cwd qw(cwd abs_path);
+use Cwd qw(cwd);
 
 use npg_common::sequence::BAM_MarkDuplicate;
 

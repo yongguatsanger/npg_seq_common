@@ -15,7 +15,7 @@ use File::Spec::Functions qw(catfile splitdir catdir);
 use File::Temp qw(tempfile tempdir);
 use File::Spec;
 use File::Path qw(remove_tree);
-use Cwd qw(cwd abs_path);
+use Cwd qw(cwd);
 use File::Basename;
 use Parallel::ForkManager;
 use Perl6::Slurp;
@@ -24,6 +24,7 @@ use FindBin qw($Bin);
 use st::api::lims;
 use npg_tracking::data::reference;
 use npg_tracking::data::reference::info;
+use npg_tracking::util::abs_path qw(abs_path);
 
 with qw/
         MooseX::Getopt
@@ -1858,6 +1859,8 @@ __END__
 =item npg_tracking::glossary::run
 
 =item npg_tracking::glossary::lane
+
+=item npg_tracking::util::abs_path
 
 =item st::api::lims
 
