@@ -1,5 +1,6 @@
 LIST OF CHANGES
 
+  - Removing file_finder now functionality lives in seq_qc.
   - Cleaning code from old Google deps.
 
 release 50.3
