@@ -3,7 +3,6 @@ Changes
 data/adapters.fasta
 lib/npg_common/Alignment.pm
 lib/npg_common/bam_align.pm
-lib/npg_common/diagram/visio_histo_google.pm
 lib/npg_common/extractor/fastq.pm
 lib/npg_common/fastqcheck.pm
 lib/npg_common/Hit_Sequence_SAM.pm
