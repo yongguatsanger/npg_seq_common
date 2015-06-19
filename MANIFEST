@@ -37,7 +37,6 @@ t/00-distribution.t
 t/00-podcoverage.t
 t/00-pod.t
 t/10-Alignment.t
-t/10-diagram_visio_histo_google.t
 t/10-extractor-fastq-cache.t
 t/10-extractor-fastq.t
 t/10-fastqcheck.t
