@@ -1,5 +1,7 @@
 LIST OF CHANGES
 
+  - Cleaning code from old Google deps.
+
 release 50.3
   - call to bam_input replaced by correct call to input_bam
 
