@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 73;
+use Test::More tests => 63;
 use Cwd qw/abs_path getcwd/;
 use File::Temp qw/tempdir/;
 use File::Slurp;
@@ -14,13 +14,13 @@ use npg_tracking::util::build qw/git_tag/;
 # confirm md5 checksum of expected output files
 
 SKIP: {
-  skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.', 73 unless ($ENV{'TOOLS_INSTALLED'});
+  skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.', 63 unless ($ENV{'TOOLS_INSTALLED'});
 my $startDir = getcwd();
 my $fastaMaster = abs_path('t/data/references/E_coli/K12/fasta/E-coli-K12.fa');
 unless (-e $fastaMaster) {
     die "Cannot find FASTA master file $fastaMaster\n";
 }
-my $tmp = tempdir('Ref_Maker_test_XXXXXX', CLEANUP => 1, DIR => '/tmp' );
+my $tmp = tempdir('Ref_Maker_test_XXXXXX', CLEANUP => 0, DIR => '/tmp' );
 print "Created temporary directory: ".abs_path($tmp)."\n";
 my $tmpFasta = $tmp."/fasta";
 mkdir($tmpFasta);
@@ -66,11 +66,6 @@ my %expectedMD5 = (
     'bwa0_6/E-coli-K12.fa.sa' => '6e5b71027ce8766ce5e2eea08d1da0ec',
     'fasta/E-coli-K12.fa' => '7285062348a4cb07a23fcd3b44ffcf5d',
     'fasta/E-coli-K12.fa.fai' => '3bfb02378761ec6fe2b57e7dc99bd2b5',
-    'npgqc/E-coli-K12.fa.gcn100' => '4a4a44b33a522e7d0a5bf0815437c2b6',
-    'npgqc/E-coli-K12.fa.gcn200' => '4d66d89dda53a02ab9d87bbcbe69519e',
-    'npgqc/E-coli-K12.fa.gcn20000' => '22d3d3d86ddfe2f5174bdd94a8bc34d5',
-    'npgqc/E-coli-K12.fa.gcn30000' => '8d049d01ee344ec1fe65877d8279d8f4',
-    'npgqc/E-coli-K12.fa.gcn400' => '12abc02755a2522d8900c4e4b40b19dd',
     'samtools/E-coli-K12.fa.fai' => '3bfb02378761ec6fe2b57e7dc99bd2b5',
     'smalt/E-coli-K12.fa.smi' => 'aa85b6852d707d45b90edf714715ee6b',
     );
