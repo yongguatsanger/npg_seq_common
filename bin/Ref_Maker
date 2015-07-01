@@ -50,10 +50,6 @@ Readonly::Array  my @ALIGNERS             => qw{ bowtie bowtie2 bwa bwa0_6 samto
 Readonly::Scalar my $DIR_PERM             => oct 755;
 Readonly::Scalar my $BWA_ALGORITHM_CUTOFF => 1_200_000_000;
 
-Readonly::Scalar my $BIG_GENOME   => 1_000_000_000;
-Readonly::Scalar my $SMALL_WINDOW =>         1_000;
-Readonly::Array  my @WINDOW_SIZES => ( 100, 200, 400, 20_000, 30_000 );
-
 Readonly::Scalar my $SKIP_STRING => "\n*** Skipping to next aligner ***\n\n";
 
 my $ref_size;
@@ -116,13 +112,8 @@ $arguments{samtools} = " faidx $files[0]";
 
 my @failed; # record any failures
 if ($build{npgqc}) {
-    # Make a collection of gcn files for the npg_qc::autoqc::checks::gc_bias
-    #check.
-    my $result = gcn();
-    if (!$result) { push @failed, 'gcn'; }
-    chdir $working_dir;
     # Make a json file for the npg_qc::autoqc::checks::gc_fraction check.
-    $result = gc_frac();
+    my $result = gc_frac();
     if (!$result) { push @failed, 'gc_frac'; }
     chdir $working_dir;
 }
@@ -210,36 +201,6 @@ if (@failed) {
     return 0;
 }
 } ################### end of the main part #############################
-
-
-sub gcn {
-
-    my $gcn_maker = 'gcn_maker';
-
-    clean_slate('npgqc');
-
-    log_timestamp( 'start', 'gcn' );
-    foreach my $win_size (@WINDOW_SIZES) {
-        next if ( $ref_size > $BIG_GENOME ) && ( $win_size < $SMALL_WINDOW );
-        next if ( $ref_size < $win_size );
-
-        my $gcn_command = "$gcn_maker fasta/$files[0] -b=$win_size";
-        eval { system $gcn_command; 1; }
-            or do {
-                carp "*** gcn_maker failed: $EVAL_ERROR. $SKIP_STRING";
-                log_timestamp( 'abort', 'gcn' );
-                return 0;
-            };
-
-        my $output = $files[0] . q{.gcn} . $win_size;
-
-        move( "fasta/$output", "npgqc/$output" );
-    }
-
-    log_timestamp( 'stop', 'gcn' );
-    return 1;
-}
-
 
 sub gc_frac {
 
@@ -422,10 +383,6 @@ When adding a new aligner use $fastq[0] as the basename for the index files.
 
 
 =head1 SUBROUTINES/METHODS
-
-=head2 gcn
-
-Run gcn_maker
 
 =head2 gc_frac
 
