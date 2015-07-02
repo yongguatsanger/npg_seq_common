@@ -6,7 +6,7 @@ General purpose scripts and modules used by WTSI Illumina sequencing production 
 Dependencies on other NPG Perl packages:
 
 1. npg_tracking package https://github.com/wtsi-npg/npg_tracking
-2. npg-qc package - currently available internally only
+2. npg-qc package - https://github.com/wtsi-npg/npg_qc
 
 Dependencies on other NPG bioinformatics tools
 
