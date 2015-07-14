@@ -1,5 +1,7 @@
 LIST OF CHANGES
 
+  - removed unused modules and scripts
+
 release 50.4
   - Ref maker - stop supporting gcbias check, ie do not run gcn_maker
   - Removing file_finder now functionality lives in seq_qc.
