@@ -4,11 +4,8 @@ use npg_tracking::util::build;
 
 my $requires = {
                 'autodie'                         => '2.10',
-                'base'                            => '2.12',
                 'Carp'                            => '1.04',
-                'Class::Std'                      => '0.0.8',
                 'Cwd'                             => 0,
-                'DBI'                             => '1.608',
                 'Digest::MD5'                     => 0,
                 'English'                         => '1.02',
                 'Exporter'                        => '5.63',
@@ -25,7 +22,6 @@ my $requires = {
                 'File::Temp'                      => 0,
                 'File::Which'                     => 0,
                 'FindBin'                         => '1.47',
-                'HTML::PullParser'                => '3.57',
                 'IO::File'                        => 0,
                 'IO::Tee'                         => 0,
                 'IPC::Open3'                      => 0,
@@ -33,10 +29,8 @@ my $requires = {
                 'List::Util'                      => '1.21',
                 'Math::Round'                     => '0.06',
                 'MIME::Lite'                      => '3.024',
-                'MIME::Parser'                    => '5.427',
                 'Moose'                           => '0.93',
                 'Moose::Role'                     => '0.93',
-                'Moose::Util'                     => 0,
                 'Moose::Util::TypeConstraints'    => 0,
                 'MooseX::ClassAttribute'          => 0,
                 'MooseX::Getopt'                  => '0.39',
@@ -62,7 +56,9 @@ my $requires = {
                 'npg_tracking::glossary::run'             => 0,
                 'npg_tracking::glossary::tag'             => 0,
                 'npg_tracking::illumina::run::folder'     => 0,
-                'npg_tracking::illumina::run::short_info' => 0,          
+                'npg_tracking::illumina::run::short_info' => 0,
+                'npg_tracking::illumina::run::long_info'  => 0,
+                'npg_tracking::util::abs_path'            => 0,         
                 'st::api::lims'                           => 0,
 };
 
