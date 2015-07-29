@@ -326,7 +326,7 @@ sub _build__result {
       $result->{'tag_index'} = $self->tag_index;
    }
    if($self->human_split){
-      $result->{'human_split'} = $self->human_split;
+      $result->{'subset'} = $self->human_split;
    }
 
    return npg_qc::autoqc::results::bam_flagstats->new($result);

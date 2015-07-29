@@ -1,6 +1,7 @@
 LIST OF CHANGES
 
   - removed unused modules and scripts
+  - use 'subset' option when creating bam_flagstats result object
 
 release 50.4
   - Ref maker - stop supporting gcbias check, ie do not run gcn_maker
