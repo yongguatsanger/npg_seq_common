@@ -5,7 +5,6 @@ lib/npg_common/Alignment.pm
 lib/npg_common/extractor/fastq.pm
 lib/npg_common/fastqcheck.pm
 lib/npg_common/roles/log.pm
-lib/npg_common/roles/run/lane/file_names.pm
 lib/npg_common/roles/SequenceInfo.pm
 lib/npg_common/roles/software_location.pm
 lib/npg_common/sequence/BAM_Alignment.pm
