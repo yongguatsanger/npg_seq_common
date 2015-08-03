@@ -1,14 +1,6 @@
-########
-# Author:        gq1
-# Created:       2010 06 21
-#
-
 package npg_common::sequence::BAM_MarkDuplicate;
 
-use strict;
-use warnings;
 use Moose;
-use Moose::Util::TypeConstraints;
 use Carp;
 use English qw(-no_match_vars);
 use File::Temp qw/ tempfile tempdir /;
@@ -21,6 +13,7 @@ use IPC::Open3;
 use npg_qc::autoqc::results::bam_flagstats;
 use File::Basename;
 use autodie qw(:all);
+use Readonly;
 
 with qw/
         MooseX::Getopt
@@ -28,34 +21,10 @@ with qw/
         npg_common::roles::software_location
        /;
 
-use Readonly;
-
 our $VERSION = '0';
 
-Readonly::Scalar our $FIFO_MODE => oct '600';
-Readonly::Scalar our $DEFAULT_ESTIMATE_LIBRARY_COMPLEXITY_JAR => q{EstimateLibraryComplexity.jar};
-Readonly::Scalar our $DEFAULT_BAM_TAG_STRIPPER_JAR   => q[BamTagStripper.jar];
-
-Readonly::Scalar our $READ_NAME_REGEX                => '[a-zA-Z0-9_]+:[0-9]:([0-9]+):([0-9]+):([0-9]+).*';
-
-Readonly::Scalar our $DEFAULT_JAVA_XMX_ELC           => 16_000;
-Readonly::Scalar our $DEFAULT_ELC_COMMAND_OPTIONS    => {
-                               VALIDATION_STRINGENCY => 'SILENT',
-                               VERBOSITY             => 'ERROR',
-                               READ_NAME_REGEX       => $READ_NAME_REGEX,
-                                                 };
-
-Readonly::Scalar our $DEFAULT_JAVA_XMX_BTS           => 2000;
-Readonly::Scalar our $DEFAULT_BTS_OPTIONS            => {
-                               VALIDATION_STRINGENCY => 'SILENT',
-                               VERBOSITY             => 'INFO',
-                               CREATE_MD5_FILE       => 'FALSE',
-                               CREATE_INDEX          => 'FALSE',
-                                                 };
-Readonly::Scalar our $BAM_TAGS_TO_STRIP              => [qw(OQ)];
-Readonly::Scalar our $BAM_TAGS_TO_KEEP               => [qw(tr tq a3 ah as af aa br qr)]; #transposon read, transposon quality, adapter detection tag * 5, random base sequence and qualities (for 3' RNAseq pulldown - distinguishing PCR dups)
-
-Readonly::Scalar our $EXIT_CODE_SHIFT          => 8;
+Readonly::Scalar our $FIFO_MODE       => oct '600';
+Readonly::Scalar our $EXIT_CODE_SHIFT => 8;
 
 ## no critic (Documentation::RequirePodAtEnd)
 
@@ -67,12 +36,11 @@ npg_common::sequence::BAM_MarkDuplicate
 
 =head1 SYNOPSIS
 
-  my $bam = npg_common::sequence::BAM_MarkDuplicate->new({
+  my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                  input_bam     => 'input.bam',
                  output_bam    => 'output.bam',
                  metrics_json  => 'metrics.json',
-
-               });
+               );
   $bam->process();
 
 =head1 DESCRIPTION
@@ -82,30 +50,6 @@ npg_common::sequence::BAM_MarkDuplicate
 =head1 SUBROUTINES/METHODS
 
 =cut
-
-=head2 default_java_xmx_elc
-
-Allow default java xmx option to be overridden
-
-=cut
-
-has 'default_java_xmx_elc' => (
-                      is  => q{ro},
-                      isa => q{NpgTrackingPositiveInt},
-                      default => $DEFAULT_JAVA_XMX_ELC,
-);
-
-=head2 default_java_xmx_bts
-
-Allow default java xmx option to be overridden
-
-=cut
-
-has 'default_java_xmx_bts' => (
-                      is  => q{ro},
-                      isa => q{NpgTrackingPositiveInt},
-                      default => $DEFAULT_JAVA_XMX_BTS,
-);
 
 =head2 bammarkduplicates_path
 
@@ -141,43 +85,6 @@ sub _build_biobambam_bin {
   return dirname($self->bamsort_cmd());
 }
 
-=head2 elc_jar_file
-
-Picard EstimateLibraryComplexity jar file
-
-=cut
-has 'elc_jar_file'   => (
-            is            => 'ro',
-            isa           => 'NpgCommonResolvedPathJarFile',
-            default       => $DEFAULT_ESTIMATE_LIBRARY_COMPLEXITY_JAR,
-            coerce        => 1,
-            documentation => 'Picard EstimateLibraryComplexity jar file',
-    );
-
-=head2 mark_elc_options
-
-=cut
-
-has 'mark_elc_options'       => ( isa             => 'HashRef',
-                                  is              => 'rw',
-                                  default         => sub { $DEFAULT_ELC_COMMAND_OPTIONS },
-                                  documentation   => 'Picard EstimateLibraryComplexity command options',
-                                );
-
-=head2 bam_tag_stripper_jar_file
-
-illumina2bam BamTagStripper jar file
-
-=cut
-
-has 'bam_tag_stripper_jar_file'  => (
-                 is              => 'ro',
-                 isa             => 'NpgCommonResolvedPathJarFile',
-                 coerce          => 1,
-                 default         => $DEFAULT_BAM_TAG_STRIPPER_JAR,
-                 documentation   => 'illumina2bam BamTagStripper jar file',
-    );
-
 =head2 input_bam
 
 input bam file name with path
@@ -190,7 +97,7 @@ has 'input_bam'      => ( isa             => 'Str',
                           documentation   => 'input bam filename with path',
                         );
 
-=head2 sort_input
+=head2 sort_inp0ut
 
 sort input bam file by coordinates
 
@@ -204,25 +111,14 @@ has 'sort_input'  => (isa             => 'Bool',
 =head2 not_strip_bam_tag
 
 not strip any tag from output bam records
+retained for backward compatibility, is inactive
 
 =cut
 has 'not_strip_bam_tag'  => (isa             => 'Bool',
                              is              => 'rw',
                              required        => 0,
-                             documentation   => 'not strip any tag from output bam records',
+                             documentation   => 'retained for backward compatibility, is inactive',
                            );
-
-=head2 no_estimate_library_complexity
-
-not running Picard EstimateLibraryComplexity
-
-=cut
-has 'no_estimate_library_complexity'  => (isa             => 'Bool',
-                             is              => 'rw',
-                             required        => 0,
-                             documentation   => 'not running Picard EstimateLibraryComplexity',
-                           );
-
 
 =head2 output_bam
 
@@ -262,7 +158,6 @@ has 'metrics_file'   => ( isa             => 'Str',
                         );
 
 sub _build_metrics_file {
-
    my ($fh, $filename) = tempfile(UNLINK => 1);
    return $filename;
 }
@@ -325,8 +220,9 @@ sub _build__result {
    if(defined $self->tag_index){
       $result->{'tag_index'} = $self->tag_index;
    }
-   if($self->human_split){
-      $result->{'subset'} = $self->human_split;
+   my $split = $self->human_split || $self->subset;
+   if($split){
+      $result->{'subset'} = $split;
    }
 
    return npg_qc::autoqc::results::bam_flagstats->new($result);
@@ -386,7 +282,16 @@ default 'all', which means not split
 has 'human_split'   => (isa        => 'Str',
                         is         => 'rw',
                         required   => 0,
-                        documentation  => 'only for metrics json output',
+                        documentation  => 'retained for backwards compatibility, use subset instead',
+                       );
+
+=head2 subset
+
+=cut
+has 'subset'        => (isa          => 'Str',
+                        is           => 'ro',
+                        required     => 0,
+                        documentation => 'to pass to bam_flagstats autoqc result object',
                        );
 
 =head2 replace_file
@@ -411,32 +316,7 @@ has '_tee_cmd' => ( isa       => 'Str',
 sub _build_tee_cmd {
   my $self = shift;
 
-  my $mark_duplicate_cmd = q{};
-
-  if( $self->no_alignment() ){
-
-     if(!$self->no_estimate_library_complexity()){
-
-       my $estimate_library_complexity_cmd = $self->estimate_library_complexity_cmd();
-       $self->log("estimate_library_complexity_cmd: $estimate_library_complexity_cmd");
-       my $es_cmd_rs = system $estimate_library_complexity_cmd;
-       if($es_cmd_rs != 0){
-         croak 'Picard estimate library complexity failed!';
-       }
-     }
-
-     if( ! $self->not_strip_bam_tag() ){
-         $mark_duplicate_cmd = $self->bam_tag_stripper_cmd();
-     }
-
-  }else{
-     $mark_duplicate_cmd = $self->mark_duplicate_cmd();
-     if( ! $self->not_strip_bam_tag() ){
-         $mark_duplicate_cmd .= q{ | } . $self->bam_tag_stripper_cmd();
-     }
-  }
-
-  $mark_duplicate_cmd ||= 'cat ' . $self->input_bam;
+  my $mark_duplicate_cmd = $self->mark_duplicate_cmd();
   $mark_duplicate_cmd = qq{set -o pipefail;$mark_duplicate_cmd};
   $mark_duplicate_cmd .= ' | tee' ;
   $mark_duplicate_cmd .= q{ } . $self->_bam_md5_fifo_name_mk;
@@ -1001,31 +881,6 @@ sub _build__md5_file_name_mk {
     return $md5_file_name_mk;
 }
 
-=head2 estimate_library_complexity_cmd
-
-construct the picard EstmateLibraryComplexity command
-
-=cut
-
-sub estimate_library_complexity_cmd {
-   my $self = shift;
-
-   my $cmd = $self->java_cmd.q{ -Xmx}.$self->default_java_xmx_elc.q{m};
-   $cmd .= q{ -jar }.$self->elc_jar_file();
-
-   $cmd .= q{ INPUT=}.$self->input_bam();
-   $cmd .= q{ OUTPUT=}.$self->metrics_file();
-   $cmd .= q{ TMP_DIR=}.$self->temp_dir();
-
-   my %options = %{$self->mark_elc_options()};
-
-   foreach my $option_key (sort keys %options){
-       $cmd .= qq{ $option_key='}.$options{$option_key}.q{'};
-   }
-
-   return $cmd;
-}
-
 =head2 sort_cmd
 
 construct the whole biobambam sort command
@@ -1053,7 +908,6 @@ sub mark_duplicate_cmd {
    my $self = shift;
 
    my $cmd = $self->bammarkduplicates_path;
-
    if( $self->sort_input() ){
       $cmd .= q{ I=} . $self->sorted_input_bam_prefix() . q{.bam};
    }else {
@@ -1061,12 +915,8 @@ sub mark_duplicate_cmd {
    }
    $cmd .= q{ O=/dev/stdout};
    $cmd .= q{ tmpfile=}.$self->temp_dir().q{/};
-
    $cmd .= q{ M=}.$self->metrics_file();
 
-   if( !$self->not_strip_bam_tag() ){
-       $cmd .= q{ level=0};
-   }
    return $cmd;
 }
 
@@ -1087,46 +937,6 @@ has 'create_md5_cmd' => ( isa           => 'Str',
                           default       => 'md5sum -b | tr -d "\\n *-" ', #note \\ squashes down to \ even in this 'unevaluated' string
                           documentation =>'Command to create MD5 checksum',
                         );
-
-=head2 bam_tag_stripper_cmd
-
-construct the whole illumina2bam BamTagStripper command
-
-=cut
-has 'bam_tag_stripper_cmd'=> ( isa             => 'Str',
-                               is              => 'ro',
-                               lazy_build      => 1,
-                               documentation   => 'construct the whole illumina2bam BamTagStripper command',
-                             );
-
-sub _build_bam_tag_stripper_cmd {
-   my $self = shift;
-
-   my $cmd = $self->java_cmd.q{ -Xmx}.$self->default_java_xmx_bts.q{m};
-   $cmd .= q{ -jar }.$self->bam_tag_stripper_jar_file();
-   if( $self->no_alignment() ){
-      $cmd .= q{ INPUT=} . $self->input_bam();
-   }else{
-      $cmd .= q{ INPUT=/dev/stdin};
-   }
-   $cmd .= q{ OUTPUT=/dev/stdout};
-   $cmd .= q{ TMP_DIR=}.$self->temp_dir();
-
-   my $options = $DEFAULT_BTS_OPTIONS;
-   foreach my $option_key (sort keys %{$options}){
-       $cmd .= qq{ $option_key='}.$options->{$option_key}.q{'};
-   }
-
-   foreach my $tag (sort @{$BAM_TAGS_TO_STRIP}){
-      $cmd .= qq{ STRIP='$tag'};
-   }
-
-   foreach my $tag (sort @{$BAM_TAGS_TO_KEEP}){
-      $cmd .= qq{ KEEP='$tag'};
-   }
-
-   return $cmd;
-}
 
 =head2 bamseqchksum_cmd
 
@@ -1379,9 +1189,8 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   $pm->wait_all_children;
 
   $self->log('Parsing metrics file:' . $self->metrics_json);
-  if( ( $self->no_alignment() && !$self->no_estimate_library_complexity())
-      || !$self->no_alignment() ){
-     if (-e $self->metrics_file()) { $self->_result->parsing_metrics_file($self->metrics_file()); }
+  if (-e $self->metrics_file()) {
+    $self->_result->parsing_metrics_file($self->metrics_file());
   }
   $self->_flagstats($flagstat_file_name_mk);
   $self->_result->store($self->metrics_json);
@@ -1500,10 +1309,6 @@ sub _flagstats {
 sub _version_info {
   my $self = shift;
   $self->_result->set_info('Samtools', $self->current_version($self->samtools_cmd) || q[not known]);
-  if($self->no_alignment()){
-     return;
-  }
-  $self->_result->set_info('Picard-tools', $self->current_version($self->elc_jar_file) || q[not known]);
   return;
 }
 
@@ -1558,7 +1363,7 @@ Guoying Qi E<lt>gq1@sanger.ac.ukE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2011 GRL, by Guoying Qi
+Copyright (C) 2015 GRL
 
 This file is part of NPG.
 

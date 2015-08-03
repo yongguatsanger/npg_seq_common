@@ -1,5 +1,11 @@
 LIST OF CHANGES
 
+  - mark duplicates:
+      - tag stripper is not used any longer - remove code
+      - stop using Picard estimate library complexity since
+        it is not used in p4 flows
+      - do not check paths of live tools in tests
+
   - removed unused modules and scripts
   - use 'subset' option when creating bam_flagstats result object
 
