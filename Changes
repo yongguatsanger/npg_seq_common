@@ -5,6 +5,7 @@ LIST OF CHANGES
       - stop using Picard estimate library complexity since
         it is not used in p4 flows
       - do not check paths of live tools in tests
+      - subset attribute is introduced to replace human_split
 
 release 50.5
   - removed unused modules and scripts

@@ -1,54 +1,61 @@
 use strict;
 use warnings;
-use Test::More tests => 111;
+use Test::More tests => 5;
 use Test::Exception;
 use Test::Deep;
 use Cwd;
-
 use File::Temp qw(tempdir);
+
+subtest 'subtest 1' => sub {
+  use_ok('npg_common::sequence::BAM_MarkDuplicate');
+};
+
 my $temp_dir = tempdir( CLEANUP => 1 );
 
-use_ok('npg_common::sequence::BAM_MarkDuplicate');
+subtest 'subtest 2' => sub {
+  plan tests => 11;
 
-{
   SKIP: {
-      skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-            13 unless ($ENV{'TOOLS_INSTALLED'});
+    skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
+          11 unless ($ENV{'TOOLS_INSTALLED'});
 
-  my $bfs_class = 'npg_qc::autoqc::results::bam_flagstats';
-  my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
+    my $bfs_class = 'npg_qc::autoqc::results::bam_flagstats';
+    my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                  input_bam     => 'input.bam',
                  output_bam    => 'output.bam',
                  metrics_json  => 'metrics.json',
                  id_run => 35);
-  isa_ok($bam, 'npg_common::sequence::BAM_MarkDuplicate');
-  isa_ok($bam->_result, $bfs_class, 'bamglagstats autoqc result object created');
-  is($bam->_result->id_run, 35, 'id_run is set correctly');
+    isa_ok($bam, 'npg_common::sequence::BAM_MarkDuplicate');
+    isa_ok($bam->_result, $bfs_class, 'bamglagstats autoqc result object created');
+    is($bam->_result->id_run, 35, 'id_run is set correctly');
 
-  $bam = npg_common::sequence::BAM_MarkDuplicate->new(
+    $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                  input_bam     => 'input.bam',
                  output_bam    => 'output.bam',
                  metrics_json  => 'metrics.json');
-  isa_ok($bam->_result, $bfs_class, 'bamglagstats autoqc result object created');
-  is($bam->_result->id_run, undef, 'id_run is undefined');
+    isa_ok($bam->_result, $bfs_class, 'bamglagstats autoqc result object created');
+    is($bam->_result->id_run, undef, 'id_run is undefined');
 
-  $bam = npg_common::sequence::BAM_MarkDuplicate->new(
+    $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                  input_bam     => 'input.bam',
                  output_bam    => 'output.bam',
                  metrics_json  => 'metrics.json',
                  no_alignment => 0,
                );
-  lives_ok {$bam->temp_dir} 'temp dir generated';
-  lives_ok {$bam->metrics_file()} 'temp metrics file';
-  lives_ok {$bam->_result} 'result object';
-  $bam->metrics_file('metrics.txt');
-  $bam->temp_dir($temp_dir);
-  like($bam->mark_duplicate_cmd(), qr/bammarkduplicates2 I=input\.bam O=\/dev\/stdout tmpfile=$temp_dir\/ M=metrics\.txt/, 'correct picard command with absolute path to jar');
-  like($bam->bamseqchksum_cmd(q{bam}), qr{\Qbamseqchksum verbose=0 inputformat=bam\E}, 'correct bamseqchksum command for a bam file');
-  like($bam->bamseqchksum_cmd(q{cram}), qr{\Qbamseqchksum verbose=0 inputformat=cram\E}, 'correct bamseqchksum command for a cram file with no reference');
-  
-       };
-}
+    lives_ok {$bam->temp_dir} 'temp dir generated';
+    lives_ok {$bam->metrics_file()} 'temp metrics file';
+    lives_ok {$bam->_result} 'result object';
+    $bam->metrics_file('metrics.txt');
+    $bam->temp_dir($temp_dir);
+    like($bam->mark_duplicate_cmd(), qr/bammarkduplicates2 I=input\.bam O=\/dev\/stdout tmpfile=$temp_dir\/ M=metrics\.txt/,
+      'correct picard command with absolute path to jar');
+    like($bam->bamseqchksum_cmd(q{bam}), qr{\Qbamseqchksum verbose=0 inputformat=bam\E},
+      'correct bamseqchksum command for a bam file');
+    like($bam->bamseqchksum_cmd(q{cram}), qr{\Qbamseqchksum verbose=0 inputformat=cram\E},
+      'correct bamseqchksum command for a cram file with no reference');
+
+  };
+};
 
 my $bammarkduplicates = `which bammarkduplicates2`;
 $bammarkduplicates = `readlink -f $bammarkduplicates`;
@@ -62,10 +69,14 @@ chomp $scramble;
 my $cram_index = `which cram_index`;
 $cram_index = `readlink -f $cram_index`;
 chomp $cram_index;
-{
+
+subtest 'subtest 3' => sub {
+  plan tests => 32;
+
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-         40 unless ($ENV{'TOOLS_INSTALLED'});
+         32 unless ($ENV{'TOOLS_INSTALLED'});
+
       my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                  input_bam     => 't/data/sequence/SecondCall/4392_1.bam',
                  output_bam    => "$temp_dir/output_mk.bam",
@@ -73,10 +84,11 @@ chomp $cram_index;
                  sort_input    => 1,
                  temp_dir      => $temp_dir,
                  metrics_file  => $temp_dir . '/metrics.txt',
-                 reference => 't/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta',
-                 replace_file => 1,
+                 reference     => 't/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta',
+                 replace_file  => 1,
                );
-      my $expected_mark_duplicate_cmd = qq{bammarkduplicates2 I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt};
+      my $expected_mark_duplicate_cmd =
+        qq{bammarkduplicates2 I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt};
       like($bam->mark_duplicate_cmd(), qr/$expected_mark_duplicate_cmd/, 'correct biobambam command');
       ok($bam->no_alignment(), 'input bam with alignment');
       $bam->no_alignment(1);
@@ -92,15 +104,18 @@ chomp $cram_index;
       my $bam_pb_cal_cmd = $bam->pb_cal_cmd();
       my $bam_bamcheck_cmd = $bam->bamcheck_cmd();
 
-      my $expected_bamseqchk_cmd = qq{$bamseqchksum verbose=0 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta};
-      is($bam->bamseqchksum_cmd(q{cram}), $expected_bamseqchk_cmd, 'correct bamseqchksum command for a cram file with reference');
+      my $expected_bamseqchk_cmd = $bamseqchksum .
+        q{ verbose=0 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta};
+      is($bam->bamseqchksum_cmd(q{cram}), $expected_bamseqchk_cmd,
+        'correct bamseqchksum command for a cram file with reference');
 
       lives_ok {$bam->_version_info} 'getting tools version info lives';
       ok ($bam->_result->info->{'Samtools'}, 'samtools version is defined for an unaligned bam');
       my $samtools_version_str = $bam->_result->info->{'Samtools'};
       ok ($samtools_version_str, 'samtools version is defined');
 
-      my $expected_tee_cmd = qq{set -o pipefail;$bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt | tee};
+      my $expected_tee_cmd = qq{set -o pipefail;$bammarkduplicates } .
+        qq{I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt | tee};
       $expected_tee_cmd .= qq{ $temp_dir/output_mk.bam.md5.fifo};
       $expected_tee_cmd .= qq{ $temp_dir/output_mk.bam.flagstat.fifo};
       $expected_tee_cmd .= qq{ $temp_dir/output_mk.bam.bamcheck.fifo};
@@ -137,7 +152,8 @@ chomp $cram_index;
       my $expected_bamcheck_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.bamcheck.fifo | };
       $expected_bamcheck_cmd .= qq{$bam_bamcheck_cmd > $temp_dir/output_mk.bamcheck};
 
-      my $expected_index_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.index.fifo | $samtools_cmd index /dev/stdin /dev/stdout > $temp_dir/output_mk.bai};
+      my $expected_index_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.index.fifo | } .
+        qq{$samtools_cmd index /dev/stdin /dev/stdout > $temp_dir/output_mk.bai};
 
       my $expected_pb_cal_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.pb_cal.fifo | };
       $expected_pb_cal_cmd .= qq{$bam_pb_cal_cmd -p $temp_dir/output_mk -filter-bad-tiles 2 -};
@@ -150,14 +166,18 @@ chomp $cram_index;
       $expected_altchksum_cmd .= qq{$bamseqchksum verbose=0 inputformat=bam hash=sha512primesums512};
       $expected_altchksum_cmd .= qq{ > $temp_dir/output_mk.bam.sha512primesums512.seqchksum};
   
-      my $expected_scramble_cmd = qq{$scramble -I bam -O cram -r t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta < $temp_dir/output_mk.bam.scramble.fifo };
-      $expected_scramble_cmd .= qq{| tee $temp_dir/output_mk.cram.fifo $cram_crai_fifo_name_mk $cram_md5_fifo_name_mk > $temp_dir/output_mk.cram};
+      my $expected_scramble_cmd = qq{$scramble -I bam -O cram -r } .
+        qq{t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta < $temp_dir/output_mk.bam.scramble.fifo };
+      $expected_scramble_cmd .= qq{| tee $temp_dir/output_mk.cram.fifo $cram_crai_fifo_name_mk } .
+        qq{$cram_md5_fifo_name_mk > $temp_dir/output_mk.cram};
 
-      my $expected_cramchksum_cmd =  qq{set -o pipefail; cat $cram_fifo_name_mk | $bamseqchksum verbose=0 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta };
+      my $expected_cramchksum_cmd =  qq{set -o pipefail; cat $cram_fifo_name_mk | $bamseqchksum verbose=0 inputformat=cram } .
+        q{reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta };
       $expected_cramchksum_cmd .= qq{| tee $cram_seqchksum_fifo_name_mk > $cram_seqchksum_file_name_mk};
 
       my $expected_cramindex_cmd = qq{set -o pipefail; cat $cram_crai_fifo_name_mk | $cram_index - $cram_crai_file_name_mk};
-      my $expected_crammd5_cmd = qq{set -o pipefail; cat $cram_md5_fifo_name_mk | md5sum -b | tr -d }.q{"\n *-" }. qq{ > $cram_md5_file_name_mk};
+      my $expected_crammd5_cmd = qq{set -o pipefail; cat $cram_md5_fifo_name_mk | md5sum -b | tr -d }.q{"\n *-" }. 
+        qq{ > $cram_md5_file_name_mk};
 
       my $expected_diff_cmd = qq{diff $bam_seqchksum_fifo_name_mk $cram_seqchksum_fifo_name_mk};
 
@@ -176,7 +196,8 @@ chomp $cram_index;
       push  @expected_fork_cmds, $expected_pb_cal_cmd;
 
       my $expected_fork_cmds = \@expected_fork_cmds;
-      cmp_deeply($bam->fork_cmds(), $expected_fork_cmds, 'commands for fork generated correctly') or diag explain [$bam->fork_cmds(),$expected_fork_cmds];
+      cmp_deeply($bam->fork_cmds(), $expected_fork_cmds, 'commands for fork generated correctly') or
+        diag explain [$bam->fork_cmds(),$expected_fork_cmds];
 
       lives_ok{$bam->process()} q{Processed OK};
 
@@ -205,21 +226,24 @@ chomp $cram_index;
       is (!-z "$temp_dir/output.sha512primesums512.seqchksum", 1, 'sha512primesums512 seqchksum file created with contents');
       is (!-e "$temp_dir/output_mk.cram.seqchksum", 1, 'CRAM seqchksum file created with contents has been removed');
   }    
-}
+};
 
-{
-### 15156_1#54.bam, is a subset using DownsampleSam.jar PROBABILITY=0.01, from study 3123 (current_studies.alignments_in_bam=0)
+subtest 'subtest 4' => sub {
+  plan tests => 37;
+
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-            40 unless ($ENV{'TOOLS_INSTALLED'});
+            37 unless ($ENV{'TOOLS_INSTALLED'});
+
       my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                   input_bam     => 't/data/sequence/15156_1#54.bam',
                   output_bam    => "$temp_dir/non_aligned_output.bam",
                   metrics_json  => "$temp_dir/non_aligned_metrics.json",
                   temp_dir      => $temp_dir,
-                  metrics_file  =>  $temp_dir . '/non_aligned_metrics.txt',
+                  metrics_file  => $temp_dir . '/non_aligned_metrics.txt',
                 );
-      my $expected_mark_duplicate_cmd = qq{$bammarkduplicates I=t/data/sequence/15156_1#54.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/non_aligned_metrics.txt};
+      my $expected_mark_duplicate_cmd = qq{$bammarkduplicates I=t/data/sequence/15156_1#54.bam } .
+        qq{O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/non_aligned_metrics.txt};
       is($bam->mark_duplicate_cmd(), $expected_mark_duplicate_cmd, 'correct biobambam command');
       is ( $bam->no_alignment(), 1, 'input bam with no alignment');
       lives_ok{$bam->process()} q{Processed OK};                   
@@ -236,7 +260,7 @@ chomp $cram_index;
                  sort_input    => 1,
                  temp_dir      => $temp_dir,
                  metrics_file  => $temp_dir . '/metrics_no_align.txt',
-                 no_alignment => 1,
+                 no_alignment  => 1,
                );
       $expected_mark_duplicate_cmd = qq{$bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics_no_align.txt};
       is($bam->mark_duplicate_cmd(), $expected_mark_duplicate_cmd, 'correct biobambam command');
@@ -305,7 +329,8 @@ chomp $cram_index;
       push  @expected_fork_cmds, $expected_bamcheck_cmd;
 
       my $expected_fork_cmds = \@expected_fork_cmds;
-      cmp_deeply($bam->fork_cmds(), $expected_fork_cmds, 'commands for ForkManager generated correctly') or diag explain [$bam->fork_cmds(),$expected_fork_cmds];
+      cmp_deeply($bam->fork_cmds(), $expected_fork_cmds, 'commands for ForkManager generated correctly') or
+        diag explain [$bam->fork_cmds(),$expected_fork_cmds];
 
       lives_ok{$bam->process()} q{Processed OK};
       is (-e "$temp_dir/output_no_align.bam.md5.fifo", 1, 'md5 FIFO created');
@@ -329,12 +354,15 @@ chomp $cram_index;
       is (-e "$temp_dir/output_no_align.cram.seqchksum", 1, 'CRAM seqchksum file created if no_alignment flag used');
       is (!-z "$temp_dir/output_no_align.bam.seqchksum", 1, 'BAM seqchksum file created with contents if no_alignment flag used');
   }
-}
+};
 
-{
+subtest 'subtest 5' => sub {
+  plan tests => 30;
+
   SKIP: {
       skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-         32 unless ($ENV{'TOOLS_INSTALLED'});
+         30 unless ($ENV{'TOOLS_INSTALLED'});
+
     my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
                  input_bam     => 't/data/sequence/phix.bam',
                  output_bam    => "$temp_dir/output_phix.bam",
@@ -342,8 +370,8 @@ chomp $cram_index;
                  sort_input    => 1,
                  temp_dir      => $temp_dir,
                  metrics_file  => $temp_dir . '/metrics_phix.txt',
-                 subset => 'phix', 
-                 replace_file => 0,
+                 subset        => 'phix', 
+                 replace_file  => 0,
                );
       my $expected_mark_duplicate_cmd = qq{$bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics_phix.txt};
       is($bam->mark_duplicate_cmd(), $expected_mark_duplicate_cmd, 'correct biobambam command');
@@ -451,6 +479,6 @@ chomp $cram_index;
       is (!-z "$temp_dir/output_no_align.cram.seqchksum", 1, 'CRAM seqchksum file created with contents for PhiX');
       is (!-z "$temp_dir/output_no_align.bam.seqchksum", 1, 'BAM seqchksum file created with contents for PhiX');
   }
-}
+};
 
 1;
