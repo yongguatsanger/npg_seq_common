@@ -6,6 +6,7 @@ LIST OF CHANGES
         it is not used in p4 flows
       - do not check paths of live tools in tests
       - subset attribute is introduced to replace human_split
+  - seq alignment: remove dependency on the autoqc wrapper object
 
 release 50.5
   - removed unused modules and scripts
