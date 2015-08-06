@@ -97,29 +97,6 @@ has 'input_bam'      => ( isa             => 'Str',
                           documentation   => 'input bam filename with path',
                         );
 
-=head2 sort_inp0ut
-
-sort input bam file by coordinates
-
-=cut
-has 'sort_input'  => (isa             => 'Bool',
-                      is              => 'rw',
-                      required        => 0,
-                      documentation   => 'sort input bam file by coordinates',
-                     );
-
-=head2 not_strip_bam_tag
-
-not strip any tag from output bam records
-retained for backward compatibility, is inactive
-
-=cut
-has 'not_strip_bam_tag'  => (isa             => 'Bool',
-                             is              => 'rw',
-                             required        => 0,
-                             documentation   => 'retained for backward compatibility, is inactive',
-                           );
-
 =head2 output_bam
 
 output bam with path
@@ -908,7 +885,7 @@ sub mark_duplicate_cmd {
    my $self = shift;
 
    my $cmd = $self->bammarkduplicates_path;
-   if( $self->sort_input() ){
+   if( !$self->no_alignment() ){
       $cmd .= q{ I=} . $self->sorted_input_bam_prefix() . q{.bam};
    }else {
       $cmd .= q{ I=}.$self->input_bam();
@@ -1100,7 +1077,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
 
   $self->_version_info();
 
-  if( $self->sort_input() && !$self->no_alignment() ){
+  if( !$self->no_alignment() ){
 
       $self->log('Sort input bam file');
       my $sort_cmd = $self->sort_cmd();

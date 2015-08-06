@@ -47,7 +47,7 @@ subtest 'subtest 2' => sub {
     lives_ok {$bam->_result} 'result object';
     $bam->metrics_file('metrics.txt');
     $bam->temp_dir($temp_dir);
-    like($bam->mark_duplicate_cmd(), qr/bammarkduplicates2 I=input\.bam O=\/dev\/stdout tmpfile=$temp_dir\/ M=metrics\.txt/,
+    like($bam->mark_duplicate_cmd(), qr/bammarkduplicates2 I=$temp_dir\/sorted.bam O=\/dev\/stdout tmpfile=$temp_dir\/ M=metrics\.txt/,
       'correct picard command with absolute path to jar');
     like($bam->bamseqchksum_cmd(q{bam}), qr{\Qbamseqchksum verbose=0 inputformat=bam\E},
       'correct bamseqchksum command for a bam file');
@@ -81,14 +81,13 @@ subtest 'subtest 3' => sub {
                  input_bam     => 't/data/sequence/SecondCall/4392_1.bam',
                  output_bam    => "$temp_dir/output_mk.bam",
                  metrics_json  => "$temp_dir/metrics.json",
-                 sort_input    => 1,
                  temp_dir      => $temp_dir,
                  metrics_file  => $temp_dir . '/metrics.txt',
                  reference     => 't/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta',
                  replace_file  => 1,
                );
       my $expected_mark_duplicate_cmd =
-        qq{bammarkduplicates2 I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt};
+        qq{bammarkduplicates2 I=t/data/sequence/SecondCall/4392_1.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics.txt};
       like($bam->mark_duplicate_cmd(), qr/$expected_mark_duplicate_cmd/, 'correct biobambam command');
       ok($bam->no_alignment(), 'input bam with alignment');
       $bam->no_alignment(1);
@@ -257,12 +256,11 @@ subtest 'subtest 4' => sub {
                  input_bam     => 't/data/sequence/unaligned.bam',
                  output_bam    => "$temp_dir/output_no_align.bam",
                  metrics_json  => "$temp_dir/metrics_no_align.json",
-                 sort_input    => 1,
                  temp_dir      => $temp_dir,
                  metrics_file  => $temp_dir . '/metrics_no_align.txt',
                  no_alignment  => 1,
                );
-      $expected_mark_duplicate_cmd = qq{$bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics_no_align.txt};
+      $expected_mark_duplicate_cmd = qq{$bammarkduplicates I=t/data/sequence/unaligned.bam O=/dev/stdout tmpfile=$temp_dir/ M=$temp_dir/metrics_no_align.txt};
       is($bam->mark_duplicate_cmd(), $expected_mark_duplicate_cmd, 'correct biobambam command');
       ok( $bam->no_alignment(), 'input bam without alignment');
       like($bam->bamseqchksum_cmd(q{bam}), qr{\Qbamseqchksum verbose=0 inputformat=bam\E}, 'correct bamseqchksum command for a bam file with reference but no alignment');
@@ -367,7 +365,6 @@ subtest 'subtest 5' => sub {
                  input_bam     => 't/data/sequence/phix.bam',
                  output_bam    => "$temp_dir/output_phix.bam",
                  metrics_json  => "$temp_dir/metrics_phix.json",
-                 sort_input    => 1,
                  temp_dir      => $temp_dir,
                  metrics_file  => $temp_dir . '/metrics_phix.txt',
                  subset        => 'phix', 
