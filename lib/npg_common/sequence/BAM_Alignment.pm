@@ -1,8 +1,3 @@
-########
-# Author:        gq1
-# Created:       2011-08-25
-#
-
 package npg_common::sequence::BAM_Alignment;
 
 use Carp;
@@ -10,7 +5,6 @@ use autodie qw(:all);
 use English qw(-no_match_vars);
 use Moose;
 use MooseX::StrictConstructor;
-
 use File::Spec::Functions qw(catfile splitdir catdir);
 use File::Temp qw(tempfile tempdir);
 use File::Spec;
@@ -20,6 +14,7 @@ use File::Basename;
 use Parallel::ForkManager;
 use Perl6::Slurp;
 use FindBin qw($Bin);
+use File::Which;
 
 use st::api::lims;
 use npg_tracking::data::reference;
@@ -40,26 +35,27 @@ use Readonly;
 
 our $VERSION = '0';
 
-Readonly::Scalar our $PICARD_SAM_FORMAT_CONVERTER_JAR
+Readonly::Scalar my $PICARD_SAM_FORMAT_CONVERTER_JAR
                                                => q[SamFormatConverter.jar];
-Readonly::Scalar our $ILLUMINA2BAM_BAM_MERGER_JAR
+Readonly::Scalar my $ILLUMINA2BAM_BAM_MERGER_JAR
                                                => q[BamMerger.jar];
-Readonly::Scalar our $ILLUMINA2BAM_ALIGNMENT_FILTER_JAR
+Readonly::Scalar my $ILLUMINA2BAM_ALIGNMENT_FILTER_JAR
                                                => q[AlignmentFilter.jar];
-Readonly::Scalar our $ILLUMINA2BAM_SPLIT_BAM_BY_CHROMOSOMES_JAR
+Readonly::Scalar my $ILLUMINA2BAM_SPLIT_BAM_BY_CHROMOSOMES_JAR
                                                => q[SplitBamByChromosomes.jar];
+Readonly::Scalar my $QC_EXECUTABLE_NAME        => q[qc];
 
-Readonly::Scalar our $BAM_MARK_DUPLICATES_CMD  => q[bam_mark_duplicate.pl];
+Readonly::Scalar my $BAM_MARK_DUPLICATES_CMD  => q[bam_mark_duplicate.pl];
 
-Readonly::Scalar our $DEFAULT_JAVA_XMX         => q{-Xmx1000m};
-Readonly::Scalar our $JAVA_XMX_DUPLICATES      => 6000;
+Readonly::Scalar my $DEFAULT_JAVA_XMX         => q{-Xmx1000m};
+Readonly::Scalar my $JAVA_XMX_DUPLICATES      => 6000;
 
-Readonly::Scalar our $DEFAULT_BWA_TRIM_QUALITY => q{-q 15};
-Readonly::Scalar our $DEFAULT_BWA_THREADS      => 4;
-Readonly::Scalar our $DEFAULT_BWA_SAM_MAX_THREADS      => 6;
-Readonly::Scalar our $MIN_READ_LENGTH_TO_ALIGN => 31;
+Readonly::Scalar my $DEFAULT_BWA_TRIM_QUALITY => q{-q 15};
+Readonly::Scalar my $DEFAULT_BWA_THREADS      => 4;
+Readonly::Scalar my $DEFAULT_BWA_SAM_MAX_THREADS      => 6;
+Readonly::Scalar my $MIN_READ_LENGTH_TO_ALIGN => 31;
 
-Readonly::Scalar our $EXIT_CODE_SHIFT          => 8;
+Readonly::Scalar my $EXIT_CODE_SHIFT          => 8;
 
 ## no critic (Documentation::RequirePodAtEnd)
 
@@ -523,16 +519,6 @@ has 'not_strip_bam_tag'  => (isa             => 'Bool',
                              documentation   => 'not strip any tag from output bam records',
                            );
 
-=head2 no_estimate_library_complexity
-
-not running Picard EstimateLibraryComplexity
-
-=cut
-has 'no_estimate_library_complexity'  => (isa             => 'Bool',
-                                          is              => 'rw',
-                                          required        => 0,
-                                          documentation   => 'not running Picard EstimateLibraryComplexity',
-                                         );
 =head2 spiked_phix_output
 
 output bam file name with path for spiked phix
@@ -732,7 +718,8 @@ sub _build_alignment_metrics_autoqc_command {
         $qc_out = $in;
     }
 
-    my $command = sprintf 'qc --check alignment_filter_metrics --id_run %i --position %i --qc_in %s --qc_out %s',
+    my $command = sprintf '%s --check alignment_filter_metrics --id_run %i --position %i --qc_in %s --qc_out %s',
+                               $QC_EXECUTABLE_NAME,
                                $self->id_run,
                                $self->position,
                                $in,
@@ -1221,7 +1208,7 @@ sub generate {
 
   my $qc_command = $self->alignment_metrics_autoqc_command;
   if ( ($self->non_consent_split() || $self->spiked_phix_split()) && $qc_command ) {
-     if (eval {require npg_qc::autoqc::autoqc}) {
+     if (which($QC_EXECUTABLE_NAME)) {
          $self->log("Executing $qc_command");
          system $qc_command;
          if( $CHILD_ERROR >> $EXIT_CODE_SHIFT ){
@@ -1758,8 +1745,7 @@ sub _generate_markduplicates_cmd {
 
    my $cmd = catfile($Bin, $BAM_MARK_DUPLICATES_CMD)
            . qq{ --input_bam $bam}
-           .  q{ --replace_file}
-           .  q{ --sort_input};
+           .  q{ --replace_file};
 
    if($self->bamcheck_flags) {
 	$cmd .= q{ --bamcheck_flags "} . $self->bamcheck_flags . q{"}; # note: raw string, no validation. Should be used carefully
@@ -1790,19 +1776,11 @@ sub _generate_markduplicates_cmd {
    }
 
    if( $alignment_filter ) {
-      $cmd .= qq{ --human_split $alignment_filter};
+      $cmd .= qq{ --subset $alignment_filter};
    }
 
    $cmd .= qq{ --output_bam $output_bam};
    $cmd .= qq{ --metrics_json $output_json};
-
-   if( $self->not_strip_bam_tag() ){
-      $cmd .= q{ --not_strip_bam_tag};
-   }
-
-   if( $self->no_estimate_library_complexity() ){
-      $cmd .= q{ --no_estimate_library_complexity};
-   }
 
    return $cmd;
 }
@@ -1833,6 +1811,8 @@ __END__
 =item File::Temp
 
 =item File::Path
+
+=item File::Which
 
 =item Cwd
 
@@ -1884,7 +1864,7 @@ Guoying Qi E<lt>gq1@sanger.ac.ukE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2011 GRL, by Guoying Qi
+Copyright (C) 2015 GRL
 
 This file is part of NPG.
 

@@ -1,5 +1,21 @@
 LIST OF CHANGES
 
+  - mark duplicates:
+      - tag stripper is not used any longer - remove code and
+        remove option
+      - stop using Picard estimate library complexity since
+        it is not used in p4 flows, remove option
+      - do not check paths of live tools in tests
+      - subset attribute replaces human_split
+      - drop sort_input option since input is always gets sorted
+  - seq alignment:
+      - remove dependency on the autoqc wrapper object
+      - drop not_strip_bam_tag, no_estimate_library_complexity and
+        sort_input command line options when calling duplicates
+        marking script
+      - use subset option instead of human_split option when calling
+        duplicates marking split
+
 release 50.5
   - removed unused modules and scripts
   - use 'subset' option when creating bam_flagstats result object
