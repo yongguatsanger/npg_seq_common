@@ -328,9 +328,9 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
       is( $bam->human_reference(), $REP_ROOT . 'references/Homo_sapiens/1000Genomes/all/bwa/human_g1k_v37.fasta', 'correct human reference');
       is( $bam->human_ref_dict(), $REP_ROOT . 'references/Homo_sapiens/1000Genomes/all/picard/human_g1k_v37.fasta.dict', 'correct human reference dict');
 
-      is( $bam->_generate_markduplicates_cmd("$temp_dir/input.bam"), "$current_dir/t/bam_mark_duplicate.pl --input_bam $temp_dir/input.bam --replace_file --sort_input --id_run 5175 --position 1 --tag_index 1 --output_bam $temp_dir/input_mk.bam --metrics_json $temp_dir/qc/input_bam_flagstats.json --not_strip_bam_tag", "correct markduplicates command");   
+      is( $bam->_generate_markduplicates_cmd("$temp_dir/input.bam"), "$current_dir/t/bam_mark_duplicate.pl --input_bam $temp_dir/input.bam --replace_file --id_run 5175 --position 1 --tag_index 1 --output_bam $temp_dir/input_mk.bam --metrics_json $temp_dir/qc/input_bam_flagstats.json", "correct markduplicates command");   
 
-      is( $bam->_generate_markduplicates_cmd("$temp_dir/input_phix.bam", 'phix'), "$current_dir/t/bam_mark_duplicate.pl --input_bam $temp_dir/input_phix.bam --replace_file --sort_input --id_run 5175 --position 1 --tag_index 1 --human_split phix --output_bam $temp_dir/input_phix_mk.bam --metrics_json $temp_dir/qc/input_phix_bam_flagstats.json --not_strip_bam_tag", "correct markduplicates command for phix part bam"); # 88
+      is( $bam->_generate_markduplicates_cmd("$temp_dir/input_phix.bam", 'phix'), "$current_dir/t/bam_mark_duplicate.pl --input_bam $temp_dir/input_phix.bam --replace_file --id_run 5175 --position 1 --tag_index 1 --human_split phix --output_bam $temp_dir/input_phix_mk.bam --metrics_json $temp_dir/qc/input_phix_bam_flagstats.json", "correct markduplicates command for phix part bam"); # 88
    }
 }
 

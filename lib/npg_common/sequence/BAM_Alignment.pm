@@ -519,16 +519,6 @@ has 'not_strip_bam_tag'  => (isa             => 'Bool',
                              documentation   => 'not strip any tag from output bam records',
                            );
 
-=head2 no_estimate_library_complexity
-
-not running Picard EstimateLibraryComplexity
-
-=cut
-has 'no_estimate_library_complexity'  => (isa             => 'Bool',
-                                          is              => 'rw',
-                                          required        => 0,
-                                          documentation   => 'not running Picard EstimateLibraryComplexity',
-                                         );
 =head2 spiked_phix_output
 
 output bam file name with path for spiked phix
@@ -1755,8 +1745,7 @@ sub _generate_markduplicates_cmd {
 
    my $cmd = catfile($Bin, $BAM_MARK_DUPLICATES_CMD)
            . qq{ --input_bam $bam}
-           .  q{ --replace_file}
-           .  q{ --sort_input};
+           .  q{ --replace_file};
 
    if($self->bamcheck_flags) {
 	$cmd .= q{ --bamcheck_flags "} . $self->bamcheck_flags . q{"}; # note: raw string, no validation. Should be used carefully
@@ -1792,14 +1781,6 @@ sub _generate_markduplicates_cmd {
 
    $cmd .= qq{ --output_bam $output_bam};
    $cmd .= qq{ --metrics_json $output_json};
-
-   if( $self->not_strip_bam_tag() ){
-      $cmd .= q{ --not_strip_bam_tag};
-   }
-
-   if( $self->no_estimate_library_complexity() ){
-      $cmd .= q{ --no_estimate_library_complexity};
-   }
 
    return $cmd;
 }
