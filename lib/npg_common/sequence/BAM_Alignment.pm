@@ -1776,7 +1776,7 @@ sub _generate_markduplicates_cmd {
    }
 
    if( $alignment_filter ) {
-      $cmd .= qq{ --human_split $alignment_filter};
+      $cmd .= qq{ --subset $alignment_filter};
    }
 
    $cmd .= qq{ --output_bam $output_bam};

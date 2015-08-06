@@ -197,9 +197,8 @@ sub _build__result {
    if(defined $self->tag_index){
       $result->{'tag_index'} = $self->tag_index;
    }
-   my $split = $self->human_split || $self->subset;
-   if($split){
-      $result->{'subset'} = $split;
+   if($self->subset){
+      $result->{'subset'} = $self->subset;
    }
 
    return npg_qc::autoqc::results::bam_flagstats->new($result);
@@ -249,18 +248,6 @@ has 'tag_index'   => (isa        => 'Int',
                       required   => 0,
                       documentation  => 'only for metrics json output',
                      );
-
-=head2 human_split
-
-to show the bam file is phix, human part or nonhuman part
-default 'all', which means not split
-
-=cut
-has 'human_split'   => (isa        => 'Str',
-                        is         => 'rw',
-                        required   => 0,
-                        documentation  => 'retained for backwards compatibility, use subset instead',
-                       );
 
 =head2 subset
 
