@@ -1,14 +1,4 @@
 #!/usr/bin/env perl
-#########
-# Author:        gq1
-# Created:       2011-08-31
-#
-
-#########################
-# This script takes a bam file, possible with phix alignment
-# doing alignment against the given reference
-# and split phix and non-consented hummand reads if required
-##########################
 
 use strict;
 use warnings;
@@ -33,17 +23,21 @@ bam_alignment.pl
 
 =head1 USAGE
 
-scripts/bam_alignment.pl --input  input.bam --is_paired_read --output_prefix output --non_consent_split --spiked_phix_split --reference bwa_reference_prefix --ref_dict picard_reference_dict [--no_alignment]  --not_strip_bam_tag
+bam_alignment.pl --input  input.bam --is_paired_read --output_prefix output --reference --human_reference --phix_reference --ref_dict picard_reference_dict [--no_alignment]
 
 or
 
-scripts/bam_alignment.pl --input  input.bam --output_prefix output --id_run 6551 --position 1 --tag_index --not_strip_bam_tag
+bam_alignment.pl --input  input.bam --output_prefix output --id_run 6551 --position 1 --tag_index
 
 =head1 CONFIGURATION
 
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
+
+This script takes a bam file, possible with phix alignment
+doing alignment against the given reference
+and split phix and non-consented human reads if required.
 
 =head1 SUBROUTINES/METHODS
 
@@ -81,7 +75,7 @@ Guoying Qi E<lt>gq1@sanger.ac.ukE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2011 GRL, by Guoying Qi
+Copyright (C) 2015 GRL
 
 This file is part of NPG.
 

@@ -1,20 +1,9 @@
 #!/usr/bin/env perl
-#########
-# Author:        gq1
-# Created:       2010-06-21
-#
-
-#########################
-# This script can mark duplicates of a bam file using Picard tools if bam having alignment
-# sorting the input bam if requied,
-# and generate bam flagstats json file
-##########################
 
 use strict;
 use warnings;
 use FindBin qw($Bin);
 use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
-
 use npg_common::sequence::BAM_MarkDuplicate;
 
 our $VERSION = '0';
@@ -29,22 +18,13 @@ __END__
 
 bam_mark_duplicate.pl
 
-=head1 VERSION
-
 =head1 USAGE
 
-scripts/bam_mark_duplicate.pl --input_bam 4783_5.bam --output_bam 4783_6_mk.bam --metrics_json 4783_6_bam_flagstats.json
+ bam_mark_duplicate.pl --input_bam 4783_5.bam --output_bam 4783_6_mk.bam --metrics_json 4783_6_bam_flagstats.json
 
- --id_run 4783 --position 5 [ --tag_index 2 --human_split human]
- 
- --sort_input
- 
+ --id_run 4783 --position 5 [ --tag_index 2 --subset human]
  --change_bam_header
- 
  --replace_file 
- 
- --not_strip_bam_tag
-
  --bamcheck_flags
 
 =head1 CONFIGURATION
@@ -52,6 +32,10 @@ scripts/bam_mark_duplicate.pl --input_bam 4783_5.bam --output_bam 4783_6_mk.bam 
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
+
+This script marks duplicates in a bam file using biobambam
+sorting the input bam if requied.
+It also generates bam flagstats json file.
 
 =head1 SUBROUTINES/METHODS
 
@@ -73,6 +57,8 @@ scripts/bam_mark_duplicate.pl --input_bam 4783_5.bam --output_bam 4783_6_mk.bam 
 
 =item warnings
 
+=item lib
+
 =item FindBin
 
 =item npg_common::sequence::BAM::MarkDuplicate
@@ -89,7 +75,7 @@ Guoying Qi E<lt>gq1@sanger.ac.ukE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2011 GRL, by Guoying Qi
+Copyright (C) 2015 GRL
 
 This file is part of NPG.
 
