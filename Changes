@@ -1,5 +1,6 @@
 LIST OF CHANGES
 
+release 50.6
   - mark duplicates:
       - tag stripper is not used any longer - remove code and
         remove option
