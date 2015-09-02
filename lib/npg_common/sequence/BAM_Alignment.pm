@@ -1231,7 +1231,6 @@ sub generate {
   return;
 }
 
-
 sub _soft_link_output{
     my $self = shift;
 
@@ -1715,12 +1714,9 @@ sub _generate_markduplicates_cmd {
 
    FindBin::again();
 
-   my $cmd = catfile($Bin, $BAM_MARK_DUPLICATES_CMD)
-           . qq{ --input_bam $bam}
-           .  q{ --replace_file};
-
+   my $cmd = catfile($Bin, $BAM_MARK_DUPLICATES_CMD) . qq{ --input_bam $bam};
    if($self->bamcheck_flags) {
-	$cmd .= q{ --bamcheck_flags "} . $self->bamcheck_flags . q{"}; # note: raw string, no validation. Should be used carefully
+      $cmd .= q{ --bamcheck_flags "} . $self->bamcheck_flags . q{"}; # note: raw string, no validation. Should be used carefully
    }
 
    if ($reference) {
