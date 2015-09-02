@@ -498,27 +498,6 @@ has 'output_prefix'   => (isa           => q{Str},
                           documentation => q{prefix for output bam file},
                          );
 
-=head2 do_markduplicates
-
-sort by coordinates and mark duplicates for output bams
-
-=cut
-has 'do_markduplicates'=> (isa           => q{Bool},
-                           is            => q{ro},
-                           required      => 0,
-                           documentation => q{sort by coordinates and mark duplicates for output bams},
-                          );
-=head2 not_strip_bam_tag
-
-not strip any tag from output bam records
-
-=cut
-has 'not_strip_bam_tag'  => (isa             => 'Bool',
-                             is              => 'rw',
-                             required        => 0,
-                             documentation   => 'not strip any tag from output bam records',
-                           );
-
 =head2 spiked_phix_output
 
 output bam file name with path for spiked phix
@@ -1192,7 +1171,7 @@ sub generate {
   my $self = shift;
 
   if(! -e $self->input() ){
-     croak 'The input bam file does not exist: ' . $self->input();
+    croak 'The input bam file does not exist: ' . $self->input();
   }
 
   $self->log( q{Starting doing alignments} );
@@ -1203,59 +1182,53 @@ sub generate {
   $self->_run_bwa_sam();
 
   if($self->no_alignment() &&  !$self->non_consent_split() && ! $self->spiked_phix_split() ) {
-     $self->_soft_link_output();
+    $self->_soft_link_output();
   }
 
   my $qc_command = $self->alignment_metrics_autoqc_command;
   if ( ($self->non_consent_split() || $self->spiked_phix_split()) && $qc_command ) {
-     if (which($QC_EXECUTABLE_NAME)) {
-         $self->log("Executing $qc_command");
-         system $qc_command;
-         if( $CHILD_ERROR >> $EXIT_CODE_SHIFT ){
-             croak "Alignment filter autoqc check failed: $ERRNO\n$qc_command";
-         }
-     } else {
-         carp 'autoqc modules not available, not parsing the output of the alignment filter'
-     }
+    if (which($QC_EXECUTABLE_NAME)) {
+      $self->log("Executing $qc_command");
+      system $qc_command;
+      if( $CHILD_ERROR >> $EXIT_CODE_SHIFT ){
+        croak "Alignment filter autoqc check failed: $ERRNO\n$qc_command";
+      }
+    } else {
+      carp 'autoqc modules not available, not parsing the output of the alignment filter'
+    }
   }
 
   remove_tree( $self->temp_dir(), {keep_root => 1, verbose => 1} );
 
-  if( $self->do_markduplicates() ){
+  $self->log( q{Sorting output and mark duplicates now} );
 
-     $self->log( q{Sorting output and mark duplicates now} );
+  my @markduplicates_commands = ();
+  push @markduplicates_commands, $self->_generate_markduplicates_cmd( $self->output(), undef, $self->reference() );
 
-     my @markduplicates_commands = ();
-
-     push @markduplicates_commands, $self->_generate_markduplicates_cmd( $self->output(), undef, $self->reference() );
-
-     if( $self->non_consent_split() ) {
-        # the sample reference is not human, non consented output aligned to the default human reference
-        push @markduplicates_commands, $self->_generate_markduplicates_cmd($self->non_consented_output(), $self->nonconsented_file_name_suffix, $self->human_reference());
-     }
-
-     if( $self->contains_nonconsented_xahuman() || $self->separate_y_chromosome_data() ) {
-        # the sample reference is human, non consented output aligned to the sample reference
-        push @markduplicates_commands, $self->_generate_markduplicates_cmd($self->non_consented_output(), $self->nonconsented_file_name_suffix, $self->reference());
-     }
-
-     if( $self->spiked_phix_split() ) {
-        push @markduplicates_commands, $self->_generate_markduplicates_cmd($self->spiked_phix_output(), q{phix}, $self->phix_reference());
-     }
-
-     foreach my $mk_cmd ( @markduplicates_commands ){
-         $self->log( $mk_cmd );
-         system $mk_cmd;
-         if( $CHILD_ERROR >> $EXIT_CODE_SHIFT ){
-             croak "Mark duplicates command failed: $ERRNO";
-         }
-     }
-
+  if( $self->non_consent_split() ) {
+    # the sample reference is not human, non consented output aligned to the default human reference
+    push @markduplicates_commands, $self->_generate_markduplicates_cmd($self->non_consented_output(), $self->nonconsented_file_name_suffix, $self->human_reference());
   }
 
+  if( $self->contains_nonconsented_xahuman() || $self->separate_y_chromosome_data() ) {
+    # the sample reference is human, non consented output aligned to the sample reference
+    push @markduplicates_commands, $self->_generate_markduplicates_cmd($self->non_consented_output(), $self->nonconsented_file_name_suffix, $self->reference());
+  }
+
+  if( $self->spiked_phix_split() ) {
+    push @markduplicates_commands, $self->_generate_markduplicates_cmd($self->spiked_phix_output(), q{phix}, $self->phix_reference());
+  }
+
+  foreach my $mk_cmd ( @markduplicates_commands ){
+    $self->log( $mk_cmd );
+    system $mk_cmd;
+    if( $CHILD_ERROR >> $EXIT_CODE_SHIFT ){
+      croak "Mark duplicates command failed: $ERRNO";
+    }
+  }
   $self->log('Finished in BAM_Alignment!');
 
-  return 1;
+  return;
 }
 
 
@@ -1303,18 +1276,17 @@ sub _run_bwa_alns {
   }
 
   if( scalar @aln_commands == 0 ){
-     $self->log('No alignment needed');
-     return 0;
+    $self->log('No alignment needed');
+    return 0;
   }
 
   foreach my $command ( @aln_commands ) {
 
-     $self->log($command);
-     system $command;
-     if( $CHILD_ERROR >> $EXIT_CODE_SHIFT ){
-        croak "bwa align failed: $ERRNO\n$command";
-     }
-
+    $self->log($command);
+    system $command;
+    if( $CHILD_ERROR >> $EXIT_CODE_SHIFT ){
+      croak "bwa align failed: $ERRNO\n$command";
+    }
   }
 
   return scalar @aln_commands;

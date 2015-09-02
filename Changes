@@ -1,5 +1,8 @@
 LIST OF CHANGES
-
+  
+  - bam alignment:
+      remove redundant not_strip_bam_tag flag
+      remove do_markduplicates flag and always call mark duplicates
   - to be forward compatible with pending changes in bam_flagstats, bam_flagstats parser
     is called via top-level execute() method ot be forward compatible
 

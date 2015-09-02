@@ -23,7 +23,7 @@ my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam
 {
   local $ENV{CLASSPATH} = $test_classpath;
   my $bam = npg_common::sequence::BAM_Alignment->new(
-               { input             => 'input.bam',
+                 input             => 'input.bam',
                  is_paired_read    => 1,
                  non_consent_split => 1,
                  spiked_phix_split => 1,       
@@ -34,7 +34,7 @@ my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam
                  temp_dir          => $temp_dir,
                  reference         => 'reference.fasta',
                  java_xmx_flag     => $java_memory,
-               });
+               );
                
   isa_ok( $bam, 'npg_common::sequence::BAM_Alignment', 'object test' );
   
@@ -127,7 +127,7 @@ my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam
   local $ENV{CLASSPATH} = $test_classpath;
   local $ENV{LSB_MCPU_HOSTS} = q(sf-3-3-12 6);
   my $bam = npg_common::sequence::BAM_Alignment->new(
-               { input             => 'input.bam',
+                 input             => 'input.bam',
                  is_paired_read    => 1,
                  non_consent_split => 1,
                  spiked_phix_split => 1,
@@ -137,7 +137,7 @@ my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam
                  samtools_cmd      => 't/bin/aligners/samtools/current/samtools',
                  temp_dir          => $temp_dir,
                  reference         => 'reference.fasta',
-               });
+               );
 
   is( $bam->bwa_cmd(), join(q[/], getcwd(), q[t/bin/bwa]), 'correct aligner command with absolute path' );
   is( $bam->bwa_aln_options(), '-q 15 -t 6', 'default (LSF aware) bwa aln options');
@@ -151,7 +151,7 @@ my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam
 {
   local $ENV{CLASSPATH} = $test_classpath;
   my $bam = npg_common::sequence::BAM_Alignment->new(
-               { input             => 'input.bam',
+                 input             => 'input.bam',
                  is_paired_read    => 0,
                  non_consent_split => 0,
                  spiked_phix_split => 0,       
@@ -159,7 +159,7 @@ my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam
                  output_prefix     => 'output',
                  temp_dir          => $temp_dir,
                  bwa_cmd           => 't/bin/aligners/bwa/current/bwa',
-              });
+              );
                
   isa_ok($bam, 'npg_common::sequence::BAM_Alignment', 'object test');
 
@@ -192,7 +192,7 @@ my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam
 { 
   local $ENV{CLASSPATH} = $test_classpath;
   my $bam = npg_common::sequence::BAM_Alignment->new(
-               { input             => 'input.bam',
+                 input             => 'input.bam',
                  is_paired_read    => 0,
                  non_consent_split => 1,
                  spiked_phix_split => 1,       
@@ -201,7 +201,7 @@ my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam
                  bwa_cmd           => 't/bin/aligners/bwa/current/bwa',
                  reference         => 'reference.fasta',
                  human_reference   => 'human_reference.fasta',
-               });
+               );
                
   isa_ok($bam, 'npg_common::sequence::BAM_Alignment', 'object test');
 
@@ -277,13 +277,13 @@ SKIP: {
 {
   local $ENV{CLASSPATH} = $test_classpath;
   my $bam = npg_common::sequence::BAM_Alignment->new(
-               { input             => 't/data/sequence/6062_1#0.bam',  
+                 input             => 't/data/sequence/6062_1#0.bam',  
                  output_prefix     => 'output',
                  temp_dir          => $temp_dir,
                  reference         => 'reference.fasta',
                  human_reference   => 'human_reference.fasta',
                  alignment_metrics_autoqc_command => undef,
-              });
+               );
   
   ok(! $bam->_lims(), 'no id_run given, no lims object');
   ok(!$bam->is_paired_read(), 'is_paired_read is false when no id_run given');
@@ -301,16 +301,15 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
      local $ENV{CLASSPATH} = $test_classpath;
    
      my $bam = npg_common::sequence::BAM_Alignment->new(
-               { input             => 't/data/sequence/6062_1#0.bam',     
+                input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 'output',
                  temp_dir          => $temp_dir,
                  id_run          => 5175,
                  is_paired_read  => 1,
                  position        => 1,
                  tag_index       => 1,
-                 not_strip_bam_tag => 1,
                  alignment_metrics_autoqc_command => undef,
-               });
+               );
       isa_ok($bam->_lims(), 'st::api::lims', 'lims object created');
 
       ok($bam->is_paired_read(), 'run 5175 is paired read run');
@@ -340,16 +339,15 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
 
     local $ENV{CLASSPATH} = $test_classpath;
     my $bam = npg_common::sequence::BAM_Alignment->new(
-               { input             => 't/data/sequence/6062_1#0.bam',     
+                input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 'output',
                  temp_dir          => $temp_dir,
                  id_run          => 5175,
                  is_paired_read  => 1,
                  position        => 1,
                  tag_index       => 0,
-                 not_strip_bam_tag => 1,
                  alignment_metrics_autoqc_command => undef,
-               });
+               );
     ok(!$bam->no_alignment(), 'run 5175 lane 1 plex 0 will be aligned');
 
     $bam = npg_common::sequence::BAM_Alignment->new(
@@ -359,7 +357,6 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
                  id_run          => 5175,
                  is_paired_read  => 1,
                  position        => 1,
-                 not_strip_bam_tag => 1,
                  alignment_metrics_autoqc_command => undef,
                });
     ok(!$bam->no_alignment(), 'run 5175 lane 1 will be aligned');
@@ -370,39 +367,36 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
   local $ENV{CLASSPATH} = $test_classpath;
 
   my $bam = npg_common::sequence::BAM_Alignment->new(
-               { input             => 't/data/sequence/6062_1#0.bam',     
+                 input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 't/data/output/6062_1#',
                  temp_dir          => $temp_dir,
                  id_run          => 5175,
                  is_paired_read  => 1,
                  position        => 1,
                  tag_index       => 1,
-                 not_strip_bam_tag => 1,
                  reference       => $human,
-               });
+               );
   is ($bam->alignment_metrics_autoqc_command, 'qc --check alignment_filter_metrics --id_run 5175 --position 1 --qc_in t/data/output --qc_out t/data/output --tag_index 1', 'correct alignment_metrics_autoqc_command');
 
   my $qc_in = getcwd();
   $bam = npg_common::sequence::BAM_Alignment->new(
-               { input             => 't/data/sequence/6062_1#0.bam',     
+                 input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => '6062_1#',
                  temp_dir          => $temp_dir,
                  id_run          => 5175,
                  is_paired_read  => 1,
                  position        => 1,
                  tag_index       => 1,
-                 not_strip_bam_tag => 1,
                  reference       => $human,
-               });
+               );
   is ($bam->alignment_metrics_autoqc_command, "qc --check alignment_filter_metrics --id_run 5175 --position 1 --qc_in $qc_in --qc_out $qc_in --tag_index 1", 'correct alignment_metrics_autoqc_command');
 
   $bam = npg_common::sequence::BAM_Alignment->new(
-               { input             => 't/data/sequence/6062_1#0.bam',     
+                 input             => 't/data/sequence/6062_1#0.bam',     
                  output_prefix     => 'output/6062_1#',
                  temp_dir          => $temp_dir,
-                 not_strip_bam_tag => 1,
                  reference       => $human,
-               });
+               );
   is( $bam->alignment_metrics_autoqc_command, undef, 'alignment metrics autoqc command not defined since id_run and position not given');
 }
 
