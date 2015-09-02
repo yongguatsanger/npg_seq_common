@@ -10,10 +10,11 @@ use Perl6::Slurp;
 use Parallel::ForkManager;
 use POSIX qw(mkfifo);
 use IPC::Open3;
-use npg_qc::autoqc::results::bam_flagstats;
 use File::Basename;
 use autodie qw(:all);
 use Readonly;
+
+use npg_qc::autoqc::results::bam_flagstats;
 
 with qw/
         MooseX::Getopt
@@ -173,35 +174,6 @@ sub _build_sorted_input_bam_prefix {
    my $self = shift;
 
    return catfile ($self->temp_dir(), q[sorted]);
-}
-
-=head2 _result
-
-autoqc result object
-
-=cut
-has '_result'             => ( isa            => 'npg_qc::autoqc::results::bam_flagstats',
-                               is              => 'rw',
-                               lazy_build      => 1,
-                             );
-sub _build__result {
-   my $self = shift;
-
-   my $result = {};
-   if($self->id_run()){
-      $result->{'id_run'} = $self->id_run;
-   }
-   if($self->position()){
-      $result->{'position'} = $self->position;
-   }
-   if(defined $self->tag_index){
-      $result->{'tag_index'} = $self->tag_index;
-   }
-   if($self->subset){
-      $result->{'subset'} = $self->subset;
-   }
-
-   return npg_qc::autoqc::results::bam_flagstats->new($result);
 }
 
 =head2 metrics_json
@@ -1062,8 +1034,6 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
      croak 'Input bam file does not exist to mark duplicate: '.$self->input_bam();
   }
 
-  $self->_version_info();
-
   if( !$self->no_alignment() ){
 
       $self->log('Sort input bam file');
@@ -1152,12 +1122,7 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
 
   $pm->wait_all_children;
 
-  $self->log('Parsing metrics file:' . $self->metrics_json);
-  if (-e $self->metrics_file()) {
-    $self->_result->parsing_metrics_file($self->metrics_file());
-  }
-  $self->_flagstats($flagstat_file_name_mk);
-  $self->_result->store($self->metrics_json);
+  $self->_bam_flagstats_qc();
 
   my $mark_duplicate_cmd = $self->_tee_cmd();
   $bam_to_stats = $self->output_bam();
@@ -1262,19 +1227,33 @@ sub _move_file {
    return;
 }
 
-sub _flagstats {
-  my ($self, $bam) = @_;
-  open my$fh, '<', $bam || croak "_flagstats(): Can't open $bam ($ERRNO)";
-  $self->_result->parsing_flagstats($fh);
-  close $fh;
-  return 1;
+sub _bam_flagstats_qc {
+   my $self = shift;
+
+   my $result = {'sequence_file' => $self->output_bam};
+   if($self->id_run()){
+      $result->{'id_run'} = $self->id_run;
+   }
+   if($self->position()){
+      $result->{'position'} = $self->position;
+   }
+   if(defined $self->tag_index){
+      $result->{'tag_index'} = $self->tag_index;
+   }
+   if($self->subset){
+      $result->{'subset'} = $self->subset;
+   }
+
+   my $robj = npg_qc::autoqc::results::bam_flagstats->new($result);
+   $self->log('Calling bam_flagstats execute() method');
+   $robj->execute();
+   $robj->set_info('Samtools', $self->current_version($self->samtools_cmd) || q[not known]);
+   $self->log('Serializing bam_flagstats object to ' . $self->metrics_json);
+   $robj->store($self->metrics_json);
+
+   return $robj;
 }
 
-sub _version_info {
-  my $self = shift;
-  $self->_result->set_info('Samtools', $self->current_version($self->samtools_cmd) || q[not known]);
-  return;
-}
 
 no Moose;
 

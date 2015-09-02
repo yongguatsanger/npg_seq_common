@@ -1,5 +1,8 @@
 LIST OF CHANGES
 
+  - to be forward compatible with pending changes in bam_flagstats, bam_flagstats parser
+    is called via top-level execute() method ot be forward compatible
+
 release 50.6
   - mark duplicates:
       - tag stripper is not used any longer - remove code and
