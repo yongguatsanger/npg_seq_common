@@ -20,12 +20,11 @@ bam_mark_duplicate.pl
 
 =head1 USAGE
 
- bam_mark_duplicate.pl --input_bam 4783_5.bam --output_bam 4783_6_mk.bam --metrics_json 4783_6_bam_flagstats.json
-
- --id_run 4783 --position 5 [ --tag_index 2 --subset human]
- --change_bam_header
- --replace_file 
- --bamcheck_flags
+ bam_mark_duplicate.pl --input_bam 4783_5.bam \
+                       --output_bam 4783_6_mk.bam \
+                       --metrics_json 4783_6_bam_flagstats.json \
+                       --id_run 4783 --position 5 [ --tag_index 2 --subset human] \
+                       --bamcheck_flags
 
 =head1 CONFIGURATION
 
