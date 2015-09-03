@@ -3,7 +3,7 @@ package npg_common::sequence::BAM_MarkDuplicate;
 use Moose;
 use Carp;
 use English qw(-no_match_vars);
-use File::Temp qw/ tempfile tempdir /;
+use File::Temp qw( tempdir );
 use File::Spec::Functions qw(catfile);
 use File::Copy qw(move);
 use Perl6::Slurp;
@@ -1027,7 +1027,7 @@ main method to call
 
 =cut
 
-sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
+sub process {
   my $self = shift;
 
   if( ! -e $self->input_bam() ){
@@ -1127,12 +1127,11 @@ sub _finalise_output {
       $self->_index_file_name_mk          => 'bai',
       $self->_bamcheck_file_name_mk       => 'bamcheck',
       $self->_md5_file_name_mk            => 'bam.md5',
-      $self->_alt_seqchksum_file_name_mk  => 'bam.sha512primesums512.seqchksum',
-      $self->_bam_seqchksum_file_name_mk  => 'bam.seqchksum',
+      $self->_alt_seqchksum_file_name_mk  => 'sha512primesums512.seqchksum',
+      $self->_bam_seqchksum_file_name_mk  => 'seqchksum',
       $self->_cram_file_name_mk           => 'cram',
       $self->_cram_index_file_name_mk     => 'cram.crai',
       $self->_cram_md5_file_name_mk       => 'cram.md5',
-      $self->_cram_seqchksum_file_name_mk => 'cram.seqchksum',
   };
   foreach my $suf (qw(_quality_cycle_caltable.txt _quality_cycle_surv.txt _quality_error.txt)) {
     my $file_name_mk = $self->output_bam;
@@ -1230,11 +1229,17 @@ __END__
 
 =item File::Temp
 
-=item IPC::Open3
-
 =item File::Basename
 
+=item File::Spec::Functions
+
+=item File::Copy
+
 =item autodie qw(:all)
+
+=item IPC::Open3
+
+=item POSIX
 
 =item npg_qc::autoqc::results::bam_flagstats
 

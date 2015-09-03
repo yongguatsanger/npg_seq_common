@@ -225,7 +225,7 @@ subtest 'subtest 3' => sub {
 };
 
 subtest 'subtest 4' => sub {
-  my $num_tests = 9;
+  my $num_tests = 8;
   plan tests => $num_tests;
 
   SKIP: {
@@ -254,16 +254,15 @@ subtest 'subtest 4' => sub {
       
       ok (-e "$temp_dir/non_aligned.cram", 'non-aligned CRAM file created');
       ok (-e "$temp_dir/non_aligned.cram.md5", 'non-aligned CRAM md5 file created');
-      ok (-e "$temp_dir/non_aligned.cram.seqchksum", 'non-aligned CRAM seqchksum file created');
-      ok (-e "$temp_dir/non_aligned.bam.seqchksum", 'non-aligned BAM seqchksum file created');
-      ok (-e "$temp_dir/non_aligned.bam.sha512primesums512.seqchksum",
+      ok (-e "$temp_dir/non_aligned.seqchksum", 'non-aligned BAM seqchksum file created');
+      ok (-e "$temp_dir/non_aligned.sha512primesums512.seqchksum",
        'non-aligned sha512primesums512 seqchksum file created');
       ok (-e $metrics_json, 'file with serialized bam_flagstats object exists');
   }
 };
 
 subtest 'subtest 5' => sub {
-  my $num_tests = 18;
+  my $num_tests = 17;
   plan tests => $num_tests;
 
   SKIP: {
@@ -360,7 +359,6 @@ subtest 'subtest 5' => sub {
       is (!-z "$temp_dir/no_align_quality_cycle_surv.txt", 1, 'Quality surv created with contents');
       is (!-z "$temp_dir/no_align_quality_error.txt", 1, 'Quality error table created with contents');
       is (-e "$temp_dir/no_align.cram", 1, 'CRAM file created if no_alignment flag used');
-      is (-e "$temp_dir/no_align.cram.seqchksum", 1, 'CRAM seqchksum file created if no_alignment flag used');
       is (!-z "$temp_dir/no_align.bam.seqchksum", 1, 'BAM seqchksum file created with contents if no_alignment flag used');
       ok (-e $metrics_json, 'file with serialized bam_flagstats object exists');
   }
