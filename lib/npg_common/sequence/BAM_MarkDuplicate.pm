@@ -1122,16 +1122,16 @@ sub _finalise_output {
   $self->_move_file($self->output_bam, $self->input_bam);
 
   my $to_move = {
-      $self->metrics_file                 => 'markdups_metrics.txt',
-      $self->_flagstat_file_name_mk       => 'flagstat',
-      $self->_index_file_name_mk          => 'bai',
-      $self->_bamcheck_file_name_mk       => 'bamcheck',
-      $self->_md5_file_name_mk            => 'bam.md5',
-      $self->_alt_seqchksum_file_name_mk  => 'sha512primesums512.seqchksum',
-      $self->_bam_seqchksum_file_name_mk  => 'seqchksum',
-      $self->_cram_file_name_mk           => 'cram',
-      $self->_cram_index_file_name_mk     => 'cram.crai',
-      $self->_cram_md5_file_name_mk       => 'cram.md5',
+      $self->metrics_file                 => '.markdups_metrics.txt',
+      $self->_flagstat_file_name_mk       => '.flagstat',
+      $self->_index_file_name_mk          => '.bai',
+      $self->_bamcheck_file_name_mk       => '.bamcheck',
+      $self->_md5_file_name_mk            => '.bam.md5',
+      $self->_alt_seqchksum_file_name_mk  => '.sha512primesums512.seqchksum',
+      $self->_bam_seqchksum_file_name_mk  => '.seqchksum',
+      $self->_cram_file_name_mk           => '.cram',
+      $self->_cram_index_file_name_mk     => '.cram.crai',
+      $self->_cram_md5_file_name_mk       => '.cram.md5',
   };
   foreach my $suf (qw(_quality_cycle_caltable.txt _quality_cycle_surv.txt _quality_error.txt)) {
     my $file_name_mk = $self->output_bam;
@@ -1140,7 +1140,7 @@ sub _finalise_output {
   }
 
   my $root = $self->input_bam;
-  $root =~ s/bam\Z//xms;
+  $root =~ s/[.]bam\Z//xms;
   while ( my ($f, $ext) = each %{$to_move} ) {
     $self->_move_file($f, $root.$ext);
   }
