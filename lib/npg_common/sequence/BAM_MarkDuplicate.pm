@@ -3,17 +3,18 @@ package npg_common::sequence::BAM_MarkDuplicate;
 use Moose;
 use Carp;
 use English qw(-no_match_vars);
-use File::Temp qw/ tempfile tempdir /;
+use File::Temp qw( tempdir );
 use File::Spec::Functions qw(catfile);
 use File::Copy qw(move);
 use Perl6::Slurp;
 use Parallel::ForkManager;
 use POSIX qw(mkfifo);
 use IPC::Open3;
-use npg_qc::autoqc::results::bam_flagstats;
 use File::Basename;
 use autodie qw(:all);
 use Readonly;
+
+use npg_qc::autoqc::results::bam_flagstats;
 
 with qw/
         MooseX::Getopt
@@ -133,9 +134,10 @@ has 'metrics_file'   => ( isa             => 'Str',
                           lazy_build      => 1,
                           documentation   => 'output metrics file name',
                         );
-
 sub _build_metrics_file {
-   my ($fh, $filename) = tempfile(UNLINK => 1);
+   my $self = shift;
+   my $filename = $self->output_bam;
+   $filename =~ s/[.]bam$/.markdups_metrics.txt/mxs;
    return $filename;
 }
 
@@ -171,37 +173,7 @@ has 'sorted_input_bam_prefix'=> ( isa            => 'Str',
 
 sub _build_sorted_input_bam_prefix {
    my $self = shift;
-
    return catfile ($self->temp_dir(), q[sorted]);
-}
-
-=head2 _result
-
-autoqc result object
-
-=cut
-has '_result'             => ( isa            => 'npg_qc::autoqc::results::bam_flagstats',
-                               is              => 'rw',
-                               lazy_build      => 1,
-                             );
-sub _build__result {
-   my $self = shift;
-
-   my $result = {};
-   if($self->id_run()){
-      $result->{'id_run'} = $self->id_run;
-   }
-   if($self->position()){
-      $result->{'position'} = $self->position;
-   }
-   if(defined $self->tag_index){
-      $result->{'tag_index'} = $self->tag_index;
-   }
-   if($self->subset){
-      $result->{'subset'} = $self->subset;
-   }
-
-   return npg_qc::autoqc::results::bam_flagstats->new($result);
 }
 
 =head2 metrics_json
@@ -1055,40 +1027,22 @@ main method to call
 
 =cut
 
-sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
+sub process {
   my $self = shift;
 
   if( ! -e $self->input_bam() ){
      croak 'Input bam file does not exist to mark duplicate: '.$self->input_bam();
   }
 
-  $self->_version_info();
-
   if( !$self->no_alignment() ){
-
-      $self->log('Sort input bam file');
-      my $sort_cmd = $self->sort_cmd();
-      $self->log("sort_command: $sort_cmd");
-      my $sort_rs = system $sort_cmd;
-      if( $sort_rs ) {
-         croak 'Biobambam sort failed!';
-      }
+    $self->log('Sort input bam file');
+    my $sort_cmd = $self->sort_cmd();
+    $self->log("sort_command: $sort_cmd");
+    my $sort_rs = system $sort_cmd;
+    if( $sort_rs ) {
+       croak 'Biobambam sort failed!';
+    }
   }
-
-  my $flagstat_file_name_mk = $self->_flagstat_file_name_mk;
-  my $index_file_name_mk = $self->_index_file_name_mk;
-  my $bamcheck_file_name_mk = $self->_bamcheck_file_name_mk;
-  my $md5_file_name_mk = $self->_md5_file_name_mk;
-  my $cram_md5_file_name_mk = $self->_cram_md5_file_name_mk;
-  my $cram_md5_fifo_name_mk = $self->_cram_md5_fifo_name_mk;
-  my $cram_file_name_mk = $self->_cram_file_name_mk;
-  my $cram_index_file_name_mk = $self->_cram_index_file_name_mk;
-  my $cram_fifo_name_mk = $self->_cram_fifo_name_mk;
-  my $bam_seqchksum_file_name_mk = $self->_bam_seqchksum_file_name_mk;
-  my $bam_seqchksum_fifo_name_mk = $self->_bam_seqchksum_fifo_name_mk;
-  my $alt_seqchksum_file_name_mk = $self->_alt_seqchksum_file_name_mk;
-  my $cram_seqchksum_file_name_mk = $self->_cram_seqchksum_file_name_mk;
-  my $cram_seqchksum_fifo_name_mk = $self->_cram_seqchksum_fifo_name_mk();
 
   my @fifos = ();
   push @fifos,  $self->_bam_md5_fifo_name_mk;
@@ -1103,18 +1057,16 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
     push @fifos,  $self->_cram_index_fifo_name_mk;
   }
 
-  push @fifos,  $bam_seqchksum_fifo_name_mk;
+  push @fifos,  $self->_bam_seqchksum_fifo_name_mk;
   push @fifos,  $self->_bam_scramble_fifo_name_mk;
-  push @fifos,  $cram_seqchksum_fifo_name_mk;
-  push @fifos,  $cram_md5_fifo_name_mk;
-  push @fifos,  $cram_fifo_name_mk;
+  push @fifos,  $self->_cram_seqchksum_fifo_name_mk;
+  push @fifos,  $self->_cram_md5_fifo_name_mk;
+  push @fifos,  $self->_cram_fifo_name_mk;
 
   foreach my $fifo (@fifos) {
     $self->log("Making fifo $fifo");
     mkfifo $fifo, $FIFO_MODE or croak "Failed to make fifo $fifo ($ERRNO)";
   }
-
-  my $bam_to_stats = $self->input_bam();
 
   $self->log('Setting up fork commands');
 
@@ -1144,137 +1096,111 @@ sub process { ## no critic (Subroutines::ProhibitExcessComplexity)
   );
 
   foreach my $command (@{$fork_cmds}) {
-      $pm->start($command) and next;
-      exec $command or
-        $self->log("$command does not exist"); # only checks the first command in the pipe
-      $pm->finish($CHILD_ERROR >> $EXIT_CODE_SHIFT);
-   };
+    $pm->start($command) and next;
+    exec $command or
+      $self->log("$command does not exist"); # only checks the first command in the pipe
+    $pm->finish($CHILD_ERROR >> $EXIT_CODE_SHIFT);
+  }
 
   $pm->wait_all_children;
 
-  $self->log('Parsing metrics file:' . $self->metrics_json);
-  if (-e $self->metrics_file()) {
-    $self->_result->parsing_metrics_file($self->metrics_file());
+  if ( !$self->_tee_cmd() ) {
+    $self->log('WEIRDNESS WARNING: mark_duplicate_cmd is NOT returned');
   }
-  $self->_flagstats($flagstat_file_name_mk);
-  $self->_result->store($self->metrics_json);
-
-  my $mark_duplicate_cmd = $self->_tee_cmd();
-  $bam_to_stats = $self->output_bam();
-
-  if ($self->replace_file && $mark_duplicate_cmd) {
-    $self->log('Replacing input files with duplicates marked file');
-    $self->_move_file($self->output_bam, $self->input_bam);
-
-    if (-e $flagstat_file_name_mk) {
-      my $flagstat_file_name = $self->input_bam;
-      $flagstat_file_name =~ s/bam$/flagstat/mxs;
-      $self->_move_file($flagstat_file_name_mk, $flagstat_file_name);
-    }
-
-    if (-e $index_file_name_mk) {
-      my $index_file_name = $self->input_bam;
-      $index_file_name =~ s/bam$/bai/mxs;
-      $self->_move_file($index_file_name_mk, $index_file_name);
-    }
-
-    if (-e $bamcheck_file_name_mk) {
-      my $bamcheck_file_name = $self->input_bam;
-      $bamcheck_file_name =~ s/bam$/bamcheck/mxs;
-      $self->_move_file($bamcheck_file_name_mk, $bamcheck_file_name);
-    }
-
-    if (-e $md5_file_name_mk) {
-      my $md5_file_name = $self->input_bam;
-      $md5_file_name =~ s/bam$/bam.md5/mxs;
-      $self->_move_file($md5_file_name_mk, $md5_file_name);
-    }
-
-    if (-e $cram_file_name_mk) {
-      my $cram_file_name = $self->input_bam;
-      $cram_file_name =~ s/bam$/cram/mxs;
-      $self->_move_file($cram_file_name_mk, $cram_file_name);
-    }
-
-    if (-e $cram_index_file_name_mk) {
-      my $cram_index_file_name = $self->input_bam;
-      $cram_index_file_name =~ s/bam$/cram.crai/mxs;
-      $self->_move_file($cram_index_file_name_mk, $cram_index_file_name);
-    }
-
-    if (-e $cram_md5_file_name_mk) {
-      my $cram_md5_file_name = $self->input_bam;
-      $cram_md5_file_name =~ s/bam$/cram.md5/mxs;
-      $self->_move_file($cram_md5_file_name_mk, $cram_md5_file_name);
-    }
-
-    if (-e $alt_seqchksum_file_name_mk){
-      my $alt_seqchksum_file_name = $self->input_bam;
-      $alt_seqchksum_file_name =~ s/bam$/sha512primesums512.seqchksum/mxs;
-      $self->_move_file($alt_seqchksum_file_name_mk,$alt_seqchksum_file_name);
-    }
-
-    if (-e $bam_seqchksum_file_name_mk) {
-      my $bam_seqchksum_file_name = $self->input_bam;
-      $bam_seqchksum_file_name =~ s/bam$/seqchksum/mxs;
-      $self->_move_file($bam_seqchksum_file_name_mk, $bam_seqchksum_file_name);
-    }
-
-    if (-e $cram_seqchksum_file_name_mk) {
-      $self->_remove_file($cram_seqchksum_file_name_mk);
-    }
-
-    foreach my$suf (qw(_quality_cycle_caltable.txt _quality_cycle_surv.txt _quality_error.txt)){
-      my $file_name = $self->input_bam;
-      $file_name =~ s/[.]bam$/$suf/mxs;
-      my $file_name_mk = $self->output_bam;
-      $file_name_mk =~ s/[.]bam$/$suf/mxs;
-      if (-e $file_name_mk){
-        $self->_move_file($file_name_mk,$file_name);
-      }
-    }
-    $self->log('Removing fifos');
-    foreach my$fifo (@fifos) { $self->_remove_file($fifo); }
-  } else {
-    $self->log('Renaming files NOT done');
-    if (!$self->replace_file) { $self->log('WEIRDNESS WARNING: --replace_file flag is NOT set'); }
-    if (!$mark_duplicate_cmd) { $self->log('WEIRDNESS WARNING: mark_duplicate_cmd is NOT set'); }
-  }
+  $self->_finalise_output(\@fifos);
+  $self->_bam_flagstats_qc();
 
   $self->log('Finished in BAM_Markduplicate!');
 
   return 1;
 }
 
-sub _remove_file {
-   my ($self, $source) = @_;
+sub _finalise_output {
+  my ($self, $fifos) = @_;
+  $self->log('Replacing input files with duplicates marked file');
 
-   $self->log("Deleting $source");
-   unlink $source or croak "Failed to delete $source ($ERRNO)";
-   return;
+  $self->_move_file($self->output_bam, $self->input_bam);
+
+  my $to_move = {
+      $self->metrics_file                 => '.markdups_metrics.txt',
+      $self->_flagstat_file_name_mk       => '.flagstat',
+      $self->_index_file_name_mk          => '.bai',
+      $self->_bamcheck_file_name_mk       => '.bamcheck',
+      $self->_md5_file_name_mk            => '.bam.md5',
+      $self->_alt_seqchksum_file_name_mk  => '.sha512primesums512.seqchksum',
+      $self->_bam_seqchksum_file_name_mk  => '.seqchksum',
+      $self->_cram_file_name_mk           => '.cram',
+      $self->_cram_index_file_name_mk     => '.cram.crai',
+      $self->_cram_md5_file_name_mk       => '.cram.md5',
+  };
+  foreach my $suf (qw(_quality_cycle_caltable.txt _quality_cycle_surv.txt _quality_error.txt)) {
+    my $file_name_mk = $self->output_bam;
+    $file_name_mk =~ s/[.]bam$/$suf/mxs;
+    $to_move->{$file_name_mk} = $suf;
+  }
+
+  my $root = $self->input_bam;
+  $root =~ s/[.]bam\Z//xms;
+  while ( my ($f, $ext) = each %{$to_move} ) {
+    $self->_move_file($f, $root.$ext);
+  }
+
+  if (-e $self->_cram_seqchksum_file_name_mk) {
+    $self->_remove_file($self->_cram_seqchksum_file_name_mk);
+  }
+
+  $self->log('Removing fifos');
+  foreach my $fifo ( @{$fifos} ) {
+    $self->_remove_file($fifo);
+  }
+
+  return;
+}
+
+sub _remove_file {
+  my ($self, $source) = @_;
+  $self->log("Deleting $source");
+  unlink $source or croak "Failed to delete $source ($ERRNO)";
+  return;
 }
 
 sub _move_file {
-   my ($self, $source, $des) = @_;
-
-   $self->log("Moving $source to $des");
-   move $source, $des or croak "Failed to move $source to $des ($ERRNO)";
-   return;
-}
-
-sub _flagstats {
-  my ($self, $bam) = @_;
-  open my$fh, '<', $bam || croak "_flagstats(): Can't open $bam ($ERRNO)";
-  $self->_result->parsing_flagstats($fh);
-  close $fh;
-  return 1;
-}
-
-sub _version_info {
-  my $self = shift;
-  $self->_result->set_info('Samtools', $self->current_version($self->samtools_cmd) || q[not known]);
+  my ($self, $source, $des) = @_;
+  if (-e $source) {
+    $self->log("Moving $source to $des");
+    move $source, $des or croak "Failed to move $source to $des ($ERRNO)";
+  }
   return;
 }
+
+sub _bam_flagstats_qc {
+  my $self = shift;
+
+  my $result = {};
+  $result->{'sequence_file'} = $self->input_bam;
+  if($self->id_run()){
+    $result->{'id_run'} = $self->id_run;
+  }
+  if($self->position()){
+    $result->{'position'} = $self->position;
+  }
+  if(defined $self->tag_index){
+    $result->{'tag_index'} = $self->tag_index;
+  }
+  if($self->subset){
+    $result->{'subset'} = $self->subset;
+  }
+
+  my $robj = npg_qc::autoqc::results::bam_flagstats->new($result);
+  $self->log('Calling bam_flagstats execute() method');
+  $robj->execute();
+  $robj->set_info('Samtools', $self->current_version($self->samtools_cmd) || q[not known]);
+  $self->log('Serializing bam_flagstats object to ' . $self->metrics_json);
+  $robj->store($self->metrics_json);
+
+  return $robj;
+}
+
 
 no Moose;
 
@@ -1303,11 +1229,17 @@ __END__
 
 =item File::Temp
 
-=item IPC::Open3
-
 =item File::Basename
 
+=item File::Spec::Functions
+
+=item File::Copy
+
 =item autodie qw(:all)
+
+=item IPC::Open3
+
+=item POSIX
 
 =item npg_qc::autoqc::results::bam_flagstats
 
