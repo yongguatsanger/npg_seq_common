@@ -1737,8 +1737,6 @@ sub _generate_markduplicates_cmd {
 
    my $output_bam  = catfile( $path, $filename.q{_mk.bam} );
    my $qc_dir      = catfile( $path, q{qc} );
-   my $output_json = catfile( $qc_dir, $filename .q{_bam_flagstats.json} );
-
    if(!-d $qc_dir){
       mkdir $qc_dir;
    }
@@ -1748,7 +1746,7 @@ sub _generate_markduplicates_cmd {
    }
 
    $cmd .= qq{ --output_bam $output_bam};
-   $cmd .= qq{ --metrics_json $output_json};
+   $cmd .= qq{ --metrics_json_dir $qc_dir};
 
    return $cmd;
 }
