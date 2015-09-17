@@ -300,7 +300,7 @@ sub fork_cmds {
   if (! $self->no_alignment()) {
     if ($self->reference()) {
       my $refname = $self->reference();
-      $refname =~ s{/bwa/}{/fasta/}msx;
+      $refname =~ s{/bwa[\d_\-.]*/}{/fasta/}msx;
       $cmd .= " -r $refname" ;
     }
   }
@@ -890,7 +890,7 @@ sub bamseqchksum_cmd {
   if ($file_type eq q(cram) ) {
     if ($self->reference()) {
       my $reference = $self->reference();
-      $reference =~ s{/bwa/}{/fasta/}msx;
+      $reference =~ s{/bwa[\d_\-.]*/}{/fasta/}msx;
       $chk_command .= qq{ reference=$reference};
     }
   }

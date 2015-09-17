@@ -76,7 +76,7 @@ subtest 'subtest 3' => sub {
                  output_bam       => $output_bam,
                  metrics_json_dir => $temp_dir,
                  temp_dir         => $temp_dir,
-                 reference        => 't/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta',
+                 reference        => 't/data/references/Plasmodium_falciparum/default/all/bwa0_6/Pf3D7_v3.fasta',
                );
       my $md_metrics_file = $bam->metrics_file;
       is($md_metrics_file, $output_root.q[.markdups_metrics.txt], 'metrics file path generated relative to mk root');
