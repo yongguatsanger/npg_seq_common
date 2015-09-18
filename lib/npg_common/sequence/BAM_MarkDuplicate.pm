@@ -1196,7 +1196,7 @@ sub _bam_flagstats_qc {
   $robj->execute();
   $robj->set_info('Samtools', $self->current_version($self->samtools_cmd) || q[not known]);
   $self->log('Serializing bam_flagstats object to ' . $self->metrics_json_dir);
-  $robj->write2file($self->metrics_json_dir);
+  $robj->store($self->metrics_json_dir);
 
   return $robj;
 }

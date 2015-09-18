@@ -8,7 +8,7 @@ LIST OF CHANGES
       derive metrics_file attribute from teh output file name and then rename the file
       to be forward compatible with pending changes in bam_flagstats, call bam_flagstats
         parser via top-level execute() method ot be forward compatible
-      bam_flagstats check is serialized in a way that writes out related objects
+      bam_flagstats check is serialized in the same way as it is done in post-p4 flow
 
 release 50.6
   - mark duplicates:
