@@ -38,9 +38,9 @@ npg_common::sequence::BAM_MarkDuplicate
 =head1 SYNOPSIS
 
   my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
-                 input_bam     => 'input.bam',
-                 output_bam    => 'output.bam',
-                 metrics_json  => 'metrics.json',
+                 input_bam         => 'input.bam',
+                 output_bam        => 'output.bam',
+                 metrics_json_dir  => 'qc_dir',
                );
   $bam->process();
 
@@ -176,16 +176,16 @@ sub _build_sorted_input_bam_prefix {
    return catfile ($self->temp_dir(), q[sorted]);
 }
 
-=head2 metrics_json
+=head2 metrics_json_dir
 
-metrics json output file name
+output directory for json metrics file
 
 =cut
-has 'metrics_json'   => ( isa             => 'Str',
-                          is              => 'rw',
-                          required        => 1,
-                          documentation   => 'output json metrics file name',
-                       );
+has 'metrics_json_dir' => ( isa             => 'Str',
+                            is              => 'rw',
+                            required        => 1,
+                            documentation   => 'output directory for json metrics file',
+                          );
 
 =head2 id_run
 
@@ -1117,7 +1117,7 @@ sub process {
 
 sub _finalise_output {
   my ($self, $fifos) = @_;
-  $self->log('Replacing input files with duplicates marked file');
+  $self->log('Replacing input file with duplicates marked file');
 
   $self->_move_file($self->output_bam, $self->input_bam);
 
@@ -1195,8 +1195,8 @@ sub _bam_flagstats_qc {
   $self->log('Calling bam_flagstats execute() method');
   $robj->execute();
   $robj->set_info('Samtools', $self->current_version($self->samtools_cmd) || q[not known]);
-  $self->log('Serializing bam_flagstats object to ' . $self->metrics_json);
-  $robj->store($self->metrics_json);
+  $self->log('Serializing bam_flagstats object to ' . $self->metrics_json_dir);
+  $robj->store($self->metrics_json_dir);
 
   return $robj;
 }

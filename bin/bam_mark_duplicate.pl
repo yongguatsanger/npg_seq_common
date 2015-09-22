@@ -22,7 +22,7 @@ bam_mark_duplicate.pl
 
  bam_mark_duplicate.pl --input_bam 4783_5.bam \
                        --output_bam 4783_6_mk.bam \
-                       --metrics_json 4783_6_bam_flagstats.json \
+                       --metrics_json_dir some_dir \
                        --id_run 4783 --position 5 [ --tag_index 2 --subset human] \
                        --bamcheck_flags
 

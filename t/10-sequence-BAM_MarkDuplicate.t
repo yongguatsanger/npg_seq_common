@@ -20,22 +20,17 @@ subtest 'subtest 2' => sub {
     my $temp_dir = tempdir( CLEANUP => 1);
     my $bfs_class = 'npg_qc::autoqc::results::bam_flagstats';
     my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
-                 input_bam     => 'input.bam',
-                 output_bam    => 'output.bam',
-                 metrics_json  => 'metrics.json',
+                 input_bam         => 'input.bam',
+                 output_bam        => 'output.bam',
+                 metrics_json_dir  => 'qc',
                  id_run => 35);
     isa_ok($bam, 'npg_common::sequence::BAM_MarkDuplicate');
 
     $bam = npg_common::sequence::BAM_MarkDuplicate->new(
-                 input_bam     => 'input.bam',
-                 output_bam    => 'output.bam',
-                 metrics_json  => 'metrics.json');
-
-    $bam = npg_common::sequence::BAM_MarkDuplicate->new(
-                 input_bam     => 'input.bam',
-                 output_bam    => 'output.bam',
-                 metrics_json  => 'metrics.json',
-                 no_alignment => 0,
+                 input_bam        => 'input.bam',
+                 output_bam       => 'output.bam',
+                 metrics_json_dir => 'qc',
+                 no_alignment     => 0,
                );
     lives_ok {$bam->temp_dir} 'temp dir generated';
     lives_ok {$bam->metrics_file()} 'temp metrics file';
@@ -75,14 +70,13 @@ subtest 'subtest 3' => sub {
       my $input = join q[/], $temp_dir, '4392_1.bam';
       my $output_root     = join q[/], $temp_dir, 'output_mk';
       my $output_bam      = $output_root . q[.bam];
-      my $metrics_json    = "$temp_dir/metrics.json";
 
       my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
-                 input_bam     => $input,
-                 output_bam    => $output_bam,
-                 metrics_json  => $metrics_json,
-                 temp_dir      => $temp_dir,
-                 reference     => 't/data/references/Plasmodium_falciparum/default/all/bwa0_6/Pf3D7_v3.fasta',
+                 input_bam        => $input,
+                 output_bam       => $output_bam,
+                 metrics_json_dir => $temp_dir,
+                 temp_dir         => $temp_dir,
+                 reference        => 't/data/references/Plasmodium_falciparum/default/all/bwa0_6/Pf3D7_v3.fasta',
                );
       my $md_metrics_file = $bam->metrics_file;
       is($md_metrics_file, $output_root.q[.markdups_metrics.txt], 'metrics file path generated relative to mk root');
@@ -219,8 +213,7 @@ subtest 'subtest 3' => sub {
       is (!-z "$temp_dir/output.seqchksum", 1, 'BAM seqchksum file created with contents');
       is (!-z "$temp_dir/output.sha512primesums512.seqchksum", 1, 'sha512primesums512 seqchksum file created with contents');
       is (!-e "$temp_dir/output_mk.cram.seqchksum", 1, 'CRAM seqchksum file created with contents has been removed');
-
-      ok(-e $metrics_json, 'file with serialized bam_flagstats object exists');
+      ok(-e "$temp_dir/plasmodium.bam_flagstats.json", 'file with serialized bam_flagstats object exists');
   }    
 };
 
@@ -237,13 +230,12 @@ subtest 'subtest 4' => sub {
       system("cp t/data/sequence/15156_1#54.bam $input");
       my $output_root     = join q[/], $temp_dir, 'non_aligned_output';
       my $output_bam      = $output_root . q[.bam];
-      my $metrics_json    = "$temp_dir/non_aligned_metrics.json";
 
       my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
-                  input_bam     => $input,
-                  output_bam    => $output_bam,
-                  metrics_json  => $metrics_json,
-                  temp_dir      => $temp_dir
+                  input_bam        => $input,
+                  output_bam       => $output_bam,
+                  metrics_json_dir => $temp_dir,
+                  temp_dir         => $temp_dir
                 );
       my $md_metrics_file = $bam->metrics_file;
       my $expected_mark_duplicate_cmd = qq{$bammarkduplicates I=$input } .
@@ -257,7 +249,7 @@ subtest 'subtest 4' => sub {
       ok (-e "$temp_dir/non_aligned.seqchksum", 'non-aligned BAM seqchksum file created');
       ok (-e "$temp_dir/non_aligned.sha512primesums512.seqchksum",
        'non-aligned sha512primesums512 seqchksum file created');
-      ok (-e $metrics_json, 'file with serialized bam_flagstats object exists');
+      ok (-e "$temp_dir/non_aligned.bam_flagstats.json", 'file with serialized bam_flagstats object exists');
   }
 };
 
@@ -275,15 +267,14 @@ subtest 'subtest 5' => sub {
       my $output_root     = join q[/], $temp_dir, 'output_no_align';
       my $output_bam      = $output_root . q[.bam];
       my $md_metrics_file = $output_root . '.markdups_metrics.txt';
-      my $metrics_json    = "$temp_dir/metrics_no_align.json";
         
       my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
-                 input_bam     => $input,
-                 output_bam    => $output_bam,
-                 metrics_json  => $metrics_json,
-                 temp_dir      => $temp_dir,
-                 metrics_file  => $md_metrics_file,
-                 no_alignment  => 1,
+                 input_bam        => $input,
+                 output_bam       => $output_bam,
+                 metrics_json_dir => $temp_dir,
+                 temp_dir         => $temp_dir,
+                 metrics_file     => $md_metrics_file,
+                 no_alignment     => 1,
                );
       my $expected_mark_duplicate_cmd = qq{$bammarkduplicates I=$input O=/dev/stdout tmpfile=$temp_dir/ M=$md_metrics_file};
       is($bam->mark_duplicate_cmd(), $expected_mark_duplicate_cmd, 'correct biobambam command');
@@ -360,7 +351,7 @@ subtest 'subtest 5' => sub {
       is (!-z "$temp_dir/no_align_quality_error.txt", 1, 'Quality error table created with contents');
       is (-e "$temp_dir/no_align.cram", 1, 'CRAM file created if no_alignment flag used');
       is (!-z "$temp_dir/no_align.bam.seqchksum", 1, 'BAM seqchksum file created with contents if no_alignment flag used');
-      ok (-e $metrics_json, 'file with serialized bam_flagstats object exists');
+      ok (-e "$temp_dir/no_align.bam_flagstats.json", 'file with serialized bam_flagstats object exists');
   }
 };
 
@@ -378,15 +369,14 @@ subtest 'subtest 6' => sub {
     my $output_root     = join q[/], $temp_dir, 'output_phix';
     my $output_bam      = $output_root . q[.bam];
     my $md_metrics_file = $output_root . '.markdups_metrics.txt';
-    my $metrics_json    = "$temp_dir/metrics_phix.json";
 
     my $bam = npg_common::sequence::BAM_MarkDuplicate->new(
-                 input_bam     => $input,
-                 output_bam    => $output_bam,
-                 metrics_json  => $metrics_json,
-                 temp_dir      => $temp_dir,
-                 metrics_file  => $md_metrics_file,
-                 subset        => 'phix',
+                 input_bam        => $input,
+                 output_bam       => $output_bam,
+                 metrics_json_dir => $temp_dir,
+                 temp_dir         => $temp_dir,
+                 metrics_file     => $md_metrics_file,
+                 subset           => 'phix',
                );
       my $expected_mark_duplicate_cmd = qq{$bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$md_metrics_file};
       is($bam->mark_duplicate_cmd(), $expected_mark_duplicate_cmd, 'correct biobambam command');
@@ -479,8 +469,7 @@ subtest 'subtest 6' => sub {
       is (!-z "$temp_dir/phix.cram", 1, 'CRAM file created with contents for PhiX');
       is (!-z "$temp_dir/phix.cram.seqchksum", 1, 'CRAM seqchksum file created with contents for PhiX');
       is (!-z "$temp_dir/phix.bam.seqchksum", 1, 'BAM seqchksum file created with contents for PhiX');
-
-      ok(-e $metrics_json, 'file with serialized bam_flagstats object exists');
+      ok(-e "$temp_dir/phix_phix.bam_flagstats.json", 'file with serialized bam_flagstats object exists');
   }
 };
 
