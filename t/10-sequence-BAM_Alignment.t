@@ -29,7 +29,7 @@ my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam
                  spiked_phix_split => 1,       
                  read_length       => 37,
                  output_prefix     => 'output',
-                 bwa_cmd           => 't/bin/aligners/bwa/current/bwa',
+                 bwa_cmd           => 't/bin/aligners/bwa/bwa-0.5.8c/bwa',
                  samtools_cmd      => 't/bin/aligners/samtools/current/samtools',
                  temp_dir          => $temp_dir,
                  reference         => 'reference.fasta',
@@ -158,7 +158,7 @@ my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam
                  read_length       => 24,
                  output_prefix     => 'output',
                  temp_dir          => $temp_dir,
-                 bwa_cmd           => 't/bin/aligners/bwa/current/bwa',
+                 bwa_cmd           => 't/bin/aligners/bwa/bwa-0.5.8c/bwa',
               );
                
   isa_ok($bam, 'npg_common::sequence::BAM_Alignment', 'object test');
@@ -198,7 +198,7 @@ my $test_classpath = q[t/bin/aligners/picard/current:t/bin/aligners/illumina2bam
                  spiked_phix_split => 1,       
                  output_prefix     => 'output',
                  temp_dir          => $temp_dir,
-                 bwa_cmd           => 't/bin/aligners/bwa/current/bwa',
+                 bwa_cmd           => 't/bin/aligners/bwa/bwa-0.5.8c/bwa',
                  reference         => 'reference.fasta',
                  human_reference   => 'human_reference.fasta',
                );
@@ -509,7 +509,7 @@ local $ENV{NPG_WEBSERVICE_CACHE_DIR} = $cache;
                  spiked_phix_split => 1,       
                  read_length       => 37,
                  output_prefix     => 'output',
-                 bwa_cmd           => 't/bin/aligners/bwa/current/bwa',
+                 bwa_cmd           => 't/bin/aligners/bwa/bwa-0.5.8c/bwa',
                  samtools_cmd      => 't/bin/aligners/samtools/current/samtools',
                  temp_dir          => $temp_dir,
                  reference         => 'reference.fasta',
