@@ -59,7 +59,7 @@ $cram_index = `readlink -f $cram_index`;
 chomp $cram_index;
 
 subtest 'subtest 3' => sub {
-  my $num_tests = 31;
+  my $num_tests = 32;
   plan tests => $num_tests;
 
   SKIP: {
@@ -95,7 +95,6 @@ subtest 'subtest 3' => sub {
       $bam->input_bam("$temp_dir/plasmodium.bam");
 
       my $bam_pb_cal_cmd = $bam->pb_cal_cmd();
-      my $bam_bamcheck_cmd = $bam->bamcheck_cmd();
 
       my $expected_bamseqchk_cmd = $bamseqchksum .
         q{ verbose=0 inputformat=cram reference=t/data/references/Plasmodium_falciparum/default/all/fasta/Pf3D7_v3.fasta};
@@ -106,7 +105,8 @@ subtest 'subtest 3' => sub {
         qq{I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$md_metrics_file | tee};
       $expected_tee_cmd .= qq{ $temp_dir/output_mk.bam.md5.fifo};
       $expected_tee_cmd .= qq{ $temp_dir/output_mk.bam.flagstat.fifo};
-      $expected_tee_cmd .= qq{ $temp_dir/output_mk.bam.bamcheck.fifo};
+      $expected_tee_cmd .= qq{ $temp_dir/output_mk.bam.stats1.fifo};
+      $expected_tee_cmd .= qq{ $temp_dir/output_mk.bam.stats2.fifo};
       $expected_tee_cmd .= qq{ $temp_dir/output_mk.bam.bschk.fifo};
       $expected_tee_cmd .= qq{ $temp_dir/output_mk.bam.alt.bschk.fifo};
       $expected_tee_cmd .= qq{ $temp_dir/output_mk.bam.index.fifo};
@@ -130,6 +130,7 @@ subtest 'subtest 3' => sub {
 
       my @expected_fork_cmds = ();
       my $samtools_cmd = $bam->samtools_cmd;
+      my $samtools_irods_cmd = $bam->samtools_irods_cmd();
 
       my $expected_md5_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.md5.fifo | };
       $expected_md5_cmd .= qq{md5sum -b | tr -d }.q{"\n *-" }. qq{ > $temp_dir/output_mk.bam.md5};
@@ -137,8 +138,10 @@ subtest 'subtest 3' => sub {
       my $expected_flagstat_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.flagstat.fifo | };
       $expected_flagstat_cmd .= qq{$samtools_cmd flagstat -  > $temp_dir/output_mk.flagstat};
 
-      my $expected_bamcheck_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.bamcheck.fifo | };
-      $expected_bamcheck_cmd .= qq{$bam_bamcheck_cmd > $temp_dir/output_mk.bamcheck};
+      my $expected_stats1_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.stats1.fifo | };
+      $expected_stats1_cmd .= qq{$samtools_irods_cmd stats -F 0x900 > $temp_dir/output_mk_F0x900.stats};
+      my $expected_stats2_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.stats2.fifo | };
+      $expected_stats2_cmd .= qq{$samtools_irods_cmd stats -F 0xB00 > $temp_dir/output_mk_F0xB00.stats};
 
       my $expected_index_cmd = qq{set -o pipefail; cat $temp_dir/output_mk.bam.index.fifo | } .
         qq{$samtools_cmd index /dev/stdin /dev/stdout > $temp_dir/output_mk.bai};
@@ -179,7 +182,8 @@ subtest 'subtest 3' => sub {
       push  @expected_fork_cmds, $expected_diff_cmd;
       push  @expected_fork_cmds, $expected_md5_cmd;
       push  @expected_fork_cmds, $expected_flagstat_cmd;
-      push  @expected_fork_cmds, $expected_bamcheck_cmd;
+      push  @expected_fork_cmds, $expected_stats1_cmd;
+      push  @expected_fork_cmds, $expected_stats2_cmd;
       push  @expected_fork_cmds, $expected_index_cmd;
       push  @expected_fork_cmds, $expected_pb_cal_cmd;
 
@@ -191,7 +195,8 @@ subtest 'subtest 3' => sub {
 
       is (!-e "$temp_dir/output_mk.bam.md5.fifo", 1, 'md5 FIFO removed');
       is (!-e "$temp_dir/output_mk.bam.flagstat.fifo", 1, 'flagstat FIFO removed');
-      is (!-e "$temp_dir/output_mk.bam.bamcheck.fifo", 1, 'bamcheck FIFO removed');
+      is (!-e "$temp_dir/output_mk.bam.stats1.fifo", 1, 'stats1 FIFO removed');
+      is (!-e "$temp_dir/output_mk.bam.stats2.fifo", 1, 'stats2 FIFO removed');
       is (!-e "$temp_dir/output_mk.bam.index.fifo", 1, 'index FIFO removed');
       is (!-e "$temp_dir/output_mk.bam.pb_cal.fifo", 1, 'pb_cal FIFO removed');
       is (!-e "$temp_dir/output_mk.bam.scramble.fifo", 1, 'scramble FIFO removed');
@@ -282,12 +287,12 @@ subtest 'subtest 5' => sub {
       like($bam->bamseqchksum_cmd(q{bam}), qr{\Qbamseqchksum verbose=0 inputformat=bam\E}, 'correct bamseqchksum command for a bam file with reference but no alignment');
       like($bam->bamseqchksum_cmd(q{cram}), qr{\Qbamseqchksum verbose=0 inputformat=cram\E}, 'correct bamseqchksum command for a cram file with reference but no alignment');
 
-      my $bam_bamcheck_cmd = $bam->bamcheck_cmd(); 
       my $mdup_cmd = $bam->mark_duplicate_cmd;
       my $samtools_cmd = $bam->samtools_cmd;
+      my $samtools_irods_cmd = $bam->samtools_irods_cmd();
 
       my $expected_tee_cmd = qq{set -o pipefail;$mdup_cmd | tee};
-      $expected_tee_cmd .= qq{ $temp_dir/output_no_align.bam.md5.fifo $temp_dir/output_no_align.bam.flagstat.fifo $temp_dir/output_no_align.bam.bamcheck.fifo $temp_dir/output_no_align.bam.bschk.fifo $temp_dir/output_no_align.bam.alt.bschk.fifo $temp_dir/output_no_align.bam.scramble.fifo > $temp_dir/output_no_align.bam};
+      $expected_tee_cmd .= qq{ $temp_dir/output_no_align.bam.md5.fifo $temp_dir/output_no_align.bam.flagstat.fifo $temp_dir/output_no_align.bam.stats1.fifo $temp_dir/output_no_align.bam.stats2.fifo $temp_dir/output_no_align.bam.bschk.fifo $temp_dir/output_no_align.bam.alt.bschk.fifo $temp_dir/output_no_align.bam.scramble.fifo > $temp_dir/output_no_align.bam};
       is($bam->_tee_cmd, $expected_tee_cmd, 'entire tee command generated correctly if no_alignment flag used');
 
       my @expected_fork_cmds = ();
@@ -298,8 +303,10 @@ subtest 'subtest 5' => sub {
       my $expected_flagstat_cmd = qq{set -o pipefail; cat $temp_dir/output_no_align.bam.flagstat.fifo | };
       $expected_flagstat_cmd .= qq{$samtools_cmd flagstat -  > $temp_dir/output_no_align.flagstat};
 
-      my $expected_bamcheck_cmd = qq{set -o pipefail; cat $temp_dir/output_no_align.bam.bamcheck.fifo | };
-      $expected_bamcheck_cmd .= qq{$bam_bamcheck_cmd > $temp_dir/output_no_align.bamcheck};
+      my $expected_stats1_cmd = qq{set -o pipefail; cat $temp_dir/output_no_align.bam.stats1.fifo | };
+      $expected_stats1_cmd .= qq{$samtools_irods_cmd stats -F 0x900 > $temp_dir/output_no_align_F0x900.stats};
+      my $expected_stats2_cmd = qq{set -o pipefail; cat $temp_dir/output_no_align.bam.stats2.fifo | };
+      $expected_stats2_cmd .= qq{$samtools_irods_cmd stats -F 0xB00 > $temp_dir/output_no_align_F0xB00.stats};
 
       my $expected_altchksum_cmd = qq{set -o pipefail; cat $temp_dir/output_no_align.bam.alt.bschk.fifo | };
       $expected_altchksum_cmd .= qq{$bamseqchksum verbose=0 inputformat=bam hash=sha512primesums512};
@@ -334,7 +341,8 @@ subtest 'subtest 5' => sub {
       push  @expected_fork_cmds, $expected_diff_cmd;
       push  @expected_fork_cmds, $expected_md5_cmd;
       push  @expected_fork_cmds, $expected_flagstat_cmd;
-      push  @expected_fork_cmds, $expected_bamcheck_cmd;
+      push  @expected_fork_cmds, $expected_stats1_cmd;
+      push  @expected_fork_cmds, $expected_stats2_cmd;
 
       my $expected_fork_cmds = \@expected_fork_cmds;
       cmp_deeply($bam->fork_cmds(), $expected_fork_cmds, 'commands for ForkManager generated correctly') or
@@ -384,11 +392,11 @@ subtest 'subtest 6' => sub {
       like($bam->bamseqchksum_cmd(q{bam}), qr{\Qbamseqchksum verbose=0 inputformat=bam\E}, 'correct bamseqchksum command for a bam file with reference but no alignment');
       like($bam->bamseqchksum_cmd(q{cram}), qr{\Qbamseqchksum verbose=0 inputformat=cram\E}, 'correct bamseqchksum command for a cram file with reference but no alignment');
 
-      my $bam_bamcheck_cmd = $bam->bamcheck_cmd();
       my $samtools_cmd = $bam->samtools_cmd;
+      my $samtools_irods_cmd = $bam->samtools_irods_cmd();
 
       my $expected_tee_cmd = qq{set -o pipefail;$bammarkduplicates I=$temp_dir/sorted.bam O=/dev/stdout tmpfile=$temp_dir/ M=$md_metrics_file | tee};
-      $expected_tee_cmd .= qq{ $temp_dir/output_phix.bam.md5.fifo $temp_dir/output_phix.bam.flagstat.fifo $temp_dir/output_phix.bam.bamcheck.fifo $temp_dir/output_phix.bam.bschk.fifo $temp_dir/output_phix.bam.alt.bschk.fifo $temp_dir/output_phix.bam.index.fifo $temp_dir/output_phix.bam.pb_cal.fifo $temp_dir/output_phix.bam.scramble.fifo > $temp_dir/output_phix.bam};
+      $expected_tee_cmd .= qq{ $temp_dir/output_phix.bam.md5.fifo $temp_dir/output_phix.bam.flagstat.fifo $temp_dir/output_phix.bam.stats1.fifo $temp_dir/output_phix.bam.stats2.fifo $temp_dir/output_phix.bam.bschk.fifo $temp_dir/output_phix.bam.alt.bschk.fifo $temp_dir/output_phix.bam.index.fifo $temp_dir/output_phix.bam.pb_cal.fifo $temp_dir/output_phix.bam.scramble.fifo > $temp_dir/output_phix.bam};
       is($bam->_tee_cmd, $expected_tee_cmd, 'entire tee command generated correctly for PhiX');
 
       my @expected_fork_cmds = ();
@@ -399,8 +407,10 @@ subtest 'subtest 6' => sub {
       my $expected_flagstat_cmd = qq{set -o pipefail; cat $temp_dir/output_phix.bam.flagstat.fifo | };
       $expected_flagstat_cmd .= qq{$samtools_cmd flagstat -  > $temp_dir/output_phix.flagstat};
 
-      my $expected_bamcheck_cmd = qq{set -o pipefail; cat $temp_dir/output_phix.bam.bamcheck.fifo | };
-      $expected_bamcheck_cmd .= qq{$bam_bamcheck_cmd > $temp_dir/output_phix.bamcheck};
+      my $expected_stats1_cmd = qq{set -o pipefail; cat $temp_dir/output_phix.bam.stats1.fifo | };
+      $expected_stats1_cmd .= qq{$samtools_irods_cmd stats -F 0x900 > $temp_dir/output_phix_F0x900.stats};
+      my $expected_stats2_cmd = qq{set -o pipefail; cat $temp_dir/output_phix.bam.stats2.fifo | };
+      $expected_stats2_cmd .= qq{$samtools_irods_cmd stats -F 0xB00 > $temp_dir/output_phix_F0xB00.stats};
 
       my $expected_index_cmd = qq{set -o pipefail; cat $temp_dir/output_phix.bam.index.fifo | $samtools_cmd index /dev/stdin /dev/stdout > $temp_dir/output_phix.bai};
 
@@ -447,7 +457,8 @@ subtest 'subtest 6' => sub {
       push  @expected_fork_cmds, $expected_diff_cmd;
       push  @expected_fork_cmds, $expected_md5_cmd;
       push  @expected_fork_cmds, $expected_flagstat_cmd;
-      push  @expected_fork_cmds, $expected_bamcheck_cmd;
+      push  @expected_fork_cmds, $expected_stats1_cmd;
+      push  @expected_fork_cmds, $expected_stats2_cmd;
       push  @expected_fork_cmds, $expected_index_cmd;
       push  @expected_fork_cmds, $expected_pb_cal_cmd;
 

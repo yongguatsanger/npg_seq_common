@@ -27,6 +27,9 @@ our $VERSION = '0';
 Readonly::Scalar our $FIFO_MODE       => oct '600';
 Readonly::Scalar our $EXIT_CODE_SHIFT => 8;
 
+Readonly::Scalar our $STATS1_FILTER       => '0x900';
+Readonly::Scalar our $STATS2_FILTER       => '0xB00';
+
 ## no critic (Documentation::RequirePodAtEnd)
 
 =head1 NAME
@@ -257,7 +260,8 @@ sub _build_tee_cmd {
   $mark_duplicate_cmd .= ' | tee' ;
   $mark_duplicate_cmd .= q{ } . $self->_bam_md5_fifo_name_mk;
   $mark_duplicate_cmd .= q{ } . $self->_bam_flagstat_fifo_name_mk;
-  $mark_duplicate_cmd .= q{ } . $self->_bam_bamcheck_fifo_name_mk;
+  $mark_duplicate_cmd .= q{ } . $self->_bam_stats1_fifo_name_mk;
+  $mark_duplicate_cmd .= q{ } . $self->_bam_stats2_fifo_name_mk;
   $mark_duplicate_cmd .= q{ } . $self->_bam_bschk_fifo_name_mk;
   $mark_duplicate_cmd .= q{ } . $self->_alt_bschk_fifo_name_mk;
 
@@ -333,15 +337,13 @@ sub fork_cmds {
   $cmd .= $self->samtools_cmd() . ' flagstat -  > ' . $self->_flagstat_file_name_mk;
   push @cmds, $cmd;
 
-  if ($self->bamcheck_cmd()) {
-    $cmd = 'set -o pipefail; cat ' . $self->_bam_bamcheck_fifo_name_mk . ' | ';
-    $cmd .= $self->bamcheck_cmd;
-    if($self->bamcheck_flags) {
-        $cmd .= q{ } . $self->bamcheck_flags;
-    }
-    $cmd .= ' > ' . $self->_bamcheck_file_name_mk;
-    push @cmds, $cmd;
-  }
+  $cmd = 'set -o pipefail; cat ' . $self->_bam_stats1_fifo_name_mk . ' | ';
+  $cmd .= $self->samtools_irods_cmd . ' stats -F ' . $STATS1_FILTER . ' > ' . $self->_stats1_file_name_mk;
+  push @cmds, $cmd;
+
+  $cmd = 'set -o pipefail; cat ' . $self->_bam_stats2_fifo_name_mk . ' | ';
+  $cmd .= $self->samtools_irods_cmd . ' stats -F ' . $STATS2_FILTER . ' > ' . $self->_stats2_file_name_mk;
+  push @cmds, $cmd;
 
   # we only create an index if we are doing alignment
   if (! $self->no_alignment()) {
@@ -475,25 +477,46 @@ sub _build__cram_index_fifo_name_mk {
     return $self->_cram_index_file_name_mk() . q{.fifo};
 }
 
-=head2 _bam_bamcheck_fifo_name_mk
+=head2 _bam_stats1_fifo_name_mk
 
-Make the bam bamcheck_fifo name
+Make the bam stats1_fifo name
 
 =cut 
 
-has '_bam_bamcheck_fifo_name_mk'  => (isa         => 'Str',
+has '_bam_stats1_fifo_name_mk'  => (isa         => 'Str',
                                       is          => 'ro',
                                       required    => 0,
                                       lazy_build  => 1,
                                       );
 
-sub _build__bam_bamcheck_fifo_name_mk {
+sub _build__bam_stats1_fifo_name_mk {
     my $self = shift;
 
-    my $bam_bamcheck_fifo_name_mk = $self->output_bam;
-    $bam_bamcheck_fifo_name_mk .= q{.bamcheck.fifo};
+    my $bam_stats1_fifo_name_mk = $self->output_bam;
+    $bam_stats1_fifo_name_mk .= q{.stats1.fifo};
 
-    return $bam_bamcheck_fifo_name_mk;
+    return $bam_stats1_fifo_name_mk;
+}
+
+=head2 _bam_stats2_fifo_name_mk
+
+Make the bam stats2_fifo name
+
+=cut 
+
+has '_bam_stats2_fifo_name_mk'  => (isa         => 'Str',
+                                      is          => 'ro',
+                                      required    => 0,
+                                      lazy_build  => 1,
+                                      );
+
+sub _build__bam_stats2_fifo_name_mk {
+    my $self = shift;
+
+    my $bam_stats2_fifo_name_mk = $self->output_bam;
+    $bam_stats2_fifo_name_mk .= q{.stats2.fifo};
+
+    return $bam_stats2_fifo_name_mk;
 }
 
 =head2 _bam_pb_cal_fifo_name_mk
@@ -775,25 +798,46 @@ sub _build__flagstat_file_name_mk {
     return $flagstat_file_name_mk;
 }
 
-=head2 _bamcheck_file_name_mk
+=head2 _stats1_file_name_mk
 
-Make the bamcheck file name
+Make the stats1 file name
 
 =cut 
 
-has '_bamcheck_file_name_mk'  => (isa         => 'Str',
-                                  is          => 'ro',
-                                  required    => 0,
-                                  lazy_build  => 1,
-                                   );
+has '_stats1_file_name_mk'  => (isa         => 'Str',
+                                is          => 'ro',
+                                required    => 0,
+                                lazy_build  => 1,
+                               );
 
-sub _build__bamcheck_file_name_mk {
+sub _build__stats1_file_name_mk {
     my $self = shift;
 
-    my $bamcheck_file_name_mk = $self->output_bam;
-    $bamcheck_file_name_mk =~ s/[.]bam$/.bamcheck/mxs;
+    my $stats1_file_name_mk = $self->output_bam;
+    $stats1_file_name_mk =~ s/[.]bam$/_F$STATS1_FILTER.stats/mxs;
 
-    return $bamcheck_file_name_mk;
+    return $stats1_file_name_mk;
+}
+
+=head2 _stats2_file_name_mk
+
+Make the stats2 file name
+
+=cut 
+
+has '_stats2_file_name_mk'  => (isa         => 'Str',
+                                is          => 'ro',
+                                required    => 0,
+                                lazy_build  => 2,
+                               );
+
+sub _build__stats2_file_name_mk {
+    my $self = shift;
+
+    my $stats2_file_name_mk = $self->output_bam;
+    $stats2_file_name_mk =~ s/[.]bam$/_F$STATS2_FILTER.stats/mxs;
+
+    return $stats2_file_name_mk;
 }
 
 =head2 _md5_file_name_mk
@@ -907,18 +951,6 @@ has 'bamsort_cmd'   => ( is      => 'ro',
                          isa     => 'NpgCommonResolvedPathExecutable',
                          coerce  => 1,
                          default => 'bamsort',
-                       );
-
-
-=head2 bamcheck_cmd
-
-bamcheck command for the input bam
-
-=cut
-has 'bamcheck_cmd'   => ( is      => 'ro',
-                         isa     => 'NpgCommonResolvedPathExecutable',
-                         coerce  => 1,
-                         default => 'bamcheck',
                        );
 
 
@@ -1047,7 +1079,8 @@ sub process {
   my @fifos = ();
   push @fifos,  $self->_bam_md5_fifo_name_mk;
   push @fifos,  $self->_bam_flagstat_fifo_name_mk;
-  push @fifos,  $self->_bam_bamcheck_fifo_name_mk;
+  push @fifos,  $self->_bam_stats1_fifo_name_mk;
+  push @fifos,  $self->_bam_stats2_fifo_name_mk;
   push @fifos,  $self->_bam_bschk_fifo_name_mk;
   push @fifos,  $self->_alt_bschk_fifo_name_mk;
 
@@ -1125,7 +1158,8 @@ sub _finalise_output {
       $self->metrics_file                 => '.markdups_metrics.txt',
       $self->_flagstat_file_name_mk       => '.flagstat',
       $self->_index_file_name_mk          => '.bai',
-      $self->_bamcheck_file_name_mk       => '.bamcheck',
+      $self->_stats1_file_name_mk         => '_F' . $STATS1_FILTER . '.stats',
+      $self->_stats2_file_name_mk         => '_F' . $STATS2_FILTER . '.stats',
       $self->_md5_file_name_mk            => '.bam.md5',
       $self->_alt_seqchksum_file_name_mk  => '.sha512primesums512.seqchksum',
       $self->_bam_seqchksum_file_name_mk  => '.seqchksum',
