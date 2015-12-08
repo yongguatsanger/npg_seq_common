@@ -1,4 +1,6 @@
 LIST OF CHANGES
+release 50.8
+  - replace bamcheck file by 2x filtered samtools stats files
 
 release 50.7
   - bam alignment:
