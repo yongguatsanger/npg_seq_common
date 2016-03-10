@@ -164,7 +164,7 @@ foreach my $aligner (@ALIGNERS) {
     #tophat expects to find reference file next to bowtie2 indices
     #and the reference extension is expected to be .fa
     if ($aligner eq 'bowtie2') {
-      my $target = "fasta/$files[0]";
+      my $target = "../fasta/$files[0]";
       my $link = "$aligner/$files[0]" . q[.fa];
       carp "bowtie2: soft-linking $link to $target";
       symlink $target, $link;
