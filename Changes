@@ -1,4 +1,9 @@
 LIST OF CHANGES
+
+release 50.9
+  - fix bug that causes the symlink of the .fa file in the bowtie2
+    directory to point to the wrong location
+
 release 50.8
   - replace bamcheck file by 2x filtered samtools stats files
 
