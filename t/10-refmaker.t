@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 63;
+use Test::More tests => 65;
 use Cwd qw/abs_path getcwd/;
 use File::Temp qw/tempdir/;
 use File::Slurp;
@@ -20,7 +20,7 @@ my $fastaMaster = abs_path('t/data/references/E_coli/K12/fasta/E-coli-K12.fa');
 unless (-e $fastaMaster) {
     die "Cannot find FASTA master file $fastaMaster\n";
 }
-my $tmp = tempdir('Ref_Maker_test_XXXXXX', CLEANUP => 0, DIR => '/tmp' );
+my $tmp = tempdir('Ref_Maker_test_XXXXXX', CLEANUP => 1, DIR => '/tmp' );
 print "Created temporary directory: ".abs_path($tmp)."\n";
 my $tmpFasta = $tmp."/fasta";
 mkdir($tmpFasta);
@@ -68,6 +68,7 @@ my %expectedMD5 = (
     'fasta/E-coli-K12.fa.fai' => '3bfb02378761ec6fe2b57e7dc99bd2b5',
     'samtools/E-coli-K12.fa.fai' => '3bfb02378761ec6fe2b57e7dc99bd2b5',
     'smalt/E-coli-K12.fa.smi' => 'aa85b6852d707d45b90edf714715ee6b',
+    'blat/E-coli-K12.fa.2bit' => 'd40176801d2f23f76f7c575843350923',
     );
 
 ok (-e 'npgqc/E-coli-K12.fa.json', 'json file exists');

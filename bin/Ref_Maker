@@ -81,6 +81,7 @@ $ref_size = -s "fasta/$files[0]";
 
 
 my %build = (
+    blat      => 0,
     bowtie    => 0,
     bowtie2   => 0,
     bwa       => 0,
@@ -111,23 +112,17 @@ $arguments{maq}      = " fasta2bfa $files[0] $files[0].bfa";
 $arguments{samtools} = " faidx $files[0]";
 
 my @failed; # record any failures
-if ($build{npgqc}) {
-    # Make a json file for the npg_qc::autoqc::checks::gc_fraction check.
-    my $result = gc_frac();
-    if (!$result) { push @failed, 'gc_frac'; }
-    chdir $working_dir;
-}
-if ($build{picard}) {
-    # Make a picard .dict file 
-    my $result = picard();
-    if (!$result) { push @failed, 'picard'; }
-    chdir $working_dir;
-}
-if ($build{smalt}) {
-    # Make the smalt index files.
-    my $result = smalt();
-    if (!$result) { push @failed, 'smalt'; }
-    chdir $working_dir;
+my %subs = ();
+$subs{'blat'}   = \&blat;
+$subs{'smalt'}  = \&smalt;
+$subs{'picard'} = \&picard;
+$subs{'npgqc'}  = \&gc_frac;
+
+foreach my $tool (keys %subs) {
+    if ($build{$tool}) {
+        if (!$subs{$tool}->()) { push @failed, $tool; }
+        chdir $working_dir;
+    }
 }
 
 my $rm = npg_common::RefMaker->new();
@@ -202,7 +197,7 @@ if (@failed) {
 }
 } ################### end of the main part #############################
 
-sub gc_frac {
+sub gc_frac{
 
     my $gcfr_command = File::Spec->catfile( $Bin, 'base_count_maker' );
     log_timestamp( 'start', 'gc_frac' );
@@ -216,7 +211,6 @@ sub gc_frac {
     log_timestamp( 'stop', 'gc_frac' );
     return 1;
 }
-
 
 sub picard {
 
@@ -303,9 +297,21 @@ sub smalt {
     return 1;
 }
 
+sub blat {
+    clean_slate('blat');
+
+    my $blat_command = qq{faToTwoBit -noMask fasta/$files[0] blat/$files[0].2bit};
+    eval { system $blat_command; 1; }
+    or do {
+        carp "*** blat conversion failed: $EVAL_ERROR $SKIP_STRING";
+        log_timestamp( 'abort', 'blat' );
+        return 0;
+    };
+    log_timestamp( 'stop', 'blat' );
+    return 1;
+}
 
 sub clean_slate {
-
     my ($dirname) = @_;
 
     # Start with a clean slate.
@@ -315,7 +321,6 @@ sub clean_slate {
     return;
 }
 
-
 sub log_timestamp {
     my ( $state, $job ) = @_;
 
@@ -324,9 +329,6 @@ sub log_timestamp {
 
     return;
 }
-
-
-
 
 __END__
 
