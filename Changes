@@ -1,6 +1,6 @@
 LIST OF CHANGES
 
-  - RefMaker: added blast reference
+  - RefMaker: generate blat 2bit genome references
 
 release 50.9
   - fix bug that causes the symlink of the .fa file in the bowtie2
