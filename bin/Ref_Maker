@@ -40,26 +40,6 @@ exit $status;
 
 sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
 
-    my $fasta_regex = qr{[.]f(?:ast|n)?a}imsx;
-    my ( %arguments, %version, %convert_command );
-
-
-    # First make sure we're in the right place.
-    croak 'No fasta directory found.' if !-d 'fasta';
-
-    $working_dir = $CWD;
-
-
-    # There should be one fasta file in the fasta subdirectory.
-    opendir my $dh, 'fasta';
-    @files = grep {m/$fasta_regex\z/imsx} readdir $dh;
-    closedir $dh;
-    croak 'One and only one fasta file expected.' if scalar @files != 1;
-
-    print {*STDOUT} catfile( $CWD, 'fasta', $files[0] ), "\n" or carp $OS_ERROR;
-    $ref_size = -s "fasta/$files[0]";
-
-
     my %build = (
         blat      => 0,
         bowtie    => 0,
@@ -71,7 +51,24 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
         samtools  => 0,
         smalt     => 0,
     );
-    GetOptions( \%build, keys %build );
+    GetOptions( \%build, keys %build ) or croak 'Error in command line arguments';
+
+    my $fasta_regex = qr{[.]f(?:ast|n)?a}imsx;
+    my ( %arguments, %version, %convert_command );
+
+    # First make sure we're in the right place.
+    croak 'No fasta directory found.' if !-d 'fasta';
+
+    $working_dir = $CWD;
+
+    # There should be one fasta file in the fasta subdirectory.
+    opendir my $dh, 'fasta';
+    @files = grep {m/$fasta_regex\z/imsx} readdir $dh;
+    closedir $dh;
+    croak 'One and only one fasta file expected.' if scalar @files != 1;
+
+    print {*STDOUT} catfile( $CWD, 'fasta', $files[0] ), "\n" or carp $OS_ERROR;
+    $ref_size = -s "fasta/$files[0]";
 
     # If no arguments were supplied build all index files.
     if ( sum( values %build ) == 0 ) {
