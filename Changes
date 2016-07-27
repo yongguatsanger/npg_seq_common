@@ -1,8 +1,7 @@
 LIST OF CHANGES
 
-  - RefMaker: generate blat 2bit genome references
-
 release 50.10
+  - RefMaker: generate blat 2bit genome references
   - bam_alignment.pl: enforce to have id_run and position defined. It's
     needed to create an old-style bamflagstats autoqc result object, see
     https://github.com/wtsi-npg/npg_qc/pull/342.
