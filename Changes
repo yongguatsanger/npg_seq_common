@@ -1,5 +1,7 @@
 LIST OF CHANGES
 
+  - RefMaker: added function for longranger mkref and extended test
+
 release 50.10
   - RefMaker: generate blat 2bit genome references
   - bam_alignment.pl: enforce to have id_run and position defined. It's
