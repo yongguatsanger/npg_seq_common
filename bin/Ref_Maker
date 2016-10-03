@@ -41,16 +41,16 @@ exit $status;
 sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
 
     my %build = (
-        blat      => 0,
-        bowtie    => 0,
-        bowtie2   => 0,
-        bwa       => 0,
-        bwa0_6    => 0,
-        npgqc     => 0,
-        picard    => 0,
-        samtools  => 0,
-        smalt     => 0,
+        blat        => 0,
+        bowtie      => 0,
+        bowtie2     => 0,
+        bwa         => 0,
+        bwa0_6      => 0,
 	longranger  => 0,
+        npgqc       => 0,
+        picard      => 0,
+        samtools    => 0,
+        smalt       => 0,
     );
     GetOptions( \%build, keys %build ) or croak 'Error in command line arguments';
 
@@ -74,7 +74,7 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
     # If no arguments were supplied build all index files, except longranger
     if ( sum( values %build ) == 0 ) {
         foreach my $k ( keys %build ) { $build{$k} = 1; }
-	$build{longranger} = 0;
+	$build{'longranger'} = 0;
     }
 
     # bwa uses a different algorithm depending on the size of the reference.
@@ -92,11 +92,11 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
 
     my @failed; # record any failures
     my %subs = ();
-    $subs{'blat'}   = \&blat;
-    $subs{'smalt'}  = \&smalt;
-    $subs{'longranger'}  = \&longranger;
-    $subs{'picard'} = \&picard;
-    $subs{'npgqc'}  = \&gc_frac;
+    $subs{'blat'}       = \&blat;
+    $subs{'smalt'}      = \&smalt;
+    $subs{'longranger'} = \&longranger;
+    $subs{'picard'}     = \&picard;
+    $subs{'npgqc'}      = \&gc_frac;
 
     foreach my $tool (keys %subs) {
         if ($build{$tool}) {
