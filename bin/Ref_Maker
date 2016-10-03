@@ -46,7 +46,7 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
         bowtie2     => 0,
         bwa         => 0,
         bwa0_6      => 0,
-	longranger  => 0,
+        longranger  => 0,
         npgqc       => 0,
         picard      => 0,
         samtools    => 0,
