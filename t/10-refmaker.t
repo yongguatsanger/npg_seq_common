@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 65;
+use Test::More tests => 84;
 use Cwd qw/abs_path getcwd/;
 use File::Temp qw/tempdir/;
 use File::Slurp;
@@ -12,7 +12,7 @@ use JSON;
 
 SKIP: {
   skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-    65 unless ($ENV{'TOOLS_INSTALLED'});
+    84 unless ($ENV{'TOOLS_INSTALLED'});
   my $startDir = getcwd();
   my $fastaMaster = abs_path('t/data/references/E_coli/K12/fasta/E-coli-K12.fa');
   unless (-e $fastaMaster) {
@@ -27,7 +27,8 @@ SKIP: {
 
   chdir($tmp);
 
-  is(system("$startDir/bin/Ref_Maker &> Ref_Maker.log"), 0, 'Ref_Maker exit status');
+  # Run Ref_Maker, redirecting stdout and stderr to .log file
+  is(system("$startDir/bin/Ref_Maker > Ref_Maker.log 2>&1"), 0, 'Ref_Maker exit status');
 
   # can't use checksum on Picard .dict, as it contains full path to fasta file
   my $picard = "picard/E-coli-K12.fa.dict";
@@ -87,6 +88,39 @@ SKIP: {
     is(Digest::MD5->new->addfile($fh)->hexdigest, $expectedMD5{$path},
       "$path MD5 checksum");
     close $fh;
+  }
+
+  chdir($tmp);
+
+  SKIP: {
+    skip '10X longranger pipeline is not installed in travis, skip testing!',
+      19 if ($ENV{'TRAVIS'});
+  
+    # Run Ref_Maker --longranger, redirecting stdout and stderr to .log file
+    is(system("$startDir/bin/Ref_Maker --longranger > Ref_Maker_longranger.log 2>&1"), 0, 'Ref_Maker_longranger exit status');
+  
+    # now verify md5 checksum for all other files
+    my %expectedLongrangerMD5 = (
+      '10X/fasta/genome.fa' => '7285062348a4cb07a23fcd3b44ffcf5d',
+      '10X/fasta/genome.fa.amb' => 'fd2be0b3b8f7e2702450a3c9dc1a5d93',
+      '10X/fasta/genome.fa.ann' => '84365967cebedbee51467604ae27a1f9',
+      '10X/fasta/genome.fa.bwt' => '09f551b8f730df82221bcb6ed8eea724',
+      '10X/fasta/genome.fa.fai' => '3bfb02378761ec6fe2b57e7dc99bd2b5',
+      '10X/fasta/genome.fa.flat' => '05dc7a37701cdc6bcf154344a227983d',
+      '10X/fasta/genome.fa.gdx' => '8d41ec62e1b566f03b3b4a8f240d20e6',
+      '10X/fasta/genome.fa.pac' => 'ca740caf5ee4feff8a77d456ad349c23',
+      '10X/fasta/genome.fa.sa' => '6e5b71027ce8766ce5e2eea08d1da0ec',
+    );
+  
+    chdir($startDir);
+    foreach my $path (keys %expectedLongrangerMD5) {
+      my $file = join q[/], $tmp, $path;
+      ok(-e $file, "file $file exists");
+      open my $fh, "<", $file || die "Cannot open $file for reading";
+      is(Digest::MD5->new->addfile($fh)->hexdigest, $expectedLongrangerMD5{$path},
+        "$path MD5 checksum");
+      close $fh;
+    }
   }
 } # end SKIP no tool installed
 1;

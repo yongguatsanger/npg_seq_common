@@ -1,9 +1,0 @@
-#!/bin/sh
-if [ $# -eq 0 ]
-then
-echo
-echo 'Program: samtools (Tools for alignments in the SAM format)'
-echo 'Version: 0.1.18 (r982:295)'
-echo
-echo 'Usage:   samtools <command> [options]'
-fi

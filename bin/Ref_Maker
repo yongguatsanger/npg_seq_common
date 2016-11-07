@@ -41,15 +41,16 @@ exit $status;
 sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
 
     my %build = (
-        blat      => 0,
-        bowtie    => 0,
-        bowtie2   => 0,
-        bwa       => 0,
-        bwa0_6    => 0,
-        npgqc     => 0,
-        picard    => 0,
-        samtools  => 0,
-        smalt     => 0,
+        blat        => 0,
+        bowtie      => 0,
+        bowtie2     => 0,
+        bwa         => 0,
+        bwa0_6      => 0,
+        longranger  => 0,
+        npgqc       => 0,
+        picard      => 0,
+        samtools    => 0,
+        smalt       => 0,
     );
     GetOptions( \%build, keys %build ) or croak 'Error in command line arguments';
 
@@ -70,9 +71,10 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
     print {*STDOUT} catfile( $CWD, 'fasta', $files[0] ), "\n" or carp $OS_ERROR;
     $ref_size = -s "fasta/$files[0]";
 
-    # If no arguments were supplied build all index files.
+    # If no arguments were supplied build all index files, except longranger
     if ( sum( values %build ) == 0 ) {
         foreach my $k ( keys %build ) { $build{$k} = 1; }
+	$build{'longranger'} = 0;
     }
 
     # bwa uses a different algorithm depending on the size of the reference.
@@ -90,10 +92,11 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
 
     my @failed; # record any failures
     my %subs = ();
-    $subs{'blat'}   = \&blat;
-    $subs{'smalt'}  = \&smalt;
-    $subs{'picard'} = \&picard;
-    $subs{'npgqc'}  = \&gc_frac;
+    $subs{'blat'}       = \&blat;
+    $subs{'smalt'}      = \&smalt;
+    $subs{'longranger'} = \&longranger;
+    $subs{'picard'}     = \&picard;
+    $subs{'npgqc'}      = \&gc_frac;
 
     foreach my $tool (keys %subs) {
         if ($build{$tool}) {
@@ -272,6 +275,35 @@ sub smalt {
     return 1;
 }
 
+sub longranger {
+
+    clean_slate('longranger');
+
+    my $executable = q{longranger};
+    my $longranger_command = qq{$executable mkref ../fasta/$files[0]};
+    $CWD = q{./longranger};
+
+    log_timestamp( 'start', 'longranger' );
+    eval { system $longranger_command; 1; }
+        or do {
+            carp "*** longranger conversion failed: $EVAL_ERROR $SKIP_STRING";
+            log_timestamp( 'abort', 'longranger' );
+            return 0;
+        };
+
+    $CWD = q{..};
+
+    my $target = "longranger/refdata-$files[0]";
+    $target =~ s/[.]fa$//smx;
+    my $link = q{10X};
+    move($target, $link);
+    $target = q{longranger};
+    remove_tree($target);
+
+    log_timestamp( 'stop', 'longranger' );
+    return 1;
+}
+
 sub blat {
     clean_slate('blat');
 
@@ -388,6 +420,10 @@ Run CreateSequenceDictionary
 =head2 smalt
 
 Create smalt index
+
+=head2 longranger
+
+Create longranger mkref
 
 =head2 blat
 
