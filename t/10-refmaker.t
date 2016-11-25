@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 84;
+use Test::More tests => 85;
 use Cwd qw/abs_path getcwd/;
 use File::Temp qw/tempdir/;
 use File::Slurp;
@@ -12,7 +12,7 @@ use JSON;
 
 SKIP: {
   skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-    84 unless ($ENV{'TOOLS_INSTALLED'});
+    85 unless ($ENV{'TOOLS_INSTALLED'});
   my $startDir = getcwd();
   my $fastaMaster = abs_path('t/data/references/E_coli/K12/fasta/E-coli-K12.fa');
   unless (-e $fastaMaster) {
@@ -33,6 +33,8 @@ SKIP: {
   # can't use checksum on Picard .dict, as it contains full path to fasta file
   my $picard = "picard/E-coli-K12.fa.dict";
   ok(-e $picard, "Picard .dict file exists");
+  my $picardsl = "fasta/E-coli-K12.fa.dict";
+  ok(-e $picardsl, "Picard .dict symlink exists");
 
   ok(-e 'smalt/E-coli-K12.fa.sma', 'Smalt .sma file exists');
 
