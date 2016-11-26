@@ -150,20 +150,14 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
     # samtools requires its index file to be in the same directory as the fasta
     # Check first that the samtools command worked above.
     if ($build{'samtools'}) {
-        eval {
-            my $source = "samtools/$files[0].fai";
-            my $target = "fasta/$files[0].fai";
-            croak 'samtools .fai file not found' if !-e $source;
-
-            # This can fail if $target is a broken link.
-            ( -e $target ) && ( unlink $target );
-
-            symlink qq{../$source}, $target;
-            1;
-        } or do {
-            carp "Error symlinking fai file: $EVAL_ERROR $SKIP_STRING";
-        };
+        create_symlink("samtools/$files[0].fai","fasta/$files[0].fai");
     }
+
+    # RNA SeQc requires dict file in same directory as the fasta
+    if ($build{'picard'}) {
+        create_symlink("picard/$files[0].dict","fasta/$files[0].dict");
+    }
+
 
     if (@failed) {
         my $message = 'WARNING: Task(s) failed, see Ref_Maker output for '.
@@ -337,6 +331,26 @@ sub log_timestamp {
     return;
 }
 
+
+sub create_symlink{
+
+    my($source,$target) = @_;
+
+    eval {
+        croak qq{$source file not found} if !-e $source;
+
+        # This can fail if $target is a broken link.
+        ( -e $target ) && ( unlink $target );
+
+        symlink qq{../$source}, $target;
+        1;
+    } or do {
+        carp "Error symlinking $target file: $EVAL_ERROR $SKIP_STRING";
+    };
+
+    return;
+}
+
 sub _get_rm {
     my $rm_class = Moose::Meta::Class->create_anon_class(
         roles => [qw/npg_common::roles::software_location/]);
@@ -436,6 +450,10 @@ Delete and previous version/attempt and create a fresh directory.
 =head2 log_timestamp
 
 Log a timestamp for the start or end (normal or aborted) of an aligner job.
+
+=head2 create_symlink
+
+Create a symlink between a source and target
 
 =head1 REQUIRED ARGUMENTS
 
