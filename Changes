@@ -1,6 +1,8 @@
 LIST OF CHANGES
 
   - RefMaker: added extra dict symlink for RNA SeQc
+  
+release 50.11
   - RefMaker: added function for longranger mkref and extended test
 
 release 50.10
