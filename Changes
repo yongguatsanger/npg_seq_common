@@ -1,5 +1,11 @@
 LIST OF CHANGES
 
+  - seqchksum_merge.pl:
+      updated to generate chksums on the fly is given a bam file
+      added new column class (partition) to partition data when merging.
+      modified and extended tests. N.B. running the script on multiple bam files 
+      should generate the same values as bamcat + bamseqchksum but the
+      order is no longer guaranteed to be the same
   - RefMaker: added function for longranger mkref and extended test
 
 release 50.10
