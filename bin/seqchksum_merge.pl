@@ -159,9 +159,7 @@ sub initialise_outrows {
 	}
 
 	# convert non-comment rows into arrays
-        ##no critic (RegularExpressions::ProhibitUselessTopic)
-	$init_rows = [ map { ($_ !~ /^\#/smx) ? [ (split /\t/smx ) ]: $_; } @{$inrows} ];
-        ##use critic
+	$init_rows = [ map { /^\#/smx ?  $_ :[ split /\t/smx ]} @{$inrows} ];
 	if(not @{$init_rows}) {
 		croak q[No input in initial input file ], $fn;
 	}
