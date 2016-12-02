@@ -1,6 +1,7 @@
 LIST OF CHANGES
 
   - RefMaker: added extra dict symlink for RNA SeQc
+  - code changes to reduce number of warnings under Perl 5.22.2
   
 release 50.11
   - RefMaker: added function for longranger mkref and extended test
