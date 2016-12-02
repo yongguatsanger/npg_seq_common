@@ -29,7 +29,7 @@ foreach (@ARGV) {
         next;
     }
 
-    ( -e $_ )
+    ( -e )
         ? ( push @fasta_list, $_ )
         : ( warn "$_ not found. Skipping...\n" );
 }

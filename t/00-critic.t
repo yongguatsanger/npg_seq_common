@@ -31,6 +31,7 @@ if($EVAL_ERROR) {
                             'ProhibitLongChainsOfMethodCalls'
                           ],
 			 -profile  => 't/perlcriticrc',
+                         -verbose  => "%m at %f line %l, policy %p\n",
 			    );
   all_critic_ok();
 }
