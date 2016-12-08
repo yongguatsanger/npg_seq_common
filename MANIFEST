@@ -57,6 +57,9 @@ t/data/fastq_split/2518_2_5_merge_part.sam
 t/data/fastq_split/Homo_sapiens.NCBI36.48.dna.all.fa
 t/data/fastq_split/seq_ids.txt
 t/data/good.sam
+t/data/seqchksum_merge/merged.different.seqchksum
+t/data/seqchksum_merge/group1.seqchksum
+t/data/seqchksum_merge/group2.seqchksum
 t/data/java
 t/data/mixed.sam
 t/data/references/Homo_sapiens/1000Genomes_hs37d5/all/fasta/hs37d5.fa

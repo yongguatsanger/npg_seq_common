@@ -10,6 +10,8 @@
 #    -m : match (value for a given row/col position across input files is constant)
 #    -n : no check, value in the initial input file for the column is copied to the output; comment
 #               rows (where the row in the initial input file begins with '#') will also behave this way
+#    -p : partition the data in the input files using these values, within each partition all
+#               other columns are combined
 ###########################################################################################################
 
 use strict;
@@ -31,12 +33,14 @@ Readonly::Scalar my $NOOP => 0;
 Readonly::Scalar my $ACC => 1;
 Readonly::Scalar my $CONST => 2;
 Readonly::Scalar my $CHKSUM => 3;
+Readonly::Scalar my $PARTITION => 4;
 
 my %fnc_list = (
 	$NOOP => \&noop_foldin,
 	$ACC => \&addup_foldin,
 	$CONST => \&const_foldin,
 	$CHKSUM => \&chksum_foldin,
+	$PARTITION => \&partition_foldin,
 );
 
 my %flag_fnc = (
@@ -44,15 +48,16 @@ my %flag_fnc = (
 	c => $CHKSUM,
 	m => $CONST,
 	n => $NOOP,
+	p => $PARTITION,
 );
 my %opts;
-getopts('a:c:m:n:h', \%opts);
+getopts('a:c:m:n:p:l:h', \%opts);
 
 # default function map matches the layout of bamseqchksum output (version 0.0.183 currently)
 my @fnc_map = ();
 my @default_fnc_map = (
-	$CONST,
-	$CONST,
+	$PARTITION,
+	$PARTITION,
 	$ACC,
 	$CONST,
 	$CHKSUM,
@@ -62,7 +67,7 @@ my @default_fnc_map = (
 );
 
 if($opts{h}) {
-	croak basename($PROGRAM_NAME), qq{ [-a <accumulate_fld1,accumulate_fld2,...] [-c <chksum_fld1,chksum_fld2,...] [-m <const_fld1,const_fld2,...] [-n <noop_fld1,noop_fld2,...] [-h]\n};
+	croak basename($PROGRAM_NAME), qq{ [-a <accumulate_fld1,accumulate_fld2,...] [-c <chksum_fld1,chksum_fld2,...] [-m <const_fld1,const_fld2,...] [-n <noop_fld1,noop_fld2,...] [-p <partition_fld1,partition_fld2,...] [-h]\n};
 }
 
 # using values from the command-line flags, initialise the fnc_map vector specifying each column's merge function
@@ -75,11 +80,21 @@ my $column_count;
 
 # process the input files
 for my $fn (@ARGV) {
-	open my $f, q[<], $fn or croak qq[Error: Failed to open $fn for input];
-	my @inrows = <$f>;
-	close $f or croak qq[Error: Failed to open $fn for input];
+        my @inrows = ();
+        if($fn =~ m/q[.](sam|bam|cram)$/smx) {
+                open my $f, q[-|], qq[cat $fn | bamseqchksum inputformat=$1] or croak qq[Error: Failed to open $fn for input];
+                @inrows = <$f>;
+                close $f or croak qq[Error: Failed to run bamseqchecksum on $fn for input];
+        }
+        else {
+                open my $f, q[<], $fn or croak qq[Error: Failed to open $fn for input];
+                @inrows = <$f>;
+                close $f or croak qq[Error: Failed to open $fn for input];
+        }
+        if($opts{l}) {
+                @inrows = splice @inrows, 0, $opts{l};
+        }
 	chomp @inrows;
-
 	if(not $outrows) { # determine operating parameters, finish setting up fnc_map from command line flags
 		($outrows, $column_count) = initialise_outrows(\@inrows, \@fnc_map, \@default_fnc_map, $fn);
 	}
@@ -91,14 +106,8 @@ for my $fn (@ARGV) {
 # convert any chksum numbers back to hex strings
 $outrows = chksums_to_hex_strings($outrows, \@fnc_map);
 
-# print results
-for my $row (@{$outrows}) {
-	if(ref $row eq q[ARRAY]) {
-		$row = join "\t", @{$row};
-	}
-
-	print $row, "\n" or carp $OS_ERROR;
-}
+# output merged seqchksums
+output_merged_seqchksum($outrows);
 
 exit;
 
@@ -140,9 +149,12 @@ sub count_tab_columns {
 }
 
 sub initialise_outrows {
-	my ($inrows, $fnc_map, $default_fnc_map, $fn) = @_;
-	my $init_rows;
+## no critic (Variables::ProhibitReusedNames)
+        my ($inrows, $fnc_map, $default_fnc_map, $fn) = @_;
 	my $col_count;
+        my $init_rows;
+        my $outrows;
+        my $partition;
 
 	$col_count = count_tab_columns($inrows, $fn);
 	if($col_count <= 0) {
@@ -160,50 +172,82 @@ sub initialise_outrows {
 
 	# convert non-comment rows into arrays
 	$init_rows = [ map { /^\#/smx ?  $_ :[ split /\t/smx ]} @{$inrows} ];
+        # convert non-comment rows into arrays
+	$init_rows = [ map { $_ !~ /^\#/smx? [ (split /\t/smx, $_) ]: $_; } @{$inrows} ];
 	if(not @{$init_rows}) {
 		croak q[No input in initial input file ], $fn;
 	}
 
 	# convert hex strings to decimals in columns containing checksum values
 	for my $rowidx (0..$#{$init_rows}) {
-		## no critic (ControlStructures::ProhibitUnlessBlocks ControlStructures::ProhibitPostfixControls)
-		next unless(ref $init_rows->[$rowidx]); # skip comment rows
-		for my $colidx (0..$col_count-1) {
-			if($fnc_map->[$colidx] == $CHKSUM) {
-				$init_rows->[$rowidx]->[$colidx] = hex($init_rows->[$rowidx]->[$colidx]);
-			}
-		}
+		if(ref $init_rows->[$rowidx]) {
+                        $partition = undef;
+                        for my $colidx (0..$col_count-1) {
+                                if($fnc_map->[$colidx] == $PARTITION) {
+                                        $partition .= (defined $partition ? q{:} : q{}) . $init_rows->[$rowidx]->[$colidx];
+                                }
+                                if($fnc_map->[$colidx] == $CHKSUM) {
+                                        $init_rows->[$rowidx]->[$colidx] = hex($init_rows->[$rowidx]->[$colidx]);
+                                }
+                        }
+                        ## no critic (ControlStructures::ProhibitPostfixControls)
+                        $partition = 'NA' unless(defined $partition);
+                        for my $colidx (0..$col_count-1) {
+                                $outrows->{$partition}->[$colidx] = $init_rows->[$rowidx]->[$colidx];
+                        }
+                }
+                else {
+                        # comment row
+                        $partition = q[comments];
+                        $outrows->{$partition}->{$init_rows->[$rowidx]}++;
+                }
 	}
 
-	return ($init_rows, $col_count);
+	return ($outrows, $col_count);
 }
 
 sub combine_inrows {
 	my ($init_rows, $inrows, $col_count, $fn) = @_;
+        my $partition;
 
-	# first check layout consistency with initial input
-	if(@{$inrows} != @{$init_rows}) {
-		croak q[Error: number of rows is not consistent between input files (first file has ], scalar @{$init_rows}, qq[ rows, $fn has ], scalar @{$inrows}, q[)];
-	}
+        # first check layout consistency with initial input
 	if((my $c=count_tab_columns($inrows, $fn)) != $col_count) {
 		croak q[Error: column count inconsistent between initial input and ], $fn, q[ ( ], $col_count, q[ != ], $c , q[)];
 	}
 
-	for my $rowidx (0..$#{$init_rows}) {
-		my $outrow = $init_rows->[$rowidx];
-
-		## no critic (ControlStructures::ProhibitUnlessBlocks ControlStructures::ProhibitPostfixControls)
-		next unless(ref $outrow); # skip comment rows
-
-		unless(ref $outrow eq q[ARRAY]) { croak q[Error: non-comment row should be an ARRAY ref, not ], ref $outrow; }
-
-		# combine the incoming values using the method specified by the function map for the column
-		my @inrow = (split /\t/smx, $inrows->[$rowidx]);
-		for my $colidx (0..$col_count-1) {
-			if(not defined ($outrow->[$colidx] = $fnc_list{$fnc_map[$colidx]}->($outrow->[$colidx], $inrow[$colidx]))) {
-				croak q[Error: Failed to merge value for column ], $colidx, q[ from file ],$fn;
-			}
-		}
+        for my $row (@{$inrows}) {
+	        my $inrow = $row !~ /^\#/smx? [ (split /\t/smx, $row) ]: $row;
+		if(ref $inrow) {
+                        $partition = undef;
+                        for my $colidx (0..$col_count-1) {
+                                if($fnc_map[$colidx] == $PARTITION) {
+                                        $partition .= (defined $partition ? q{:} : q{}) . $inrow->[$colidx];
+                                }
+                        }
+                        ## no critic (ControlStructures::ProhibitPostfixControls)
+                        $partition = 'NA' unless(defined $partition);
+                        if (exists $init_rows->{$partition}) {
+                                my $outrow = $init_rows->{$partition};
+                                for my $colidx (0..$col_count-1) {
+                                        if(not defined($outrow->[$colidx] = $fnc_list{$fnc_map[$colidx]}->($outrow->[$colidx], $inrow->[$colidx]))) {
+                                            croak q[Error: Failed to merge value for column ], $colidx, q[ from file ],$fn;
+                                        }
+                                }
+                        }
+                        else {
+                                for my $colidx (0..$col_count-1) {
+                                        if($fnc_map[$colidx] == $CHKSUM) {
+                                                $inrow->[$colidx] = hex($inrow->[$colidx]);
+                                        }
+                                        $init_rows->{$partition}->[$colidx] = $inrow->[$colidx];
+                                }
+                        }
+                }
+                else {
+                        # comment row
+                        $partition = q[comments];
+                        $init_rows->{$partition}->{$inrow}++;
+                }
 	}
 
 	return;
@@ -211,6 +255,12 @@ sub combine_inrows {
 
 # foldin functions
 sub noop_foldin {
+	my ($outval, $inval) = @_;
+
+	return $outval;
+}
+
+sub partition_foldin {
 	my ($outval, $inval) = @_;
 
 	return $outval;
@@ -247,12 +297,12 @@ sub chksum_foldin {
 sub chksums_to_hex_strings {
 	my ($out, $fnc_map) = @_;
 
-	for my $rowidx (0..$#{$outrows}) {
+	for my $partition (keys %{$outrows}) {
 		## no critic (ControlStructures::ProhibitUnlessBlocks ControlStructures::ProhibitPostfixControls)
-		next unless(ref $outrows->[$rowidx]); # skip comment rows
+		next unless(ref $outrows->{$partition} eq q[ARRAY]); # skip comment rows
 		for my $colidx (0..$column_count-1) {
 			if($fnc_map->[$colidx] == $CHKSUM) {
-				$outrows->[$rowidx]->[$colidx] = sprintf '%x', $outrows->[$rowidx]->[$colidx];
+                                $outrows->{$partition}->[$colidx] = sprintf '%x', $outrows->{$partition}->[$colidx];
 			}
 		}
 	}
@@ -260,3 +310,42 @@ sub chksums_to_hex_strings {
 	return $out;
 }
 
+# output merged seqchksums
+sub output_merged_seqchksum {
+        ## no critic (ControlStructures::ProhibitPostfixControls)
+	my ($outrow) = @_;
+
+        # print results in the following order comments, col0=all rows, col0="" rows and then all other rows
+        my $partition = q[comments];
+        if (exists $outrows->{$partition}) {
+                for my $row (sort keys %{$outrows->{$partition}}) {
+                        print $row, "\n" or carp $OS_ERROR;
+                }
+        }
+        for my $partition (sort keys %{$outrows}) {
+                next unless($partition =~ /^all/smx);
+                my $row = $outrows->{$partition};
+                if(ref $row eq q[ARRAY]) {
+                        $row = join "\t", @{$row};
+                }
+                print $row, "\n" or carp $OS_ERROR;
+        }
+        for my $partition (sort keys %{$outrows}) {
+                next unless($partition =~ /^:/smx);
+                my $row = $outrows->{$partition};
+                if(ref $row eq q[ARRAY]) {
+                        $row = join "\t", @{$row};
+                }
+                print $row, "\n" or carp $OS_ERROR;
+        }
+        for my $partition (sort keys %{$outrows}) {
+                next if $partition =~ /^comments$|^all|^:/smx;
+                my $row = $outrows->{$partition};
+                if(ref $row eq q[ARRAY]) {
+                        $row = join "\t", @{$row};
+                }
+                print $row, "\n" or carp $OS_ERROR;
+        }
+
+        return;
+}
