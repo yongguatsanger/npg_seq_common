@@ -60,8 +60,8 @@ Readonly::Scalar our $RESULT_CLASS_NAME   => q[Fastqcheck];
 
 
 subtype 'FastqcheckFile' => as 'Str'
-                                 => where {$_ =~ /[.]fastqcheck$/imsx }
-                                 => message {"$_ does not have .fastqcheck extension"};
+                         => where { /[.]fastqcheck$/imsx }
+                         => message {"$_ does not have .fastqcheck extension"};
 
 subtype 'NonNegativeInteger'  => as 'Int'
                               => where { $_ >= 0; }

@@ -25,6 +25,10 @@ is(system("$startDir/bin/seqchksum_merge.pl"), 0, 'seqchksum_merge.pl exit statu
 is(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/target.seqchksum $seqchksum_data/phix.seqchksum > $tmpdir/merged.matching.seqchksum"), 0, 'seqchksum_merge.pl create matching test output exit status');
 is(system("cmp -s $tmpdir/merged.matching.seqchksum $seqchksum_data/merged.seqchksum"), 0, 'seqchksum_merge.pl matching cmp exit status');
 
+# the files used for merge contain different read groups
+is(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/group1.seqchksum $seqchksum_data/group2.seqchksum > $tmpdir/merged.different.seqchksum"), 0, 'seqchksum_merge.pl create matching test output exit status');
+is(system("cmp -s $tmpdir/merged.different.seqchksum $seqchksum_data/merged.different.seqchksum"), 0, 'seqchksum_merge.pl different read groups exit status');
+
 # the files used for the merge do not "partition" the reads in the combined file (extra occurrence of target.seqchksum), so comparison fails
 is(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/target.seqchksum $seqchksum_data/phix.seqchksum $seqchksum_data/target.seqchksum > $tmpdir/merged.extra_input.seqchksum"), 0, 'seqchksum_merge.pl create test output 2 exit status');
 isnt(system("cmp -s $tmpdir/merged.extra_input.seqchksum $seqchksum_data/merged.seqchksum"), 0, 'seqchksum_merge.pl extra component file cmp exit status');
@@ -34,11 +38,9 @@ is(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/phix.seqchksum > $tm
 isnt(system("cmp -s $tmpdir/merged.missing_input.seqchksum $seqchksum_data/merged.seqchksum"), 0, 'seqchksum_merge.pl missing component file cmp exit status');
 
 # errors because format of input files is not consistent
-isnt(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/target.missing_row.seqchksum $seqchksum_data/phix.seqchksum > /dev/null"), 0, 'seqchksum_merge.pl input missing row status');
 isnt(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/target.missing_col.seqchksum $seqchksum_data/phix.seqchksum > /dev/null"), 0, 'seqchksum_merge.pl input missing col status');
-isnt(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/target.extra_row.seqchksum $seqchksum_data/phix.seqchksum > /dev/null"), 0, 'seqchksum_merge.pl input extra row status');
 isnt(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/target.extra_col.seqchksum $seqchksum_data/phix.seqchksum > /dev/null"), 0, 'seqchksum_merge.pl input extra col status');
-# column 3 flagged (by default) as constant does not match across input files
+# column 4 flagged (by default) as constant does not match across input files
 isnt(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/target.seqchksum $seqchksum_data/phix.inconstant.seqchksum > /dev/null"), 0, 'seqchksum_merge.pl inconstant constant exit status');
 
 # Initial input file contains only comments. No useful output, but not an error.
