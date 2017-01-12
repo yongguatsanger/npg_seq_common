@@ -1,5 +1,7 @@
 LIST OF CHANGES
 
+  - add "-F 0x 200" flag to fastq_summ command to filter qc fails from 10k read fastq subsets used for (some) QC checks
+
 release 50.12
   - seqchksum_merge.pl
       updated to generate chksums on the fly is given a bam file
