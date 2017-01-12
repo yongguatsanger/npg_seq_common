@@ -46,8 +46,8 @@ isnt(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/target.seqchksum $
 # Initial input file contains only comments. No useful output, but not an error.
 is(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/target.all_comments.seqchksum $seqchksum_data/phix.seqchksum > /dev/null"), 0, 'seqchksum_merge.pl with all-comments input exit status');
 
-# incorrectly identify column 6 as both a count (accumulate) and a noop field. Expect fatal error from script.
-isnt(system("$startDir/bin/seqchksum_merge.pl -a5 -n5 $seqchksum_data/target.seqchksum $seqchksum_data/phix.seqchksum > /dev/null"), 0, 'seqchksum_merge.pl chksum, conflicting column type definition exit status');
+# incorrectly identify column 6 as both a count (accumulate) and a partition field. Expect fatal error from script.
+isnt(system("$startDir/bin/seqchksum_merge.pl -a5 -p5 $seqchksum_data/target.seqchksum $seqchksum_data/phix.seqchksum > /dev/null"), 0, 'seqchksum_merge.pl chksum, conflicting column type definition exit status');
 
 # incorrectly identify column 5 (containing check sum values) as a count (accumulate) field. Merged file successfully generated, comparison fails
 is(system("$startDir/bin/seqchksum_merge.pl -a5 $seqchksum_data/target.seqchksum $seqchksum_data/phix.seqchksum > $tmpdir/merged.chksum_as_acc.seqchksum"), 0, 'seqchksum_merge.pl chksum as accumulate test output exit status');
@@ -57,8 +57,8 @@ isnt(system("cmp -s $tmpdir/merged.chksum_as_acc.seqchksum $seqchksum_data/merge
 is(system("$startDir/bin/seqchksum_merge.pl -c3 $seqchksum_data/target.seqchksum $seqchksum_data/phix.seqchksum > $tmpdir/merged.acc_as_chksum.seqchksum"), 0, 'seqchksum_merge.pl accumulate as chksum test output exit status');
 isnt(system("cmp -s $tmpdir/merged.acc_as_chksum.seqchksum $seqchksum_data/merged.seqchksum"), 0, 'seqchksum_merge.pl acc fld as chksum cmp exit status');
 
-# incorrectly identify column 6 (containing check sum values) as a noop field. Merged file successfully generated, comparison fails
-is(system("$startDir/bin/seqchksum_merge.pl -n6 $seqchksum_data/target.seqchksum $seqchksum_data/phix.seqchksum > $tmpdir/merged.chksum_as_acc.seqchksum"), 0, 'seqchksum_merge.pl chksum as noop test output exit status');
-isnt(system("cmp -s $tmpdir/merged.chksum_as_noop.seqchksum $seqchksum_data/merged.seqchksum"), 0, 'seqchksum_merge.pl chksum fld as noop cmp exit status');
+# incorrectly identify column 6 (containing check sum values) as a partition field. Merged file successfully generated, comparison fails
+is(system("$startDir/bin/seqchksum_merge.pl -p6 $seqchksum_data/target.seqchksum $seqchksum_data/phix.seqchksum > $tmpdir/merged.chksum_as_acc.seqchksum"), 0, 'seqchksum_merge.pl chksum as partition test output exit status');
+isnt(system("cmp -s $tmpdir/merged.chksum_as_partition.seqchksum $seqchksum_data/merged.seqchksum"), 0, 'seqchksum_merge.pl chksum fld as partition cmp exit status');
 
 1;

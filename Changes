@@ -1,8 +1,12 @@
 LIST OF CHANGES
 
+  - seqchksum_merge.pl:
+      dropped -n option
+      added a check for non-unique partitions in each input file
+
 release 50.12
   - seqchksum_merge.pl
-      updated to generate chksums on the fly is given a bam file
+      updated to generate chksums on the fly if given a bam file
       added new column class (partition) to partition data when merging.
       modified and extended tests. N.B. running the script on multiple bam files 
       should generate the same values as bamcat + bamseqchksum but the
