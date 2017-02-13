@@ -304,7 +304,7 @@ sub generate_cache {
     if($from->[0] =~ /\.bam$/smx) {
 		foreach my $file (@{$from}) {
 			my ($outbase,$dir,$suffix) = fileparse $file, '.bam';
-			my $cmd = "fastq_summ -s $sample_size -k -o ${outbase} -d $cache $file";
+			my $cmd = "fastq_summ -F 0x200 -s $sample_size -k -o ${outbase} -d $cache $file";
 			if(system $cmd) {
 				croak qq[fastq_summ failed for file: $file, cmd: $cmd: $CHILD_ERROR];
 			}
