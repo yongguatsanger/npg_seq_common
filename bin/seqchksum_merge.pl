@@ -80,7 +80,7 @@ my $column_count;
 # process the input files
 for my $fn (@ARGV) {
         my @inrows = ();
-        if($fn =~ m/q[.](sam|bam|cram)$/smx) {
+        if($fn =~ m/[.](sam|bam|cram)$/smx) {
                 open my $f, q[-|], qq[cat $fn | bamseqchksum inputformat=$1] or croak qq[Error: Failed to open $fn for input];
                 @inrows = <$f>;
                 close $f or croak qq[Error: Failed to run bamseqchecksum on $fn for input];

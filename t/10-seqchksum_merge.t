@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 20;
+use Test::More tests => 22;
 use Cwd qw/abs_path getcwd/;
 use File::Temp qw/tempdir/;
 use File::Slurp;
@@ -24,6 +24,10 @@ is(system("$startDir/bin/seqchksum_merge.pl"), 0, 'seqchksum_merge.pl exit statu
 # first, a normal successful run
 is(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/target.seqchksum $seqchksum_data/phix.seqchksum > $tmpdir/merged.matching.seqchksum"), 0, 'seqchksum_merge.pl create matching test output exit status');
 is(system("cmp -s $tmpdir/merged.matching.seqchksum $seqchksum_data/merged.seqchksum"), 0, 'seqchksum_merge.pl matching cmp exit status');
+
+# merge sam, bam, cram and seqchksum files - N.B. sort order isn't guaranteed so sort results before comparing
+is(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/format1.sam $seqchksum_data/format2.bam $seqchksum_data/format3.cram $seqchksum_data/format4.seqchksum | sort > $tmpdir/merged.formats.matching.seqchksum"), 0, 'seqchksum_merge.pl create different formats test output exit status');
+is(system("cmp -s $tmpdir/merged.formats.matching.seqchksum $seqchksum_data/merged.formats.seqchksum"), 0, 'seqchksum_merge.pl different formats cmp exit status');
 
 # the files used for merge contain different read groups
 is(system("$startDir/bin/seqchksum_merge.pl $seqchksum_data/group1.seqchksum $seqchksum_data/group2.seqchksum > $tmpdir/merged.different.seqchksum"), 0, 'seqchksum_merge.pl create matching test output exit status');
