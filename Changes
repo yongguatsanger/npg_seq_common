@@ -2,10 +2,14 @@ LIST OF CHANGES
 
 release 50.13
   - add "-F 0x 200" flag to fastq_summ command to filter qc fails from 10k read fastq subsets used for (some) QC checks
+  - seqchksum_merge.pl:
+      fix bug when handling different format files and added a test
+      dropped -n option
+      added a check for non-unique partitions in each input file
 
 release 50.12
   - seqchksum_merge.pl
-      updated to generate chksums on the fly is given a bam file
+      updated to generate chksums on the fly if given a bam file
       added new column class (partition) to partition data when merging.
       modified and extended tests. N.B. running the script on multiple bam files 
       should generate the same values as bamcat + bamseqchksum but the
