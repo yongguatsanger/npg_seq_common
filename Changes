@@ -1,11 +1,13 @@
 LIST OF CHANGES
 
-release 50.13
-  - add "-F 0x 200" flag to fastq_summ command to filter qc fails from 10k read fastq subsets used for (some) QC checks
+release 50.14
   - seqchksum_merge.pl:
       fix bug when handling different format files and added a test
       dropped -n option
       added a check for non-unique partitions in each input file
+
+release 50.13
+  - add "-F 0x 200" flag to fastq_summ command to filter qc fails from 10k read fastq subsets used for (some) QC checks
 
 release 50.12
   - seqchksum_merge.pl
