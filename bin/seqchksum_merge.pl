@@ -47,11 +47,10 @@ my %flag_fnc = (
 	a => $ACC,
 	c => $CHKSUM,
 	m => $CONST,
-	n => $NOOP,
 	p => $PARTITION,
 );
 my %opts;
-getopts('a:c:m:n:p:l:h', \%opts);
+getopts('a:c:m:p:l:h', \%opts);
 
 # default function map matches the layout of bamseqchksum output (version 0.0.183 currently)
 my @fnc_map = ();
@@ -67,7 +66,7 @@ my @default_fnc_map = (
 );
 
 if($opts{h}) {
-	croak basename($PROGRAM_NAME), qq{ [-a <accumulate_fld1,accumulate_fld2,...] [-c <chksum_fld1,chksum_fld2,...] [-m <const_fld1,const_fld2,...] [-n <noop_fld1,noop_fld2,...] [-p <partition_fld1,partition_fld2,...] [-h]\n};
+	croak basename($PROGRAM_NAME), qq{ [-a <accumulate_fld1,accumulate_fld2,...] [-c <chksum_fld1,chksum_fld2,...] [-m <const_fld1,const_fld2,...] [-p <partition_fld1,partition_fld2,...] [-h]\n};
 }
 
 # using values from the command-line flags, initialise the fnc_map vector specifying each column's merge function
@@ -81,7 +80,7 @@ my $column_count;
 # process the input files
 for my $fn (@ARGV) {
         my @inrows = ();
-        if($fn =~ m/q[.](sam|bam|cram)$/smx) {
+        if($fn =~ m/[.](sam|bam|cram)$/smx) {
                 open my $f, q[-|], qq[cat $fn | bamseqchksum inputformat=$1] or croak qq[Error: Failed to open $fn for input];
                 @inrows = <$f>;
                 close $f or croak qq[Error: Failed to run bamseqchecksum on $fn for input];
@@ -192,6 +191,9 @@ sub initialise_outrows {
                         }
                         ## no critic (ControlStructures::ProhibitPostfixControls)
                         $partition = 'NA' unless(defined $partition);
+                        if (exists $outrows->{$partition}) {
+  		                croak q[Partition columns are not unique in file], $fn;
+                        }
                         for my $colidx (0..$col_count-1) {
                                 $outrows->{$partition}->[$colidx] = $init_rows->[$rowidx]->[$colidx];
                         }
@@ -209,6 +211,7 @@ sub initialise_outrows {
 sub combine_inrows {
 	my ($init_rows, $inrows, $col_count, $fn) = @_;
         my $partition;
+        my %partitions = ();
 
         # first check layout consistency with initial input
 	if((my $c=count_tab_columns($inrows, $fn)) != $col_count) {
@@ -226,6 +229,11 @@ sub combine_inrows {
                         }
                         ## no critic (ControlStructures::ProhibitPostfixControls)
                         $partition = 'NA' unless(defined $partition);
+                        if (exists $partitions{$partition}) {
+  		                croak q[Partition columns are not unique in file], $fn;
+                        } else {
+                            $partitions{$partition}++;
+                        }
                         if (exists $init_rows->{$partition}) {
                                 my $outrow = $init_rows->{$partition};
                                 for my $colidx (0..$col_count-1) {
