@@ -1,8 +1,3 @@
-#########
-# Author:        ejz
-# Created:       2013-01-08
-#
-
 package npg_common::roles::software_location;
 
 use Moose::Role;
@@ -18,7 +13,7 @@ use npg_tracking::util::abs_path qw(abs_path);
 
 our $VERSION = '0';
 
-Readonly::Array  my @TOOLS => qw/bwa bwa0_6 samtools samtools_irods bowtie java/;
+Readonly::Array my @TOOLS => qw/bwa bwa0_6 samtools samtools_irods bowtie java/;
 
 subtype 'NpgCommonResolvedPathExecutable'
       => where { (abs_path($_) eq $_) && ( -x ) },
@@ -216,6 +211,8 @@ returns undefined if cannot get the version
 
 =item Perl6::Slurp
 
+=item Readonly
+
 =item npg_tracking::util::abs_path
 
 =back
@@ -234,7 +231,7 @@ Eduard J. Zuiderwijk, E<lt>ejz@sanger.ac.ukE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2013 GRL, by Ed Zuiderwijk
+Copyright (C) 2017 Genome Research Ltd
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
