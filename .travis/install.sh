@@ -44,17 +44,6 @@ mkdir -p $HOME/lib/$MACHTYPE
 make
 popd
 
-# smalt
-
-wget https://sourceforge.net/projects/smalt/files/smalt-${SMALT_VERSION}.tar.gz/download -O smalt.tar.gz
-mkdir -p smalt
-tar xzf smalt.tar.gz -C smalt --strip-components 1
-pushd smalt
-./configure --prefix=/tmp
-make
-make install
-popd
-
 # bowtie
 
 git clone --branch ${BOWTIE_VERSION} --depth 1 https://github.com/dkj/bowtie.git bowtie
