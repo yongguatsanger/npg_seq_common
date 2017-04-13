@@ -1,5 +1,7 @@
 LIST OF CHANGES
 
+  - RefMaker not to build smalt index
+
 release 50.14
   - seqchksum_merge.pl:
       fix bug when handling different format files and added a test

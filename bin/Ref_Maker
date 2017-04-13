@@ -1,13 +1,10 @@
 #!/usr/bin/env perl
-#########
-# Created:       2008-06-17
 
 use strict;
 use warnings;
 use FindBin qw($Bin);
 use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 use Carp;
-use Cwd qw(abs_path);
 use English qw(-no_match_vars);
 use File::Basename;
 use File::chdir;
@@ -23,6 +20,7 @@ use Perl6::Slurp;
 use POSIX qw(strftime);
 use autodie qw(:all);
 use Readonly;
+use npg_tracking::util::abs_path qw(abs_path);
 
 our $VERSION = '0';
 
@@ -50,7 +48,6 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
         npgqc       => 0,
         picard      => 0,
         samtools    => 0,
-        smalt       => 0,
     );
     GetOptions( \%build, keys %build ) or croak 'Error in command line arguments';
 
@@ -93,7 +90,6 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
     my @failed; # record any failures
     my %subs = ();
     $subs{'blat'}       = \&blat;
-    $subs{'smalt'}      = \&smalt;
     $subs{'longranger'} = \&longranger;
     $subs{'picard'}     = \&picard;
     $subs{'npgqc'}      = \&gc_frac;
@@ -247,28 +243,6 @@ sub picard {
     return 1;
 }
 
-sub smalt {
-
-    clean_slate('smalt');
-
-    my $executable = q{smalt};
-    my $smalt_command = qq{$executable index $files[0] ../fasta/$files[0]};
-    $CWD = q{./smalt};
-
-    log_timestamp( 'start', 'smalt' );
-    eval { system $smalt_command; 1; }
-        or do {
-            carp "*** smalt conversion failed: $EVAL_ERROR $SKIP_STRING";
-            log_timestamp( 'abort', 'smalt' );
-            return 0;
-        };
-
-    $CWD = q{..};
-
-    log_timestamp( 'stop', 'smalt' );
-    return 1;
-}
-
 sub longranger {
 
     clean_slate('longranger');
@@ -330,7 +304,6 @@ sub log_timestamp {
 
     return;
 }
-
 
 sub create_symlink{
 
@@ -431,10 +404,6 @@ Run base_count_maker
 
 Run CreateSequenceDictionary
 
-=head2 smalt
-
-Create smalt index
-
 =head2 longranger
 
 Create longranger mkref
@@ -479,8 +448,6 @@ Create a symlink between a source and target
 
 =item Readonly
 
-=item Cwd
-
 =item File::Basename
 
 =item File::chdir
@@ -506,6 +473,8 @@ Create a symlink between a source and target
 =item Perl6::Slurp
 
 =item POSIX
+
+=item npg_tracking::util::abs_path
 
 =back
 
@@ -538,7 +507,7 @@ Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2016 GRL
+Copyright (C) 2017 GRL
 
 This file is part of NPG.
 

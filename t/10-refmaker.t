@@ -1,7 +1,7 @@
 use strict;
 use warnings;
-use Test::More tests => 85;
-use Cwd qw/abs_path getcwd/;
+use Test::More tests => 82;
+use Cwd qw/getcwd/;
 use File::Temp qw/tempdir/;
 use File::Slurp;
 use Digest::MD5;
@@ -12,14 +12,14 @@ use JSON;
 
 SKIP: {
   skip 'Third party bioinformatics tools required. Set TOOLS_INSTALLED to true to run.',
-    85 unless ($ENV{'TOOLS_INSTALLED'});
+    82 unless ($ENV{'TOOLS_INSTALLED'});
   my $startDir = getcwd();
-  my $fastaMaster = abs_path('t/data/references/E_coli/K12/fasta/E-coli-K12.fa');
+  my $fastaMaster = 't/data/references/E_coli/K12/fasta/E-coli-K12.fa';
   unless (-e $fastaMaster) {
     die "Cannot find FASTA master file $fastaMaster\n";
   }
-  my $tmp = tempdir('Ref_Maker_test_XXXXXX', CLEANUP => 1, DIR => '/tmp' );
-  print "Created temporary directory: ".abs_path($tmp)."\n";
+  my $tmp = tempdir('Ref_Maker_test_XXXXXX', CLEANUP => 1, DIR => '/tmp');
+  note "Created temporary directory: $tmp";
   my $tmpFasta = $tmp."/fasta";
   mkdir($tmpFasta);
   system("cp $fastaMaster $tmpFasta");
@@ -35,8 +35,6 @@ SKIP: {
   ok(-e $picard, "Picard .dict file exists");
   my $picardsl = "fasta/E-coli-K12.fa.dict";
   ok(-e $picardsl, "Picard .dict symlink exists");
-
-  ok(-e 'smalt/E-coli-K12.fa.sma', 'Smalt .sma file exists');
 
   # now verify md5 checksum for all other files
   my %expectedMD5 = (
@@ -68,7 +66,6 @@ SKIP: {
     'fasta/E-coli-K12.fa' => '7285062348a4cb07a23fcd3b44ffcf5d',
     'fasta/E-coli-K12.fa.fai' => '3bfb02378761ec6fe2b57e7dc99bd2b5',
     'samtools/E-coli-K12.fa.fai' => '3bfb02378761ec6fe2b57e7dc99bd2b5',
-    'smalt/E-coli-K12.fa.smi' => 'aa85b6852d707d45b90edf714715ee6b',
     'blat/E-coli-K12.fa.2bit' => 'd40176801d2f23f76f7c575843350923',
   );
 
