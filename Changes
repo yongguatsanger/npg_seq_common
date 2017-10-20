@@ -1,7 +1,6 @@
 LIST OF CHANGES
 
 release 50.17
-  - drop perl 5.16 from travis matrix
   - update travis install
     - use samtools/htslib 1.6 from samtools repos
     - drop perl 5.16 from matrix
