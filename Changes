@@ -1,6 +1,10 @@
 LIST OF CHANGES
 
   - drop perl 5.16 from travis matrix
+  - update travis install
+    - use samtools/htslib 1.6 from samtools repos
+    - drop perl 5.16 from matrix
+    - drop pb_calibration
 
 release 50.16
   - RefMaker: updated to generate STAR aligner reference genome indexes
