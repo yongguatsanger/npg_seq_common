@@ -9,6 +9,8 @@ use File::Spec::Functions qw(catfile);
 use File::Which qw(which);
 use Moose::Meta::Class;
 
+use npg_tracking::util::abs_path qw(abs_path);
+
 use_ok('npg_common::roles::software_location');
 
 package class_with_lazy_jar;

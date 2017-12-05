@@ -44,17 +44,6 @@ mkdir -p $HOME/lib/$MACHTYPE
 make
 popd
 
-# smalt
-
-wget https://sourceforge.net/projects/smalt/files/smalt-${SMALT_VERSION}.tar.gz/download -O smalt.tar.gz
-mkdir -p smalt
-tar xzf smalt.tar.gz -C smalt --strip-components 1
-pushd smalt
-./configure --prefix=/tmp
-make
-make install
-popd
-
 # bowtie
 
 git clone --branch ${BOWTIE_VERSION} --depth 1 https://github.com/dkj/bowtie.git bowtie
@@ -86,16 +75,6 @@ ln -s /tmp/bowtie2/bowtie2-inspect /tmp/bin/bowtie2-inspect
 ln -s /tmp/bowtie2/bowtie2-inspect-l /tmp/bin/bowtie2-inspect-l
 ln -s /tmp/bowtie2/bowtie2-inspect-s /tmp/bin/bowtie2-inspect-s
 
-
-# samtools 0.1.19
-
-wget http://sourceforge.net/projects/samtools/files/samtools/${SAMTOOLS_VERSION}/samtools-${SAMTOOLS_VERSION}.tar.bz2/download -O samtools-${SAMTOOLS_VERSION}.tar.bz2
-tar jxf samtools-${SAMTOOLS_VERSION}.tar.bz2
-pushd samtools-${SAMTOOLS_VERSION}
-make
-ln -s /tmp/samtools-${SAMTOOLS_VERSION}/samtools /tmp/bin/samtools
-popd
-
 # staden_io_lib
 
 wget http://sourceforge.net/projects/staden/files/io_lib/${STADEN_IO_LIB_VERSION}/io_lib-${STADEN_IO_LIB_VERSION}.tar.gz/download -O io_lib.tar.gz
@@ -106,20 +85,9 @@ make
 make install
 popd
 
-
-# pb_calibration # for calibration_pu
-
-git clone --branch ${PB_CALIBRATION_VERSION} --depth 1 https://github.com/wtsi-npg/pb_calibration.git
-pushd pb_calibration/src
-autoreconf --force --install
-./configure --with-samtools=/tmp/samtools-0.1.19 --with-io_lib=/tmp --prefix=/tmp
-make
-make install
-popd
-
 # htslib/samtools
 
-git clone --branch ${HTSLIB_VERSION} --depth 1 https://github.com/wtsi-npg/htslib.git htslib
+git clone --branch ${HTSLIB_VERSION} --depth 1 https://github.com/samtools/htslib htslib
 pushd htslib
 autoreconf -fi
 ./configure --prefix=/tmp --enable-plugins
@@ -127,9 +95,8 @@ make
 make install
 popd
 
-
-git clone --branch ${SAMTOOLS1_VERSION} --depth 1 https://github.com/wtsi-npg/samtools.git samtools-irods
-pushd samtools-irods
+git clone --branch ${SAMTOOLS_VERSION} --depth 1 https://github.com/samtools/samtools samtools
+pushd samtools
 mkdir -p acinclude.m4
 pushd acinclude.m4
 curl -L https://github.com/samtools/samtools/files/62424/ax_with_htslib.m4.txt > ax_with_htslib.m4
@@ -137,19 +104,16 @@ curl -L 'http://git.savannah.gnu.org/gitweb/?p=autoconf-archive.git;a=blob_plain
 popd
 aclocal -I acinclude.m4
 autoreconf -i
-./configure --prefix=/tmp --with-htslib=/tmp/htslib --enable-plugins
+./configure --prefix=/tmp --with-htslib=/tmp/htslib --enable-plugins --without-curses
 make
-ln -s /tmp/samtools-irods/samtools /tmp/bin/samtools_irods
+# for other tools to find samtools and its alias samtools_irods
+ln -s /tmp/samtools/samtools /tmp/bin/samtools_irods
+ln -s /tmp/samtools/samtools /tmp/bin/samtools
+# for compiling tools in npg_qc since they expect to find samtools headers in /include
+# relative to which samtools in PATH
+ln -s /tmp/samtools /tmp/samtools/lib
+ln -s /tmp/samtools /tmp/samtools/include
 popd
-
-
-# illumina2bam
-
-git clone --branch V${ILLUMINA2BAM_VERSION} --depth 1 https://github.com/wtsi-npg/illumina2bam.git illumina2bam
-pushd illumina2bam
-ant -lib lib/bcel jar
-popd
-
 
 # picard
 wget https://sourceforge.net/projects/picard/files/picard-tools/${PICARD_VERSION}/picard-tools-${PICARD_VERSION}.zip/download -O picard-tools-${PICARD_VERSION}.zip
@@ -160,6 +124,12 @@ unzip picard-tools-${PICARD_VERSION}.zip
 wget https://github.com/gt1/biobambam2/releases/download/${BIOBAMBAM_VERSION}/biobambam2-${BIOBAMBAM_VERSION}-x86_64-etch-linux-gnu.tar.gz -O biobambam2.tar.gz
 mkdir biobambam2
 tar xzf biobambam2.tar.gz -C biobambam2 --strip-components 1
+
+# star
+
+wget https://github.com/alexdobin/STAR/archive/${STAR_VERSION}.zip
+unzip ${STAR_VERSION}.zip
+ln -s /tmp/STAR-${STAR_VERSION}/bin/Linux_x86_64_static/STAR /tmp/bin/star
 
 
 popd
@@ -185,7 +155,7 @@ do
         cpanm --quiet --notest --installdeps . || find /home/travis/.cpanm/work -cmin -1 -name '*.log' -exec tail -n20  {} \;
           perl Build.PL
             ./Build
-              ./Build install
+            ./Build install
           done
 
           cd "$TRAVIS_BUILD_DIR"

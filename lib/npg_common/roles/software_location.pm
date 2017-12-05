@@ -1,8 +1,3 @@
-#########
-# Author:        ejz
-# Created:       2013-01-08
-#
-
 package npg_common::roles::software_location;
 
 use Moose::Role;
@@ -18,10 +13,10 @@ use npg_tracking::util::abs_path qw(abs_path);
 
 our $VERSION = '0';
 
-Readonly::Array  my @TOOLS => qw/bwa bwa0_6 samtools samtools_irods bowtie java/;
+Readonly::Array my @TOOLS => qw/bwa bwa0_6 samtools samtools_irods bowtie java star/;
 
 subtype 'NpgCommonResolvedPathExecutable'
-      => where { (abs_path($_) eq $_) && ( -x $_) },
+      => where { (abs_path($_) eq $_) && ( -x ) },
       => as 'Str',
       => message { ($_ || q[]). ' is not an executable' };
 coerce 'NpgCommonResolvedPathExecutable',
@@ -48,7 +43,7 @@ foreach my $tool ( @TOOLS ) {
 }
 
 subtype 'NpgCommonResolvedPathJarFile'
-      => where { ( -r $_) && (abs_path($_) eq $_) },
+      => where { ( -r ) && (abs_path($_) eq $_) },
       => as 'Str';
 coerce 'NpgCommonResolvedPathJarFile',
       from 'Str',
@@ -181,6 +176,11 @@ defaults to "bcftools" found on the path
 
 java command resolved to an absolute path
 
+=head2 star_cmd
+
+star command resolved to an absolute path to an executable;
+defaults to "star" found on the path
+
 =head2 find_jar
 
 find a named jar on the current jar_path
@@ -216,6 +216,8 @@ returns undefined if cannot get the version
 
 =item Perl6::Slurp
 
+=item Readonly
+
 =item npg_tracking::util::abs_path
 
 =back
@@ -234,7 +236,7 @@ Eduard J. Zuiderwijk, E<lt>ejz@sanger.ac.ukE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2013 GRL, by Ed Zuiderwijk
+Copyright (C) 2017 Genome Research Ltd
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

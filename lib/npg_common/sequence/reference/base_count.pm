@@ -28,7 +28,7 @@ npg_common::sequence::reference::base_count
 
 =head1 SYNOPSIS
 
- my $bc = npg_tracking::data::reference::base_count->new(reference_path => q[my.ref]);
+ my $bc = npg_common::data::reference::base_count->new(reference_path => q[my.ref]);
  $bc->run;
  
 =head1 DESCRIPTION

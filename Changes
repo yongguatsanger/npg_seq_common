@@ -1,5 +1,38 @@
 LIST OF CHANGES
 
+release 50.17
+  - update travis install
+    - use samtools/htslib 1.6 from samtools repos
+    - drop perl 5.16 from matrix
+    - drop pb_calibration
+
+release 50.16
+  - RefMaker: updated to generate STAR aligner reference genome indexes
+  - Travis not to build illumina2bam as its jar(s) are not used anymore
+
+release 50.15
+  - RefMaker not to build smalt index
+
+release 50.14
+  - seqchksum_merge.pl:
+      fix bug when handling different format files and added a test
+      dropped -n option
+      added a check for non-unique partitions in each input file
+
+release 50.13
+  - add "-F 0x 200" flag to fastq_summ command to filter qc fails from 10k read fastq subsets used for (some) QC checks
+
+release 50.12
+  - seqchksum_merge.pl
+      updated to generate chksums on the fly if given a bam file
+      added new column class (partition) to partition data when merging.
+      modified and extended tests. N.B. running the script on multiple bam files 
+      should generate the same values as bamcat + bamseqchksum but the
+      order is no longer guaranteed to be the same
+  - RefMaker: added extra dict symlink for RNA SeQc
+  - code changes to reduce number of warnings under Perl 5.22.2
+  
+release 50.11
   - RefMaker: added function for longranger mkref and extended test
 
 release 50.10

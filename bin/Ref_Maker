@@ -1,13 +1,10 @@
 #!/usr/bin/env perl
-#########
-# Created:       2008-06-17
 
 use strict;
 use warnings;
 use FindBin qw($Bin);
 use lib ( -d "$Bin/../lib/perl5" ? "$Bin/../lib/perl5" : "$Bin/../lib" );
 use Carp;
-use Cwd qw(abs_path);
 use English qw(-no_match_vars);
 use File::Basename;
 use File::chdir;
@@ -23,13 +20,13 @@ use Perl6::Slurp;
 use POSIX qw(strftime);
 use autodie qw(:all);
 use Readonly;
+use npg_tracking::util::abs_path qw(abs_path);
 
 our $VERSION = '0';
 
-Readonly::Array  my @ALIGNERS             => qw{ bowtie bowtie2 bwa bwa0_6 samtools };
+Readonly::Array  my @ALIGNERS             => qw{ bowtie bowtie2 bwa bwa0_6 samtools star };
 Readonly::Scalar my $DIR_PERM             => oct 755;
 Readonly::Scalar my $BWA_ALGORITHM_CUTOFF => 1_200_000_000;
-
 Readonly::Scalar my $SKIP_STRING => "\n*** Skipping to next aligner ***\n\n";
 
 my $ref_size;
@@ -50,7 +47,7 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
         npgqc       => 0,
         picard      => 0,
         samtools    => 0,
-        smalt       => 0,
+        star        => 0,
     );
     GetOptions( \%build, keys %build ) or croak 'Error in command line arguments';
 
@@ -74,7 +71,7 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
     # If no arguments were supplied build all index files, except longranger
     if ( sum( values %build ) == 0 ) {
         foreach my $k ( keys %build ) { $build{$k} = 1; }
-	$build{'longranger'} = 0;
+        $build{'longranger'} = 0;
     }
 
     # bwa uses a different algorithm depending on the size of the reference.
@@ -89,11 +86,11 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
     $arguments{'bwa0_6'}   = " index -p $files[0] -a $bwa_algorithm $files[0]";
     $arguments{'maq'}      = " fasta2bfa $files[0] $files[0].bfa";
     $arguments{'samtools'} = " faidx $files[0]";
+    $arguments{'star'}     = " --runMode genomeGenerate --genomeDir ./ --genomeFastaFiles ../fasta/$files[0]";
 
     my @failed; # record any failures
     my %subs = ();
     $subs{'blat'}       = \&blat;
-    $subs{'smalt'}      = \&smalt;
     $subs{'longranger'} = \&longranger;
     $subs{'picard'}     = \&picard;
     $subs{'npgqc'}      = \&gc_frac;
@@ -150,20 +147,14 @@ sub main { ##no critic (Subroutines::ProhibitExcessComplexity)
     # samtools requires its index file to be in the same directory as the fasta
     # Check first that the samtools command worked above.
     if ($build{'samtools'}) {
-        eval {
-            my $source = "samtools/$files[0].fai";
-            my $target = "fasta/$files[0].fai";
-            croak 'samtools .fai file not found' if !-e $source;
-
-            # This can fail if $target is a broken link.
-            ( -e $target ) && ( unlink $target );
-
-            symlink qq{../$source}, $target;
-            1;
-        } or do {
-            carp "Error symlinking fai file: $EVAL_ERROR $SKIP_STRING";
-        };
+        create_symlink("samtools/$files[0].fai","fasta/$files[0].fai");
     }
+
+    # RNA SeQc requires dict file in same directory as the fasta
+    if ($build{'picard'}) {
+        create_symlink("picard/$files[0].dict","fasta/$files[0].dict");
+    }
+
 
     if (@failed) {
         my $message = 'WARNING: Task(s) failed, see Ref_Maker output for '.
@@ -253,28 +244,6 @@ sub picard {
     return 1;
 }
 
-sub smalt {
-
-    clean_slate('smalt');
-
-    my $executable = q{smalt};
-    my $smalt_command = qq{$executable index $files[0] ../fasta/$files[0]};
-    $CWD = q{./smalt};
-
-    log_timestamp( 'start', 'smalt' );
-    eval { system $smalt_command; 1; }
-        or do {
-            carp "*** smalt conversion failed: $EVAL_ERROR $SKIP_STRING";
-            log_timestamp( 'abort', 'smalt' );
-            return 0;
-        };
-
-    $CWD = q{..};
-
-    log_timestamp( 'stop', 'smalt' );
-    return 1;
-}
-
 sub longranger {
 
     clean_slate('longranger');
@@ -337,6 +306,25 @@ sub log_timestamp {
     return;
 }
 
+sub create_symlink{
+
+    my($source,$target) = @_;
+
+    eval {
+        croak qq{$source file not found} if !-e $source;
+
+        # This can fail if $target is a broken link.
+        ( -e $target ) && ( unlink $target );
+
+        symlink qq{../$source}, $target;
+        1;
+    } or do {
+        carp "Error symlinking $target file: $EVAL_ERROR $SKIP_STRING";
+    };
+
+    return;
+}
+
 sub _get_rm {
     my $rm_class = Moose::Meta::Class->create_anon_class(
         roles => [qw/npg_common::roles::software_location/]);
@@ -349,7 +337,7 @@ sub _get_rm {
             is            => 'ro',
             isa           => 'NpgCommonResolvedPathExecutable',
             default       => 'bowtie2-build',
-	    coerce        => 1,));
+            coerce        => 1,));
     return $rm_class->new_object();
 }
 
@@ -417,10 +405,6 @@ Run base_count_maker
 
 Run CreateSequenceDictionary
 
-=head2 smalt
-
-Create smalt index
-
 =head2 longranger
 
 Create longranger mkref
@@ -436,6 +420,10 @@ Delete and previous version/attempt and create a fresh directory.
 =head2 log_timestamp
 
 Log a timestamp for the start or end (normal or aborted) of an aligner job.
+
+=head2 create_symlink
+
+Create a symlink between a source and target
 
 =head1 REQUIRED ARGUMENTS
 
@@ -460,8 +448,6 @@ Log a timestamp for the start or end (normal or aborted) of an aligner job.
 =item English
 
 =item Readonly
-
-=item Cwd
 
 =item File::Basename
 
@@ -488,6 +474,8 @@ Log a timestamp for the start or end (normal or aborted) of an aligner job.
 =item Perl6::Slurp
 
 =item POSIX
+
+=item npg_tracking::util::abs_path
 
 =back
 
@@ -520,7 +508,7 @@ Marina Gourtovaia
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2016 GRL
+Copyright (C) 2017 GRL
 
 This file is part of NPG.
 
